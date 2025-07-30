@@ -1,5 +1,5 @@
 # models/user_models.py
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from bson import ObjectId
@@ -14,14 +14,15 @@ class PersonalizationData(BaseModel):
     preferred_learning_style: Optional[str] = None
 
 class UserProfile(BaseModel):
-    id: Optional[str] = Field(alias="_id")
+    model_config = ConfigDict(
+        populate_by_name=True,
+        json_encoders={ObjectId: str}
+    )
+    
+    id: Optional[str] = Field(default=None, alias="_id")
     user_id: str
     name: Optional[str] = None
     email: Optional[str] = None
     personalization: PersonalizationData
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Config:
-        allow_population_by_field_name = True
-        json_encoders = {ObjectId: str}

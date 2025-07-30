@@ -3,7 +3,7 @@ from langchain.agents import AgentExecutor, create_structured_chat_agent
 from langchain.tools import Tool
 from langchain.schema import BaseMessage, HumanMessage, AIMessage
 from langchain.memory import ConversationBufferMemory
-from langchain_community.llms.base import LLM
+from langchain_core.language_models import LLM
 from typing import Dict, Any, List, Optional
 import json
 import uuid
