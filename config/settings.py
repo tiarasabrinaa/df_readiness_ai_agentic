@@ -4,6 +4,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings:
+    APP_NAME: str = "DF Readiness AI Assessment"
+    VERSION: str = "0.1.0"
+    DEBUG: bool = True
+    ALLOWED_HOSTS: list = ["*"]
+    CORS_ORIGINS: list = ["*"]
+    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
+    HOST: str = os.getenv("HOST", "0.0.0.0")  # <-- Tambahkan baris ini
+    PORT: int = int(os.getenv("PORT", 8000))
+    LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
+
     # LLM Config
     LLM_URL = os.getenv("URL_CUSTOM_LLM_APILOGY")
     LLM_TOKEN = os.getenv("TOKEN_CUSTOM_LLM_APILOGY")

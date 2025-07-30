@@ -1,8 +1,11 @@
 # services/llm_service.py
 import httpx
 import json
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from config.settings import settings
+import logging
+
+logger = logging.getLogger(__name__)
 
 class LLMService:
     def __init__(self):
@@ -11,7 +14,7 @@ class LLMService:
         
     async def call_llm(self, messages: list, max_tokens: int = 2000, temperature: float = 0.7) -> str:
         """
-        Makes async call to Telkom LLM API
+        Makes async call to Telkom LLM API with improved error handling
         """
         payload = {
             "messages": messages,
@@ -27,19 +30,86 @@ class LLMService:
         }
         
         try:
-            async with httpx.AsyncClient() as client:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                logger.info(f"Sending request to LLM API: {len(messages)} messages")
                 response = await client.post(self.url, json=payload, headers=headers)
                 
+                logger.info(f"LLM API Response Status: {response.status_code}")
+                
                 if response.status_code == 200:
-                    return response.json()['choices'][0]['message']['content']
+                    response_data = response.json()
+                    logger.info(f"LLM API Response structure: {list(response_data.keys())}")
+                    
+                    # Debug: Print the full response structure
+                    logger.debug(f"Full response: {json.dumps(response_data, indent=2, ensure_ascii=False)}")
+                    
+                    # Check if response has expected structure
+                    if 'choices' in response_data and len(response_data['choices']) > 0:
+                        choice = response_data['choices'][0]
+                        if 'message' in choice and 'content' in choice['message']:
+                            content = choice['message']['content']
+                            if content and content.strip():
+                                return content.strip()
+                            else:
+                                logger.warning("LLM returned empty content")
+                                return "Maaf, saya perlu waktu sejenak untuk memproses. Bisakah Anda mengulangi pertanyaan atau memberikan informasi lebih detail?"
+                        else:
+                            logger.error(f"Unexpected choice structure: {choice}")
+                            return "Maaf, terjadi masalah dengan respons AI. Bisakah Anda mencoba lagi?"
+                    else:
+                        logger.error(f"No choices in response: {response_data}")
+                        return "Maaf, tidak ada respons yang diterima dari AI. Silakan coba lagi."
                 else:
                     error_message = response.text
-                    print(f"API Error {response.status_code}: {error_message}")
-                    return f"Error: API call failed with status {response.status_code}"
+                    logger.error(f"API Error {response.status_code}: {error_message}")
+                    return f"Maaf, terjadi masalah teknis (Error {response.status_code}). Silakan coba lagi dalam beberapa saat."
                     
+        except httpx.TimeoutException:
+            logger.error("LLM API timeout")
+            return "Maaf, permintaan timeout. Silakan coba lagi."
+        except httpx.RequestError as e:
+            logger.error(f"LLM Request Error: {str(e)}")
+            return f"Maaf, terjadi masalah koneksi: {str(e)}"
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON decode error: {str(e)}")
+            return "Maaf, terjadi masalah dalam memproses respons. Silakan coba lagi."
         except Exception as e:
-            print(f"LLM Service Error: {str(e)}")
-            return f"Error: {str(e)}"
+            logger.error(f"LLM Service Error: {str(e)}")
+            return f"Maaf, terjadi kesalahan: {str(e)}"
+    
+    async def generate_response(self, prompt: str, conversation_history: List[Dict[str, str]] = None) -> str:
+        """
+        Generate response based on prompt and conversation history
+        """
+        messages = []
+        
+        # Add system message with the prompt
+        messages.append({
+            "role": "system", 
+            "content": prompt
+        })
+        
+        # Add conversation history if provided
+        if conversation_history:
+            # Take last 8 messages to avoid token limit and ensure context
+            recent_history = conversation_history[-8:] if len(conversation_history) > 8 else conversation_history
+            messages.extend(recent_history)
+            
+            # If no recent user message, add a generic prompt
+            if not any(msg.get('role') == 'user' for msg in recent_history[-2:]):
+                messages.append({
+                    "role": "user",
+                    "content": "Lanjutkan percakapan assessment dan ajukan pertanyaan berikutnya."
+                })
+        else:
+            # If no conversation history, add initial user message
+            messages.append({
+                "role": "user",
+                "content": "Mulai assessment digital forensics readiness."
+            })
+        
+        logger.info(f"Generating response with {len(messages)} messages")
+        return await self.call_llm(messages, max_tokens=1500, temperature=0.7)
     
     async def generate_personalization_questions(self, context: str = "") -> str:
         """

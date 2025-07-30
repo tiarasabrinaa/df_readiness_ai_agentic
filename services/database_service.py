@@ -5,26 +5,53 @@ import pandas as pd
 from datetime import datetime
 from bson import ObjectId
 import json
+import logging
 
 from config.settings import settings
 from models.user_models import UserProfile, PersonalizationData
 from models.assessment_models import AssessmentQuestion, AssessmentSession, UserAnswer
+from utils.helpers import setup_logging
+
+logger = setup_logging()
 
 class DatabaseService:
     def __init__(self):
         self.client = None
         self.db = None
+        self._connected = False
+        
+    @property
+    def collection(self):
+        """Get the questions collection"""
+        if self.db is None:
+            raise RuntimeError("Database not connected. Call connect() first.")
+        return self.db[settings.QUESTIONS_COLLECTION]
+    
+    @property
+    def connected(self):
+        """Check if database is connected"""
+        return self._connected
         
     async def connect(self):
         """Connect to MongoDB"""
-        self.client = AsyncIOMotorClient(settings.MONGODB_URI)
-        self.db = self.client[settings.DATABASE_NAME]
-        print("Connected to MongoDB")
+        try:
+            self.client = AsyncIOMotorClient(settings.MONGODB_URI)
+            self.db = self.client[settings.DATABASE_NAME]
+            
+            # Test the connection
+            await self.client.admin.command('ping')
+            self._connected = True
+            print("Connected to MongoDB")
+        except Exception as e:
+            self._connected = False
+            print(f"Failed to connect to MongoDB: {str(e)}")
+            raise
         
     async def disconnect(self):
         """Disconnect from MongoDB"""
         if self.client:
             self.client.close()
+            self._connected = False
             print("Disconnected from MongoDB")
     
     async def load_questions_from_csv(self, csv_path: str):
@@ -43,8 +70,8 @@ class DatabaseService:
                 questions.append(question)
             
             # Clear existing questions and insert new ones
-            await self.db[settings.QUESTIONS_COLLECTION].delete_many({})
-            result = await self.db[settings.QUESTIONS_COLLECTION].insert_many(questions)
+            await self.collection.delete_many({})
+            result = await self.collection.insert_many(questions)
             
             print(f"Loaded {len(result.inserted_ids)} questions from CSV")
             return len(result.inserted_ids)
@@ -53,35 +80,65 @@ class DatabaseService:
             print(f"Error loading questions from CSV: {str(e)}")
             return 0
     
-    async def get_questions_by_level(self, level: str) -> List[AssessmentQuestion]:
-        """Get questions by level"""
+    async def get_questions_by_level(self, level: str) -> List[Dict[str, Any]]:
+        """Get questions filtered by level and return as dictionaries"""
         try:
-            cursor = self.db[settings.QUESTIONS_COLLECTION].find({"level": level})
+            cursor = self.collection.find({"level": level})
             questions = []
             
             async for doc in cursor:
-                doc['_id'] = str(doc['_id'])
-                questions.append(AssessmentQuestion(**doc))
+                # Convert ObjectId to string
+                if '_id' in doc:
+                    doc['_id'] = str(doc['_id'])
+                questions.append(doc)
                 
             return questions
         except Exception as e:
-            print(f"Error getting questions by level: {str(e)}")
+            logger.error(f"Error getting questions by level: {str(e)}")
             return []
     
-    async def get_all_questions(self) -> List[AssessmentQuestion]:
-        """Get all questions"""
+    async def get_all_questions(self) -> List[Dict[str, Any]]:
+        """Get all questions as dictionaries"""
         try:
-            cursor = self.db[settings.QUESTIONS_COLLECTION].find({})
+            cursor = self.collection.find({})
             questions = []
             
             async for doc in cursor:
-                doc['_id'] = str(doc['_id'])
-                questions.append(AssessmentQuestion(**doc))
+                # Convert ObjectId to string
+                if '_id' in doc:
+                    doc['_id'] = str(doc['_id'])
+                questions.append(doc)
                 
             return questions
         except Exception as e:
-            print(f"Error getting all questions: {str(e)}")
+            logger.error(f"Error getting all questions: {str(e)}")
             return []
+    
+    async def count_questions(self) -> int:
+        """Count total questions in database"""
+        try:
+            return await self.collection.count_documents({})
+        except Exception as e:
+            logger.error(f"Error counting questions: {str(e)}")
+            return 0
+    
+    async def count_questions_by_level(self, level: str) -> int:
+        """Count questions by level"""
+        try:
+            return await self.collection.count_documents({"level": level})
+        except Exception as e:
+            logger.error(f"Error counting questions by level: {str(e)}")
+            return 0
+    
+    async def delete_all_questions(self) -> bool:
+        """Delete all questions from database"""
+        try:
+            result = await self.collection.delete_many({})
+            print(f"Deleted {result.deleted_count} questions")
+            return True
+        except Exception as e:
+            logger.error(f"Error deleting questions: {str(e)}")
+            return False
     
     async def save_user_profile(self, user_profile: UserProfile) -> str:
         """Save or update user profile"""
