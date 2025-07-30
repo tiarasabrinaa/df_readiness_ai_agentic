@@ -26,109 +26,7 @@ class TelkomLLM(LLM):
         return "Using async version"
     
     async def _acall(self, prompt: str, stop: Optional[List[str]] = None) -> str:
-        messages = [{"role": "user", "content": summary_prompt}]
-        response = await llm_service.call_llm(messages, temperature=0.7)
-        
-        return {
-            "message": response,
-            "move_to_next": True,
-            "personalization_complete": True
-        }
-    
-    async def _save_personalization_data(self, user_id: str) -> bool:
-        """Save collected personalization data to database"""
-        try:
-            # Parse collected data into PersonalizationData model
-            personalization = PersonalizationData(
-                industry=self.collected_data.get("industry"),
-                company_size=self._extract_company_size(self.collected_data.get("company_experience", "")),
-                role=self.collected_data.get("role"),
-                experience_level=self._extract_experience_level(self.collected_data.get("company_experience", "")),
-                current_security_awareness=self.collected_data.get("security_awareness"),
-                main_concerns=self._extract_concerns(self.collected_data.get("concerns_learning", "")),
-                preferred_learning_style=self._extract_learning_style(self.collected_data.get("concerns_learning", ""))
-            )
-            
-            # Create user profile
-            user_profile = UserProfile(
-                user_id=user_id,
-                personalization=personalization
-            )
-            
-            # Save to database
-            profile_id = await db_service.save_user_profile(user_profile)
-            return profile_id is not None
-            
-        except Exception as e:
-            print(f"Error saving personalization data: {str(e)}")
-            return False
-    
-    def _extract_company_size(self, text: str) -> str:
-        """Extract company size from text"""
-        text_lower = text.lower()
-        if any(word in text_lower for word in ["startup", "small", "kecil"]):
-            return "Small (1-50)"
-        elif any(word in text_lower for word in ["medium", "menengah", "sme"]):
-            return "Medium (51-200)"
-        elif any(word in text_lower for word in ["large", "enterprise", "besar", "multinational"]):
-            return "Large (200+)"
-        elif any(word in text_lower for word in ["government", "pemerintah", "gov"]):
-            return "Government"
-        else:
-            return "Unknown"
-    
-    def _extract_experience_level(self, text: str) -> str:
-        """Extract experience level from text"""
-        text_lower = text.lower()
-        if any(word in text_lower for word in ["baru", "fresh", "junior", "1 tahun", "beginner"]):
-            return "Beginner (0-2 years)"
-        elif any(word in text_lower for word in ["intermediate", "2-5", "beberapa tahun"]):
-            return "Intermediate (2-5 years)"
-        elif any(word in text_lower for word in ["senior", "expert", "5+", "lebih dari 5"]):
-            return "Senior (5+ years)"
-        else:
-            return "Unknown"
-    
-    def _extract_concerns(self, text: str) -> List[str]:
-        """Extract main concerns from text"""
-        concerns = []
-        text_lower = text.lower()
-        
-        if any(word in text_lower for word in ["data", "kehilangan data", "data loss"]):
-            concerns.append("Data Loss Prevention")
-        if any(word in text_lower for word in ["ransomware", "malware", "virus"]):
-            concerns.append("Malware/Ransomware")
-        if any(word in text_lower for word in ["compliance", "audit", "regulation"]):
-            concerns.append("Compliance & Audit")
-        if any(word in text_lower for word in ["incident", "response", "breach"]):
-            concerns.append("Incident Response")
-        if any(word in text_lower for word in ["employee", "karyawan", "human error"]):
-            concerns.append("Human Factor")
-        if any(word in text_lower for word in ["network", "infrastruktur", "sistem"]):
-            concerns.append("Infrastructure Security")
-            
-        return concerns if concerns else ["General Security"]
-    
-    def _extract_learning_style(self, text: str) -> str:
-        """Extract learning style preference from text"""
-        text_lower = text.lower()
-        if any(word in text_lower for word in ["praktis", "hands-on", "practice", "langsung"]):
-            return "Hands-on/Practical"
-        elif any(word in text_lower for word in ["teori", "theory", "konsep", "fundamental"]):
-            return "Theory-based"
-        elif any(word in text_lower for word in ["case study", "studi kasus", "real case", "contoh"]):
-            return "Case Study"
-        else:
-            return "Mixed"
-    
-    def reset_session(self):
-        """Reset agent session for new user"""
-        self.current_step = "greeting"
-        self.collected_data = {}
-        self.memory.clear()
-
-        # Global personalization agent instance
-        personalization_agent = PersonalizationAgent()user", "content": prompt}]
+        messages = [{"role": "user", "content": prompt}]
         return await llm_service.call_llm(messages)
 
 class PersonalizationAgent:
@@ -329,4 +227,106 @@ class PersonalizationAgent:
         sekarang akan lanjut ke assessment yang sudah dipersonalisasi sesuai profile mereka.
         """
         
-        messages = [{"role": "}]
+        messages = [{"role": "user", "content": summary_prompt}]
+        response = await llm_service.call_llm(messages, temperature=0.7)
+        
+        return {
+            "message": response,
+            "move_to_next": True,
+            "personalization_complete": True
+        }
+    
+    async def _save_personalization_data(self, user_id: str) -> bool:
+        """Save collected personalization data to database"""
+        try:
+            # Parse collected data into PersonalizationData model
+            personalization = PersonalizationData(
+                industry=self.collected_data.get("industry"),
+                company_size=self._extract_company_size(self.collected_data.get("company_experience", "")),
+                role=self.collected_data.get("role"),
+                experience_level=self._extract_experience_level(self.collected_data.get("company_experience", "")),
+                current_security_awareness=self.collected_data.get("security_awareness"),
+                main_concerns=self._extract_concerns(self.collected_data.get("concerns_learning", "")),
+                preferred_learning_style=self._extract_learning_style(self.collected_data.get("concerns_learning", ""))
+            )
+            
+            # Create user profile
+            user_profile = UserProfile(
+                user_id=user_id,
+                personalization=personalization
+            )
+            
+            # Save to database
+            profile_id = await db_service.save_user_profile(user_profile)
+            return profile_id is not None
+            
+        except Exception as e:
+            print(f"Error saving personalization data: {str(e)}")
+            return False
+    
+    def _extract_company_size(self, text: str) -> str:
+        """Extract company size from text"""
+        text_lower = text.lower()
+        if any(word in text_lower for word in ["startup", "small", "kecil"]):
+            return "Small (1-50)"
+        elif any(word in text_lower for word in ["medium", "menengah", "sme"]):
+            return "Medium (51-200)"
+        elif any(word in text_lower for word in ["large", "enterprise", "besar", "multinational"]):
+            return "Large (200+)"
+        elif any(word in text_lower for word in ["government", "pemerintah", "gov"]):
+            return "Government"
+        else:
+            return "Unknown"
+    
+    def _extract_experience_level(self, text: str) -> str:
+        """Extract experience level from text"""
+        text_lower = text.lower()
+        if any(word in text_lower for word in ["baru", "fresh", "junior", "1 tahun", "beginner"]):
+            return "Beginner (0-2 years)"
+        elif any(word in text_lower for word in ["intermediate", "2-5", "beberapa tahun"]):
+            return "Intermediate (2-5 years)"
+        elif any(word in text_lower for word in ["senior", "expert", "5+", "lebih dari 5"]):
+            return "Senior (5+ years)"
+        else:
+            return "Unknown"
+    
+    def _extract_concerns(self, text: str) -> List[str]:
+        """Extract main concerns from text"""
+        concerns = []
+        text_lower = text.lower()
+        
+        if any(word in text_lower for word in ["data", "kehilangan data", "data loss"]):
+            concerns.append("Data Loss Prevention")
+        if any(word in text_lower for word in ["ransomware", "malware", "virus"]):
+            concerns.append("Malware/Ransomware")
+        if any(word in text_lower for word in ["compliance", "audit", "regulation"]):
+            concerns.append("Compliance & Audit")
+        if any(word in text_lower for word in ["incident", "response", "breach"]):
+            concerns.append("Incident Response")
+        if any(word in text_lower for word in ["employee", "karyawan", "human error"]):
+            concerns.append("Human Factor")
+        if any(word in text_lower for word in ["network", "infrastruktur", "sistem"]):
+            concerns.append("Infrastructure Security")
+            
+        return concerns if concerns else ["General Security"]
+    
+    def _extract_learning_style(self, text: str) -> str:
+        """Extract learning style preference from text"""
+        text_lower = text.lower()
+        if any(word in text_lower for word in ["praktis", "hands-on", "practice", "langsung"]):
+            return "Hands-on/Practical"
+        elif any(word in text_lower for word in ["teori", "theory", "konsep", "fundamental"]):
+            return "Theory-based"
+        elif any(word in text_lower for word in ["case study", "studi kasus", "real case", "contoh"]):
+            return "Case Study"
+        else:
+            return "Mixed"
+    
+    def reset_session(self):
+        """Reset agent session for new user"""
+        self.current_step = "greeting"
+        self.collected_data = {}
+        self.memory.clear()
+
+# Global personalization agent instance
+personalization_agent = PersonalizationAgent()
