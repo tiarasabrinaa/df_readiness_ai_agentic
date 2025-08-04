@@ -5,6 +5,7 @@ import json
 import asyncio
 from datetime import datetime
 from typing import Dict, Any, List
+from functools import wraps
 
 # REAL imports - ganti path sesuai struktur project lu
 from services.database_service import db_service
@@ -13,6 +14,18 @@ from services.llm_service import llm_service
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_change_this_in_production'
 CORS(app, supports_credentials=True)
+
+def async_route(f):
+    """Decorator to handle async routes in Flask"""
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            return loop.run_until_complete(f(*args, **kwargs))
+        finally:
+            loop.close()
+    return wrapper
 
 class SessionManager:
     """Enhanced session manager with REAL LLM integration"""
@@ -73,9 +86,12 @@ def get_or_create_session():
     return session_managers[session_id]
 
 # Initialize database connection on startup
-with app.app_context():
-    async def startup():
-        """Connect to database on startup"""
+def startup():
+    """Connect to database on startup"""
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    async def _startup():
         try:
             await db_service.connect()
             print("✅ Database connected successfully")
@@ -84,57 +100,116 @@ with app.app_context():
             question_count = await db_service.count_questions()
             print(f"📊 Total questions in database: {question_count}")
             
+            if question_count == 0:
+                print("⚠️ No questions found in database. You may need to load questions.")
+            else:
+                # Show questions by level
+                for level in ["basic", "intermediate", "advanced"]:
+                    count = await db_service.count_questions_by_level(level)
+                    print(f"   - {level}: {count} questions")
+            
         except Exception as e:
             print(f"❌ Failed to initialize database: {str(e)}")
+    
+    try:
+        loop.run_until_complete(_startup())
+    finally:
+        loop.close()
 
 @app.route('/', methods=['GET'])
 def home():
     """API information"""
     return jsonify({
         "message": "🚀 REAL Cybersecurity Readiness Assessment API with LLM",
-        "version": "2.0-REAL",
+        "version": "2.1-DATABASE",
         "flow": {
-            "1": "GET /start_profiling - Get 5 profiling questions",
-            "2": "POST /submit_answers - Submit answers, REAL LLM determines level", 
+            "1": "GET /start_profiling - Get 5 profiling questions from AI",
+            "2": "POST /submit_answers - Submit answers in JSON format, REAL LLM determines level", 
             "3": "GET /get_test_questions - Get 3 questions from REAL MongoDB",
             "4": "POST /submit_test_answers - Submit test answers",
             "5": "GET /get_results - REAL LLM evaluation and recommendations"
         },
         "features": {
             "llm_integration": "✅ Real Telkom LLM API",
-            "database": "✅ Real MongoDB with Motor",
+            "database": "✅ Real MongoDB with Motor - Questions from DB",
             "personalization": "✅ AI-powered level assessment",
             "evaluation": "✅ Comprehensive AI analysis"
         }
     })
 
 @app.route('/start_profiling', methods=['GET'])
-def start_profiling():
-    """Send 5 profiling questions"""
+@async_route
+async def start_profiling():
+    """Generate 5 profiling questions using AI"""
     try:
         manager = get_or_create_session()
         
-        questions = [
-            "Apa jenis industri yang Anda geluti?",
-            "Seberapa besar perusahaan Anda (berapa karyawan)?", 
-            "Apa posisi/role Anda di perusahaan?",
-            "Berapa tahun pengalaman Anda dalam keamanan IT/cybersecurity?",
-            "Apakah perusahaan Anda pernah mengalami insiden keamanan? Jelaskan singkat."
-        ]
+        # Use AI to generate contextual profiling questions
+        profiling_prompt = """
+Kamu adalah AI expert dalam cybersecurity assessment. Generate 5 pertanyaan profiling yang akan membantu menentukan level assessment yang tepat untuk user.
+
+Pertanyaan harus mencakup:
+1. Industri/bidang usaha
+2. Ukuran organisasi 
+3. Posisi/role user
+4. Pengalaman cybersecurity
+5. Riwayat insiden keamanan
+
+FORMAT RESPONSE JSON:
+{
+    "questions": [
+        "Pertanyaan 1 tentang industri...",
+        "Pertanyaan 2 tentang ukuran perusahaan...", 
+        "Pertanyaan 3 tentang posisi/role...",
+        "Pertanyaan 4 tentang pengalaman...",
+        "Pertanyaan 5 tentang riwayat insiden..."
+    ]
+}
+
+Buatlah pertanyaan yang spesifik dan akan menghasilkan informasi yang berguna untuk assessment level.
+"""
+        
+        print(f"🤖 Generating profiling questions using AI...")
+        ai_response = await llm_service.generate_response(profiling_prompt, [])
+        
+        # Parse AI response
+        try:
+            if '{' in ai_response and '}' in ai_response:
+                json_start = ai_response.find('{')
+                json_end = ai_response.rfind('}') + 1
+                json_str = ai_response[json_start:json_end]
+                ai_result = json.loads(json_str)
+                questions = ai_result.get("questions", [])
+            else:
+                raise json.JSONDecodeError("No JSON found", ai_response, 0)
+        except json.JSONDecodeError:
+            print(f"⚠️ Using fallback questions due to AI parsing error")
+            # Fallback questions
+            questions = [
+                "Apa jenis industri atau bidang usaha yang Anda geluti?",
+                "Berapa jumlah karyawan di organisasi Anda?", 
+                "Apa posisi/jabatan Anda saat ini di perusahaan?",
+                "Berapa tahun pengalaman Anda dalam bidang keamanan IT/cybersecurity?",
+                "Apakah organisasi Anda pernah mengalami insiden keamanan? Jelaskan singkat."
+            ]
         
         return jsonify({
             "session_id": manager.session_id,
             "questions": questions,
             "total_questions": len(questions),
             "current_phase": manager.context["current_phase"],
-            "instruction": "Jawab semua pertanyaan dengan detail untuk analisis LLM yang akurat"
+            "instruction": "Jawab semua pertanyaan dengan detail untuk analisis LLM yang akurat",
+            "expected_format": "JSON dengan format: {'question1': 'answer1', 'question2': 'answer2', ...}"
         })
+        
     except Exception as e:
+        print(f"❌ Error in start_profiling: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/submit_answers', methods=['POST'])
+@async_route
 async def submit_answers():
-    """Process profiling answers and determine assessment level using REAL LLM"""
+    """Process profiling answers in JSON format and determine assessment level using REAL LLM"""
     try:
         manager = get_or_create_session()
         
@@ -142,44 +217,62 @@ async def submit_answers():
             return jsonify({"error": "Request must be JSON"}), 400
         
         data = request.get_json()
-        answers = data.get('answers', [])
         
-        if len(answers) != 5:
-            return jsonify({"error": "Please provide exactly 5 answers."}), 400
+        # Accept both formats: array of answers or question-answer pairs
+        if 'answers' in data and isinstance(data['answers'], list):
+            # Legacy format: array of answers
+            answers = data.get('answers', [])
+            if len(answers) != 5:
+                return jsonify({"error": "Please provide exactly 5 answers."}), 400
+            
+            # Convert to question-answer format
+            question_keys = ["industry", "company_size", "position", "experience", "security_incidents"]
+            qa_pairs = {}
+            for idx, answer in enumerate(answers):
+                if idx < len(question_keys):
+                    qa_pairs[f"question{idx+1}"] = answer
+                    manager.update_profile_data(question_keys[idx], answer)
         
-        # Store profile data
-        question_keys = ["industry", "company_size", "position", "experience", "security_incidents"]
-        for idx, answer in enumerate(answers):
-            if idx < len(question_keys):
-                manager.update_profile_data(question_keys[idx], answer)
+        elif any(key.startswith('question') for key in data.keys()):
+            # New format: question-answer pairs
+            qa_pairs = {k: v for k, v in data.items() if k.startswith('question')}
+            
+            if len(qa_pairs) != 5:
+                return jsonify({"error": "Please provide exactly 5 question-answer pairs."}), 400
+            
+            # Store profile data
+            question_keys = ["industry", "company_size", "position", "experience", "security_incidents"]
+            for idx, (question, answer) in enumerate(qa_pairs.items()):
+                if idx < len(question_keys):
+                    manager.update_profile_data(question_keys[idx], answer)
+        else:
+            return jsonify({
+                "error": "Invalid format. Please provide either 'answers' array or 'question1', 'question2', etc. keys"
+            }), 400
         
         # Prepare REAL prompt for LLM analysis
         profiling_prompt = f"""
 Kamu adalah AI expert dalam cybersecurity assessment. Berdasarkan profiling data user berikut, tentukan level assessment yang tepat:
 
-PROFILING DATA:
-1. Industri: {answers[0]}
-2. Ukuran perusahaan: {answers[1]}
-3. Posisi: {answers[2]}
-4. Pengalaman cybersecurity: {answers[3]}
-5. Riwayat insiden: {answers[4]}
+PROFILING DATA (JSON format):
+{json.dumps(qa_pairs, indent=2, ensure_ascii=False)}
 
 TUGAS:
 Analisis profile user dan tentukan level assessment yang tepat berdasarkan kriteria:
 
-BEGINNER (Basic):
+basic:
 - Pengalaman < 2 tahun dalam cybersecurity
 - Perusahaan kecil (<50 karyawan) atau tidak ada dedicated security team
 - Belum pernah/jarang mengalami insiden serius
 - Role tidak spesifik ke security (general IT, admin, dll)
 
-INTERMEDIATE:
+intermediate:
 - Pengalaman 2-7 tahun dalam cybersecurity  
 - Perusahaan menengah (50-500 karyawan) dengan basic security measures
 - Pernah mengalami beberapa insiden dan ada proses handling
 - Role terkait security tapi belum senior level
 
-ADVANCED:
+advanced:
 - Pengalaman >7 tahun atau role senior security
 - Perusahaan besar (>500 karyawan) dengan mature security program
 - Pengalaman menangani insiden kompleks/APT
@@ -187,7 +280,7 @@ ADVANCED:
 
 FORMAT RESPONSE JSON:
 {{
-    "assessment_level": "Beginner/Intermediate/Advanced",
+    "assessment_level": "basic/intermediate/advanced",
     "confidence_score": 85,
     "reasoning": "penjelasan detail mengapa level ini dipilih berdasarkan analisis profiling",
     "user_profile_summary": "ringkasan karakteristik user",
@@ -214,7 +307,7 @@ Berikan analisis yang akurat dan reasoning yang solid!
                 # Fallback parsing if no JSON format
                 raise json.JSONDecodeError("No JSON found", ai_response, 0)
                 
-            assessment_level = llm_result.get("assessment_level", "Beginner")
+            assessment_level = llm_result.get("assessment_level", "basic")
             
         except json.JSONDecodeError as e:
             print(f"⚠️ JSON parsing failed: {str(e)}")
@@ -223,11 +316,11 @@ Berikan analisis yang akurat dan reasoning yang solid!
             # Fallback: extract level from text
             ai_lower = ai_response.lower()
             if "advanced" in ai_lower:
-                assessment_level = "Advanced"
+                assessment_level = "advanced"
             elif "intermediate" in ai_lower:
-                assessment_level = "Intermediate"
+                assessment_level = "intermediate"
             else:
-                assessment_level = "Beginner"
+                assessment_level = "basic"
                 
             llm_result = {
                 "assessment_level": assessment_level,
@@ -240,11 +333,13 @@ Berikan analisis yang akurat dan reasoning yang solid!
         manager.context["current_phase"] = "assessment_level"
         manager.context["assessment_level"] = assessment_level
         manager.context["llm_analysis"] = llm_result
+        manager.context["profiling_qa_pairs"] = qa_pairs
         
         return jsonify({
             "message": "✅ Profiling complete. Level determined by REAL LLM analysis.",
             "session_id": manager.session_id,
             "profile_data": manager.context["user_profile"],
+            "qa_pairs": qa_pairs,
             "assessment_level": assessment_level,
             "llm_analysis": llm_result,
             "current_phase": manager.context["current_phase"],
@@ -256,6 +351,7 @@ Berikan analisis yang akurat dan reasoning yang solid!
         return jsonify({"error": str(e)}), 500
 
 @app.route('/get_test_questions', methods=['GET'])
+@async_route
 async def get_test_questions():
     """Get 3 questions from REAL MongoDB based on assessment level"""
     try:
@@ -276,21 +372,27 @@ async def get_test_questions():
         if not questions:
             print(f"⚠️ No questions found for level {assessment_level}, trying alternatives...")
             # Fallback: try other levels
-            for fallback_level in ["Intermediate", "Beginner", "Advanced"]:
+            for fallback_level in ["intermediate", "basic", "advanced"]:
                 if fallback_level != assessment_level:
                     questions = await db_service.get_questions_by_level(fallback_level)
                     if questions:
                         print(f"✅ Found {len(questions)} questions from {fallback_level} level")
+                        assessment_level = fallback_level  # Update level for response
                         break
         
         if not questions:
             return jsonify({
                 "error": "No questions available in database",
-                "suggestion": "Please load questions using /load_questions endpoint"
+                "suggestion": "Please load questions using database seeding or manual insertion",
+                "available_endpoints": ["/db_stats", "/seed_questions"]
             }), 404
         
-        # Take only 3 questions
-        selected_questions = questions[:3]
+        # Take only 3 questions randomly
+        import random
+        if len(questions) > 3:
+            selected_questions = random.sample(questions, 3)
+        else:
+            selected_questions = questions
         
         # Store questions in session
         manager.context["test_questions"] = selected_questions
@@ -302,7 +404,8 @@ async def get_test_questions():
             "questions": selected_questions,
             "total_questions": len(selected_questions),
             "current_phase": manager.context["current_phase"],
-            "instruction": "Jawab semua pertanyaan dengan detail untuk evaluasi LLM yang komprehensif"
+            "instruction": "Jawab semua pertanyaan dengan detail untuk evaluasi LLM yang komprehensif",
+            "expected_format": "Array of answers: ['answer1', 'answer2', 'answer3']"
         })
         
     except Exception as e:
@@ -329,7 +432,7 @@ def submit_test_answers():
             return jsonify({"error": f"Please provide exactly {expected_count} answers"}), 400
         
         # Store answers with validation
-        if not all(answer.strip() for answer in answers):
+        if not all(str(answer).strip() for answer in answers):
             return jsonify({"error": "All answers must be non-empty"}), 400
         
         manager.context["test_answers"] = answers
@@ -347,6 +450,7 @@ def submit_test_answers():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/get_results', methods=['GET'])
+@async_route
 async def get_results():
     """Get final evaluation and recommendations using REAL LLM"""
     try:
@@ -359,22 +463,26 @@ async def get_results():
         answers = manager.context["test_answers"]
         user_profile = manager.context["user_profile"]
         assessment_level = manager.context["assessment_level"]
+        qa_pairs = manager.context.get("profiling_qa_pairs", {})
         
         # Prepare comprehensive evaluation prompt
         evaluation_prompt = f"""
 Kamu adalah expert dalam cybersecurity dan digital forensics readiness assessment. 
 
-USER PROFILE:
+USER PROFILE SUMMARY:
 - Industri: {user_profile.get('industry', 'Unknown')}
 - Ukuran perusahaan: {user_profile.get('company_size', 'Unknown')}
 - Posisi: {user_profile.get('position', 'Unknown')}
 - Pengalaman: {user_profile.get('experience', 'Unknown')}
 - Assessment Level: {assessment_level}
 
-ASSESSMENT DATA:
+PROFILING Q&A:
+{json.dumps(qa_pairs, indent=2, ensure_ascii=False)}
+
+ASSESSMENT TEST RESULTS:
 """
         
-        # Add Q&A pairs
+        # Add Q&A pairs from database questions
         for i, (question, answer) in enumerate(zip(questions, answers), 1):
             evaluation_prompt += f"""
 PERTANYAAN {i}:
@@ -391,7 +499,7 @@ Berikan evaluasi komprehensif digital forensics readiness berdasarkan profil use
 
 FORMAT RESPONSE JSON:
 {{
-    "overall_level": "Basic/Good/Excellent",
+    "overall_level": "basic/intermediate/advanced",
     "overall_score": 0-100,
     "readiness_percentage": 0-100,
     "strengths": ["strength1", "strength2", "strength3"],
@@ -474,6 +582,8 @@ Berikan evaluasi yang detail, actionable, dan sesuai dengan konteks industri use
             "session_id": manager.session_id,
             "assessment_level": assessment_level,
             "user_profile": user_profile,
+            "profiling_qa": qa_pairs,
+            "test_questions": len(questions),
             "evaluation": evaluation,
             "questions_answered": len(answers),
             "current_phase": manager.context["current_phase"],
@@ -502,18 +612,81 @@ def session_status():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Utility endpoint for loading questions from CSV
-@app.route('/load_questions', methods=['POST'])
-async def load_questions():
-    """Load questions from CSV to MongoDB"""
+# Database utility endpoints
+@app.route('/db_stats', methods=['GET'])
+@async_route
+async def db_stats():
+    """Get database statistics"""
     try:
-        data = request.get_json()
-        csv_path = data.get('csv_path', 'questions.csv')
+        total_questions = await db_service.count_questions()
         
-        count = await db_service.load_questions_from_csv(csv_path)
+        stats = {
+            "total_questions": total_questions,
+            "questions_by_level": {}
+        }
+        
+        for level in ["basic", "intermediate", "advanced"]:
+            count = await db_service.count_questions_by_level(level)
+            stats["questions_by_level"][level] = count
+        
         return jsonify({
-            "message": f"✅ Loaded {count} questions from {csv_path}",
-            "questions_loaded": count
+            "message": "Database statistics", 
+            "stats": stats,
+            "database_connected": db_service.connected
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/seed_questions', methods=['POST'])
+@async_route
+async def seed_questions():
+    """Seed database with sample questions"""
+    try:
+        sample_questions = [
+            {
+                "level": "basic",
+                "question": "Does your organization have a documented disaster recovery strategy?",
+                "why_matter": "Having a documented disaster recovery strategy is essential for ensuring organizational continuity in case of a disaster."
+            },
+            {
+                "level": "basic", 
+                "question": "Are regular backups performed and tested in your organization?",
+                "why_matter": "Regular and tested backups are crucial for data recovery and business continuity."
+            },
+            {
+                "level": "intermediate",
+                "question": "Does your organization have an incident response team with defined roles and responsibilities?",
+                "why_matter": "A well-defined incident response team ensures quick and effective response to security incidents."
+            },
+            {
+                "level": "intermediate",
+                "question": "Are forensic tools and technologies regularly updated and tested?",
+                "why_matter": "Updated forensic tools ensure effective evidence collection and analysis."
+            },
+            {
+                "level": "advanced",
+                "question": "Does your organization conduct regular threat hunting activities?",
+                "why_matter": "Proactive threat hunting helps identify advanced persistent threats before they cause damage."
+            },
+            {
+                "level": "advanced",
+                "question": "Are forensic procedures integrated with legal and compliance requirements?",
+                "why_matter": "Integration with legal requirements ensures forensic evidence is admissible in court."
+            }
+        ]
+        
+        # Insert sample questions
+        collection = db_service.collection
+        await collection.delete_many({})  # Clear existing
+        
+        for question in sample_questions:
+            question["created_at"] = datetime.utcnow()
+        
+        result = await collection.insert_many(sample_questions)
+        
+        return jsonify({
+            "message": f"✅ Seeded {len(result.inserted_ids)} sample questions",
+            "questions_inserted": len(result.inserted_ids)
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -536,11 +709,9 @@ def internal_error(error):
 
 if __name__ == '__main__':
     # Initialize database connection
-    loop = asyncio.get_event_loop()
     try:
-        loop.run_until_complete(db_service.connect())
-        print("✅ Database connected successfully")
+        startup()
     except Exception as e:
-        print(f"❌ Database connection failed: {str(e)}")
+        print(f"❌ Startup failed: {str(e)}")
     
     app.run(debug=True, host='127.0.0.1', port=5001)
