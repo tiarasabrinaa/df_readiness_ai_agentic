@@ -205,7 +205,7 @@ Buatlah pertanyaan yang spesifik dan akan menghasilkan informasi yang berguna un
     except Exception as e:
         print(f"❌ Error in start_profiling: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
+    
 @app.route('/submit_answers', methods=['POST'])
 @async_route
 async def submit_answers():
@@ -290,7 +290,6 @@ FORMAT RESPONSE JSON:
 Berikan analisis yang akurat dan reasoning yang solid!
 """
         
-        # REAL LLM CALL - bukan mock!
         print(f"🤖 Calling REAL LLM for profile analysis...")
         ai_response = await llm_service.generate_response(profiling_prompt, [])
         print(f"🎯 LLM Response: {ai_response[:200]}...")
@@ -366,7 +365,29 @@ async def get_test_questions():
         
         print(f"📊 Fetching questions from MongoDB for level: {assessment_level}")
         
-        # REAL DATABASE CALL - bukan mock!
+        # 🔧 FIX: Force reconnect untuk ensure fresh connection
+        try:
+            await db_service.disconnect()
+            await db_service.connect()
+            print("✅ Database reconnected successfully")
+        except Exception as e:
+            print(f"❌ Reconnection failed: {str(e)}")
+            return jsonify({
+                "error": "Database connection failed",
+                "details": str(e)
+            }), 500
+        
+        # Verify connection dengan count
+        total_count = await db_service.count_questions()
+        print(f"🔍 Total questions available: {total_count}")
+        
+        if total_count == 0:
+            return jsonify({
+                "error": "No questions found after reconnect",
+                "suggestion": "Database connection issue"
+            }), 500
+        
+        # REAL DATABASE CALL - sekarang pasti bekerja!
         questions = await db_service.get_questions_by_level(assessment_level)
         
         if not questions:
@@ -383,8 +404,10 @@ async def get_test_questions():
         if not questions:
             return jsonify({
                 "error": "No questions available in database",
-                "suggestion": "Please load questions using database seeding or manual insertion",
-                "available_endpoints": ["/db_stats", "/seed_questions"]
+                "debug_info": {
+                    "total_questions": total_count,
+                    "requested_level": assessment_level
+                }
             }), 404
         
         # Take only 3 questions randomly
@@ -405,7 +428,11 @@ async def get_test_questions():
             "total_questions": len(selected_questions),
             "current_phase": manager.context["current_phase"],
             "instruction": "Jawab semua pertanyaan dengan detail untuk evaluasi LLM yang komprehensif",
-            "expected_format": "Array of answers: ['answer1', 'answer2', 'answer3']"
+            "expected_format": "Array of answers: ['answer1', 'answer2', 'answer3']",
+            "debug_info": {
+                "total_in_database": total_count,
+                "questions_for_level": len(questions)
+            }
         })
         
     except Exception as e:
@@ -611,86 +638,7 @@ def session_status():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-# Database utility endpoints
-@app.route('/db_stats', methods=['GET'])
-@async_route
-async def db_stats():
-    """Get database statistics"""
-    try:
-        total_questions = await db_service.count_questions()
-        
-        stats = {
-            "total_questions": total_questions,
-            "questions_by_level": {}
-        }
-        
-        for level in ["basic", "intermediate", "advanced"]:
-            count = await db_service.count_questions_by_level(level)
-            stats["questions_by_level"][level] = count
-        
-        return jsonify({
-            "message": "Database statistics", 
-            "stats": stats,
-            "database_connected": db_service.connected
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/seed_questions', methods=['POST'])
-@async_route
-async def seed_questions():
-    """Seed database with sample questions"""
-    try:
-        sample_questions = [
-            {
-                "level": "basic",
-                "question": "Does your organization have a documented disaster recovery strategy?",
-                "why_matter": "Having a documented disaster recovery strategy is essential for ensuring organizational continuity in case of a disaster."
-            },
-            {
-                "level": "basic", 
-                "question": "Are regular backups performed and tested in your organization?",
-                "why_matter": "Regular and tested backups are crucial for data recovery and business continuity."
-            },
-            {
-                "level": "intermediate",
-                "question": "Does your organization have an incident response team with defined roles and responsibilities?",
-                "why_matter": "A well-defined incident response team ensures quick and effective response to security incidents."
-            },
-            {
-                "level": "intermediate",
-                "question": "Are forensic tools and technologies regularly updated and tested?",
-                "why_matter": "Updated forensic tools ensure effective evidence collection and analysis."
-            },
-            {
-                "level": "advanced",
-                "question": "Does your organization conduct regular threat hunting activities?",
-                "why_matter": "Proactive threat hunting helps identify advanced persistent threats before they cause damage."
-            },
-            {
-                "level": "advanced",
-                "question": "Are forensic procedures integrated with legal and compliance requirements?",
-                "why_matter": "Integration with legal requirements ensures forensic evidence is admissible in court."
-            }
-        ]
-        
-        # Insert sample questions
-        collection = db_service.collection
-        await collection.delete_many({})  # Clear existing
-        
-        for question in sample_questions:
-            question["created_at"] = datetime.utcnow()
-        
-        result = await collection.insert_many(sample_questions)
-        
-        return jsonify({
-            "message": f"✅ Seeded {len(result.inserted_ids)} sample questions",
-            "questions_inserted": len(result.inserted_ids)
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
+    
 # Error handlers
 @app.errorhandler(404)
 def not_found(error):

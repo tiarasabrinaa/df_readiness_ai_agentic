@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Readiness Assessment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .progress-container {
+            margin-bottom: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        .progress-text {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .phase-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .phase-step {
+            display: flex;
+            align-items: center;
+            margin: 0 10px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            background: #f5f5f5;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .phase-step.active {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .phase-step.completed {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .question-container {
+            margin-bottom: 25px;
+        }
+
+        .question {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        .answer-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 80px;
+            transition: border-color 0.3s ease;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-container {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-size: 1.1rem;
+            margin: 20px 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ffebee;
+            border: 1px solid #f44336;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .success {
+            background: #e8f5e8;
+            border: 1px solid #4CAF50;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .results-container {
+            display: none;
+        }
+
+        .level-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin: 10px 0;
+        }
+
+        .level-basic {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .level-intermediate {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .level-advanced {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#667eea 0deg, #764ba2 180deg, #e0e0e0 180deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: white;
+            position: absolute;
+        }
+
+        .score-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            z-index: 1;
+        }
+
+        .recommendations {
+            margin-top: 30px;
+        }
+
+        .recommendation-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .recommendation-category {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .recommendation-list {
+            list-style: none;
+            padding-left: 20px;
+        }
+
+        .recommendation-list li {
+            margin-bottom: 5px;
+            position: relative;
+        }
+
+        .recommendation-list li::before {
+            content: '→';
+            position: absolute;
+            left: -15px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .phase-step {
+                margin: 0 5px;
+                padding: 8px 15px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Cybersecurity Readiness Assessment</h1>
+            <p>Evaluasi kesiapan digital forensics organisasi Anda dengan AI</p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="card">
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text" id="progressText">Memulai assessment...</div>
+            </div>
+
+            <!-- Phase Indicator -->
+            <div class="phase-indicator">
+                <div class="phase-step active" id="phaseProfile">
+                    <span>📋 Profiling</span>
+                </div>
+                <div class="phase-step" id="phaseLevel">
+                    <span>🎯 Level Assessment</span>
+                </div>
+                <div class="phase-step" id="phaseTest">
+                    <span>📝 Testing</span>
+                </div>
+                <div class="phase-step" id="phaseResults">
+                    <span>📊 Results</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="card" id="mainCard">
+            <div id="loadingIndicator" class="loading">
+                <div class="spinner"></div>
+                <p>Sedang memproses dengan AI...</p>
+            </div>
+
+            <div id="errorMessage" class="error"></div>
+
+            <!-- Profiling Questions -->
+            <div id="profilingSection">
+                <h2 style="margin-bottom: 20px; color: #333;">Profiling Questions</h2>
+                <p style="margin-bottom: 30px; color: #666;">Jawab pertanyaan berikut untuk menentukan level assessment yang tepat:</p>
+                
+                <div id="questionsContainer">
+                    <!-- Questions will be loaded here -->
+                </div>
+
+                <div class="btn-container">
+                    <button class="btn" id="startBtn" onclick="startProfiling()">Mulai Assessment</button>
+                    <button class="btn" id="submitProfilingBtn" onclick="submitProfiling()" style="display: none;">Kirim Jawaban</button>
+                </div>
+            </div>
+
+            <!-- Test Questions -->
+            <div id="testSection" style="display: none;">
+                <h2 style="margin-bottom: 20px; color: #333;">Assessment Test</h2>
+                <div id="levelInfo" style="margin-bottom: 30px;"></div>
+                
+                <div id="testQuestionsContainer">
+                    <!-- Test questions will be loaded here -->
+                </div>
+
+                <div class="btn-container">
+                    <button class="btn" id="submitTestBtn" onclick="submitTest()">Kirim Jawaban Test</button>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="resultsSection" class="results-container">
+                <h2 style="margin-bottom: 20px; color: #333; text-align: center;">🎉 Assessment Complete!</h2>
+                
+                <div id="resultsContainer">
+                    <!-- Results will be loaded here -->
+                </div>
+
+                <div class="btn-container">
+                    <button class="btn" onclick="resetAssessment()">Mulai Assessment Baru</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://127.0.0.1:5001';
+        let sessionId = null;
+        let currentPhase = 'profiling';
+        let profilingQuestions = [];
+        let testQuestions = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateProgress(0, 'Siap memulai assessment');
+        });
+
+        async function startProfiling() {
+            showLoading(true);
+            hideError();
+
+            try {
+                const response = await fetch(`${API_BASE}/start_profiling`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to start profiling');
+                }
+
+                sessionId = data.session_id;
+                profilingQuestions = data.questions;
+                
+                displayProfilingQuestions(data.questions);
+                updateProgress(20, 'Profiling questions loaded');
+                
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('submitProfilingBtn').style.display = 'inline-block';
+                
+            } catch (error) {
+                showError('Failed to load profiling questions: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayProfilingQuestions(questions) {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            questions.forEach((question, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-container';
+                questionDiv.innerHTML = `
+                    <div class="question">${index + 1}. ${question}</div>
+                    <textarea class="answer-input" id="answer${index + 1}" 
+                              placeholder="Masukkan jawaban Anda dengan detail..."></textarea>
+                `;
+                container.appendChild(questionDiv);
+            });
+        }
+
+        async function submitProfiling() {
+            const answers = {};
+            let allAnswered = true;
+
+            // Collect answers
+            for (let i = 1; i <= profilingQuestions.length; i++) {
+                const answer = document.getElementById(`answer${i}`).value.trim();
+                if (!answer) {
+                    allAnswered = false;
+                    break;
+                }
+                answers[`question${i}`] = answer;
+            }
+
+            if (!allAnswered) {
+                showError('Mohon jawab semua pertanyaan profiling.');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+
+            try {
+                const response = await fetch(`${API_BASE}/submit_answers`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        ...answers
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to submit answers');
+                }
+
+                // Update phase indicators
+                updatePhase('level');
+                updateProgress(50, `Level determined: ${data.assessment_level}`);
+
+                // Show success and load test questions
+                setTimeout(() => loadTestQuestions(data.assessment_level), 1000);
+
+            } catch (error) {
+                showError('Failed to submit profiling answers: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function loadTestQuestions(level) {
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${API_BASE}/get_test_questions`);
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to load test questions');
+                }
+
+                testQuestions = data.questions;
+                
+                // Hide profiling section, show test section
+                document.getElementById('profilingSection').style.display = 'none';
+                document.getElementById('testSection').style.display = 'block';
+
+                displayTestQuestions(data.questions, data.assessment_level);
+                updatePhase('test');
+                updateProgress(70, 'Test questions loaded');
+
+            } catch (error) {
+                showError('Failed to load test questions: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayTestQuestions(questions, level) {
+            const levelInfo = document.getElementById('levelInfo');
+            levelInfo.innerHTML = `
+                <div style="text-align: center;">
+                    <p style="margin-bottom: 10px;">Assessment Level Anda:</p>
+                    <div class="level-badge level-${level}">${level.toUpperCase()}</div>
+                    <p style="margin-top: 15px; color: #666;">Jawab ${questions.length} pertanyaan berikut dengan detail:</p>
+                </div>
+            `;
+
+            const container = document.getElementById('testQuestionsContainer');
+            container.innerHTML = '';
+
+            questions.forEach((questionObj, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'question-container';
+                questionDiv.innerHTML = `
+                    <div class="question">${index + 1}. ${questionObj.question}</div>
+                    <p style="font-size: 0.9rem; color: #666; margin-bottom: 10px; font-style: italic;">
+                        💡 ${questionObj.why_matter}
+                    </p>
+                    <textarea class="answer-input" id="testAnswer${index + 1}" 
+                              placeholder="Jelaskan dengan detail implementasi atau kondisi di organisasi Anda..."></textarea>
+                `;
+                container.appendChild(questionDiv);
+            });
+        }
+
+        async function submitTest() {
+            const answers = [];
+            let allAnswered = true;
+
+            // Collect test answers
+            for (let i = 1; i <= testQuestions.length; i++) {
+                const answer = document.getElementById(`testAnswer${i}`).value.trim();
+                if (!answer) {
+                    allAnswered = false;
+                    break;
+                }
+                answers.push(answer);
+            }
+
+            if (!allAnswered) {
+                showError('Mohon jawab semua pertanyaan test.');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+
+            try {
+                // Submit test answers
+                const submitResponse = await fetch(`${API_BASE}/submit_test_answers`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        session_id: sessionId,
+                        answers: answers
+                    })
+                });
+
+                if (!submitResponse.ok) {
+                    const submitData = await submitResponse.json();
+                    throw new Error(submitData.error || 'Failed to submit test answers');
+                }
+
+                updateProgress(90, 'Processing results with AI...');
+
+                // Get results
+                const resultsResponse = await fetch(`${API_BASE}/get_results`);
+                const resultsData = await resultsResponse.json();
+
+                if (!resultsResponse.ok) {
+                    throw new Error(resultsData.error || 'Failed to get results');
+                }
+
+                displayResults(resultsData);
+                updatePhase('results');
+                updateProgress(100, 'Assessment complete!');
+
+            } catch (error) {
+                showError('Failed to complete assessment: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayResults(data) {
+            // Hide test section, show results
+            document.getElementById('testSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'block';
+
+            const evaluation = data.evaluation;
+            const container = document.getElementById('resultsContainer');
+
+            container.innerHTML = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <div class="score-circle">
+                        <div class="score-text">${evaluation.overall_score || evaluation.readiness_percentage || 75}%</div>
+                    </div>
+                    <div class="level-badge level-${data.assessment_level}">${data.assessment_level.toUpperCase()} LEVEL</div>
+                    <p style="margin-top: 15px; font-size: 1.1rem; color: #666;">
+                        Digital Forensics Readiness Score
+                    </p>
+                </div>
+
+                <div style="margin-bottom: 30px;">
+                    <h3 style="color: #333; margin-bottom: 15px;">📈 Strengths</h3>
+                    <ul class="recommendation-list">
+                        ${(evaluation.strengths || []).map(strength => `<li>${strength}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 30px;">
+                    <h3 style="color: #333; margin-bottom: 15px;">⚠️ Areas for Improvement</h3>
+                    <ul class="recommendation-list">
+                        ${(evaluation.weaknesses || []).map(weakness => `<li>${weakness}</li>`).join('')}
+                    </ul>
+                </div>
+
+                <div class="recommendations">
+                    <h3 style="color: #333; margin-bottom: 20px;">🎯 Recommendations</h3>
+                    ${(evaluation.recommendations || []).map(rec => `
+                        <div class="recommendation-item">
+                            <div class="recommendation-category">${rec.category}</div>
+                            <ul class="recommendation-list">
+                                ${rec.items.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `).join('')}
+                </div>
+
+                ${evaluation.detailed_analysis ? `
+                    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h3 style="color: #333; margin-bottom: 15px;">📋 Detailed Analysis</h3>
+                        <p style="line-height: 1.6; color: #555;">${evaluation.detailed_analysis}</p>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function updateProgress(percentage, text) {
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = text;
+        }
+
+        function updatePhase(phase) {
+            // Reset all phases
+            ['phaseProfile', 'phaseLevel', 'phaseTest', 'phaseResults'].forEach(id => {
+                document.getElementById(id).className = 'phase-step';
+            });
+
+            // Mark completed phases
+            const phases = ['profile', 'level', 'test', 'results'];
+            const currentIndex = phases.indexOf(phase);
+            
+            for (let i = 0; i < currentIndex; i++) {
+                const phaseId = 'phase' + phases[i].charAt(0).toUpperCase() + phases[i].slice(1);
+                if (phases[i] === 'profile') document.getElementById('phaseProfile').className = 'phase-step completed';
+                else if (phases[i] === 'level') document.getElementById('phaseLevel').className = 'phase-step completed';
+                else if (phases[i] === 'test') document.getElementById('phaseTest').className = 'phase-step completed';
+            }
+
+            // Mark current phase as active
+            if (phase === 'profile') document.getElementById('phaseProfile').className = 'phase-step active';
+            else if (phase === 'level') document.getElementById('phaseLevel').className = 'phase-step active';
+            else if (phase === 'test') document.getElementById('phaseTest').className = 'phase-step active';
+            else if (phase === 'results') document.getElementById('phaseResults').className = 'phase-step active';
+
+            currentPhase = phase;
+        }
+
+        function showLoading(show) {
+            const loading = document.getElementById('loadingIndicator');
+            if (show) {
+                loading.classList.add('show');
+            } else {
+                loading.classList.remove('show');
+            }
+        }
+
+        function showError(message) {
+            const error = document.getElementById('errorMessage');
+            error.textContent = message;
+            error.classList.add('show');
+        }
+
+        function hideError() {
+            const error = document.getElementById('errorMessage');
+            error.classList.remove('show');
+        }
+
+        function resetAssessment() {
+            // Reset all variables
+            sessionId = null;
+            currentPhase = 'profiling';
+            profilingQuestions = [];
+            testQuestions = [];
+
+            // Reset UI
+            document.getElementById('profilingSection').style.display = 'block';
+            document.getElementById('testSection').style.display = 'none';
+            document.getElementById('resultsSection').style.display = 'none';
+
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('submitProfilingBtn').style.display = 'none';
+
+            document.getElementById('questionsContainer').innerHTML = '';
+            updateProgress(0, 'Siap memulai assessment');
+            updatePhase('profile');
+            hideError();
+        }
+    </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-          # services/database_service.py
+# services/database_service.py
 from motor.motor_asyncio import AsyncIOMotorClient
 from typing import Optional, List, Dict, Any
 import pandas as pd
@@ -7,6 +7,8 @@ from bson import ObjectId
 import json
 import logging
 import random
+import asyncio
+import threading
 
 # Import settings properly
 try:
@@ -15,7 +17,7 @@ except ImportError:
     # Fallback settings if config module not found
     class FallbackSettings:
         MONGODB_URI = "mongodb://localhost:27017"
-        DATABASE_NAME = "df_readiness"
+        DATABASE_NAME = "df_readiness_db"  # Make sure this matches what you want
         QUESTIONS_COLLECTION = "questions"
         USERS_COLLECTION = "users"
         SESSIONS_COLLECTION = "sessions"
@@ -31,6 +33,30 @@ class DatabaseService:
         self.client = None
         self.db = None
         self._connected = False
+        self._loop = None
+        self._thread = None
+        
+    def _ensure_event_loop(self):
+        """Ensure we have a running event loop in a separate thread"""
+        if self._loop is None or self._loop.is_closed():
+            def start_loop():
+                self._loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(self._loop)
+                self._loop.run_forever()
+            
+            self._thread = threading.Thread(target=start_loop, daemon=True)
+            self._thread.start()
+            
+            # Wait for loop to be ready
+            while self._loop is None:
+                import time
+                time.sleep(0.01)
+    
+    def _run_async(self, coro):
+        """Run async function in the event loop thread"""
+        self._ensure_event_loop()
+        future = asyncio.run_coroutine_threadsafe(coro, self._loop)
+        return future.result()
         
     @property
     def collection(self):
@@ -43,6 +69,39 @@ class DatabaseService:
     def connected(self):
         """Check if database is connected"""
         return self._connected
+    
+    # Sync wrapper methods for Flask compatibility
+    def connect_sync(self):
+        """Synchronous wrapper for connect"""
+        return self._run_async(self.connect())
+    
+    def disconnect_sync(self):
+        """Synchronous wrapper for disconnect"""
+        return self._run_async(self.disconnect())
+    
+    def count_questions_sync(self) -> int:
+        """Synchronous wrapper for count_questions"""
+        return self._run_async(self.count_questions())
+    
+    def count_questions_by_level_sync(self, level: str) -> int:
+        """Synchronous wrapper for count_questions_by_level"""
+        return self._run_async(self.count_questions_by_level(level))
+    
+    def get_level_distribution_sync(self) -> Dict[str, int]:
+        """Synchronous wrapper for get_level_distribution"""
+        return self._run_async(self.get_level_distribution())
+    
+    def get_random_questions_by_level_sync(self, level: str, count: int = 3) -> List[Dict[str, Any]]:
+        """Synchronous wrapper for get_random_questions_by_level"""
+        return self._run_async(self.get_random_questions_by_level(level, count))
+    
+    def get_questions_by_level_sync(self, level: str, limit: int = None) -> List[Dict[str, Any]]:
+        """Synchronous wrapper for get_questions_by_level"""
+        return self._run_async(self.get_questions_by_level(level, limit))
+    
+    def health_check_sync(self) -> Dict[str, Any]:
+        """Synchronous wrapper for health_check"""
+        return self._run_async(self.health_check())
         
     async def connect(self):
         """Connect to MongoDB"""
