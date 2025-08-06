@@ -74,15 +74,20 @@ class DatabaseService:
         """Get questions by category level"""
         try:
             self._ensure_connection()
-            
-            # Ganti "level" dengan "category" di query
-            query = {"category": level}  # Menggunakan "category" untuk mencari level
-            
+
+            query = {"category": level}
+
+            projection = {
+                "qualification": 1,
+                "why": 1,
+                "question": 1
+            }
+
             # Execute query
             if limit is not None:
-                cursor = self.questions_collection.find(query).limit(limit)
+                cursor = self.questions_collection.find(query, projection).limit(limit)
             else:
-                cursor = self.questions_collection.find(query)
+                cursor = self.questions_collection.find(query, projection)
             
             # Convert cursor to list
             questions = []
@@ -227,55 +232,6 @@ class DatabaseService:
         except Exception as e:
             print(f"Error getting levels with questions: {str(e)}")
             return []
-    
-    async def update_question_by_id(self, question_id: str, updates: Dict[str, Any]) -> bool:
-        """Update a question by ID"""
-        try:
-            self._ensure_connection()
-            
-            from bson import ObjectId
-            
-            # Convert string ID to ObjectId
-            obj_id = ObjectId(question_id)
-            
-            result = await self.questions_collection.update_one(
-                {"_id": obj_id},
-                {"$set": updates}
-            )
-            
-            if result.modified_count > 0:
-                print(f"Successfully updated question {question_id}")
-                return True
-            else:
-                print(f"No question found with ID {question_id} or no changes made")
-                return False
-                
-        except Exception as e:
-            print(f"Error updating question {question_id}: {str(e)}")
-            return False
-    
-    async def find_question_by_id(self, question_id: str) -> Optional[Dict[str, Any]]:
-        """Find a question by ID"""
-        try:
-            self._ensure_connection()
-            
-            from bson import ObjectId
-            
-            # Convert string ID to ObjectId
-            obj_id = ObjectId(question_id)
-            
-            question = await self.questions_collection.find_one({"_id": obj_id})
-            
-            if question is not None:
-                # Convert ObjectId to string for JSON serialization
-                question['_id'] = str(question['_id'])
-                return question
-            else:
-                return None
-                
-        except Exception as e:
-            print(f"Error finding question {question_id}: {str(e)}")
-            return None
     
     async def health_check(self) -> Dict[str, Any]:
         """Perform database health check"""

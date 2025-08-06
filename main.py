@@ -319,14 +319,12 @@ async def get_test_questions():
         if manager.context["current_phase"] != "assessment_level":
             return jsonify({"error": "Please complete profiling first"}), 400
         
-        # Ensure the assessment level exists
         assessment_level = manager.context.get("assessment_level")
         if not assessment_level:
             return jsonify({"error": "Assessment level not determined. Please complete profiling first."}), 400
         
         print(f"Fetching questions from MongoDB for level: {assessment_level}")
         
-        # Get questions from the database for the specified assessment level
         try:
             questions = await get_questions_from_database(assessment_level)
         except Exception as e:
@@ -335,7 +333,6 @@ async def get_test_questions():
         if not questions:
             return jsonify({"error": f"No questions found for {assessment_level} level."}), 404
         
-        # Store the questions in the session
         manager.context["test_questions"] = questions
         manager.context["current_phase"] = "testing"
         
