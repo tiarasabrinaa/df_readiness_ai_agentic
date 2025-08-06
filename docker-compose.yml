@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: cybersec-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: securepassword123
+      MONGO_INITDB_DATABASE: cybersecurity_assessment
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - cybersec-network
+    healthcheck:
+      test: |
+        mongosh --host localhost --username admin --password securepassword123 --authenticationDatabase admin --eval "db.adminCommand('ping')" --quiet || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  data-importer:
+    image: python:3.11-slim
+    container_name: data-importer
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./mongo-init:/data
+    networks:
+      - cybersec-network
+    command: 
+      - bash
+      - -c
+      - |
+        python -m venv /env
+        source /env/bin/activate
+
+        pip install --no-cache-dir pymongo dnspython
+
+        python /data/clean-and-import.py
+    restart: "no"
+    environment:
+      MONGODB_URI: mongodb://admin:securepassword123@mongodb:27017/cybersecurity_assessment?authSource=admin
+
+
+  flask-app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: cybersec-flask-app
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - MONGODB_URI=mongodb://admin:securepassword123@mongodb:27017/cybersecurity_assessment?authSource=admin
+      - FLASK_ENV=development
+      - SECRET_KEY=your_super_secret_key_change_in_production
+      - PYTHONPATH=/app
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      data-importer:
+        condition: service_completed_successfully
+    volumes:
+      - .:/app
+      - /app/.venv
+    networks:
+      - cybersec-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  mongodb_data:
+    driver: local
+
+networks:
+  cybersec-network:
+    driver: bridge

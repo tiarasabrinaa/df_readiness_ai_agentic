@@ -63,7 +63,7 @@ class LLMService:
                     error_message = response.text
                     logger.error(f"API Error {response.status_code}: {error_message}")
                     return f"Maaf, terjadi masalah teknis (Error {response.status_code}). Silakan coba lagi dalam beberapa saat."
-                    
+
         except httpx.TimeoutException:
             logger.error("LLM API timeout")
             return "Maaf, permintaan timeout. Silakan coba lagi."

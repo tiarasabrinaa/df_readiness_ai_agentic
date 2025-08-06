@@ -17,7 +17,7 @@ class Settings:
     # CORS and Security
     ALLOWED_HOSTS: list = ["*"]
     CORS_ORIGINS: list = ["*"]
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "your_secret_key_change_this_in_production")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "secret_key")
     
     # Environment
     ENVIRONMENT: str = os.getenv("ENVIRONMENT", "development")
@@ -59,7 +59,7 @@ class Settings:
     def __post_init__(self):
         """Validate settings after initialization"""
         if self.ENVIRONMENT == "production":
-            if self.SECRET_KEY == "your_secret_key_change_this_in_production":
+            if self.SECRET_KEY == "secret_key":
                 raise ValueError("Please set a secure SECRET_KEY for production!")
             
             if not self.LLM_URL or not self.LLM_TOKEN:
