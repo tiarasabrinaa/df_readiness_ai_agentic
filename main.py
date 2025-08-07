@@ -19,16 +19,46 @@ CORS(app, supports_credentials=True)
 
 # Constants
 PROFILING_QUESTIONS = [
-    "Apa jenis industri atau bidang usaha yang Anda geluti?",
-    "Berapa jumlah total karyawan di organisasi Anda?",
-    "Apa posisi atau jabatan Anda dalam organisasi?",
-    "Berapa tahun pengalaman Anda dalam bidang keamanan siber?",
-    "Apakah organisasi Anda pernah mengalami insiden keamanan? Jika ya, jelaskan.",
-    "Apakah Anda memiliki tim internal khusus untuk keamanan TI?",
-    "Apakah organisasi Anda telah menjalani audit keamanan dalam 12 bulan terakhir?",
-    "Jenis data sensitif apa yang Anda kelola (misalnya data pelanggan, keuangan, kesehatan)?",
-    "Apakah Anda menggunakan solusi keamanan berbasis cloud atau on-premise?",
-    "Seberapa sering dilakukan pelatihan atau sosialisasi keamanan kepada staf?"
+    {
+        "question": "Apa jenis industri atau bidang usaha yang Anda geluti?",
+        "choices": ["Teknologi", "Keuangan", "Pendidikan", "Kesehatan", "Lainnya"]
+    },
+    {
+        "question": "Berapa jumlah total karyawan di organisasi Anda?",
+        "choices": ["1-10", "11-50", "51-200", "201+"]
+    },
+    {
+        "question": "Apa posisi atau jabatan Anda dalam organisasi?",
+        "choices": ["Manager", "Staff", "Direktur", "Lainnya"]
+    },
+    {
+        "question": "Berapa tahun pengalaman Anda dalam bidang keamanan siber?",
+        "choices": ["0-2", "3-5", "6-10", "10+"]
+    },
+    {
+        "question": "Apakah organisasi Anda pernah mengalami insiden keamanan? Jika ya, jelaskan.",
+        "choices": ["Ya", "Tidak"]
+    },
+    {
+        "question": "Apakah Anda memiliki tim internal khusus untuk keamanan TI?",
+        "choices": ["Ya", "Tidak"]
+    },
+    {
+        "question": "Apakah organisasi Anda telah menjalani audit keamanan dalam 12 bulan terakhir?",
+        "choices": ["Ya", "Tidak"]
+    },
+    {
+        "question": "Jenis data sensitif apa yang Anda kelola (misalnya data pelanggan, keuangan, kesehatan)?",
+        "choices": ["Data Pelanggan", "Data Keuangan", "Data Kesehatan", "Lainnya"]
+    },
+    {
+        "question": "Apakah Anda menggunakan solusi keamanan berbasis cloud atau on-premise?",
+        "choices": ["Cloud", "On-premise", "Keduanya"]
+    },
+    {
+        "question": "Seberapa sering dilakukan pelatihan atau sosialisasi keamanan kepada staf?",
+        "choices": ["Setiap bulan", "Setiap kuartal", "Setiap tahun", "Tidak ada"]
+    }
 ]
 
 QUESTION_KEYS = [
