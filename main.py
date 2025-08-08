@@ -7,11 +7,14 @@ import random
 from datetime import datetime
 from typing import Dict, Any, List
 from functools import wraps
+import resend
 
 # Local imports
 from services.database_service import db_service
 from services.llm_service import llm_service
 from prompts import AssessmentPrompts
+from config.settings import settings
+from email_template import generate_email_template
 
 app = Flask(__name__)
 app.secret_key = 'secret_key'
@@ -19,46 +22,90 @@ CORS(app, supports_credentials=True)
 
 # Constants
 PROFILING_QUESTIONS = [
-    {
-        "question": "Apa jenis industri atau bidang usaha yang Anda geluti?",
-        "choices": ["Teknologi", "Keuangan", "Pendidikan", "Kesehatan", "Lainnya"]
-    },
-    {
-        "question": "Berapa jumlah total karyawan di organisasi Anda?",
-        "choices": ["1-10", "11-50", "51-200", "201+"]
-    },
-    {
-        "question": "Apa posisi atau jabatan Anda dalam organisasi?",
-        "choices": ["Manager", "Staff", "Direktur", "Lainnya"]
-    },
-    {
-        "question": "Berapa tahun pengalaman Anda dalam bidang keamanan siber?",
-        "choices": ["0-2", "3-5", "6-10", "10+"]
-    },
-    {
-        "question": "Apakah organisasi Anda pernah mengalami insiden keamanan? Jika ya, jelaskan.",
-        "choices": ["Ya", "Tidak"]
-    },
-    {
-        "question": "Apakah Anda memiliki tim internal khusus untuk keamanan TI?",
-        "choices": ["Ya", "Tidak"]
-    },
-    {
-        "question": "Apakah organisasi Anda telah menjalani audit keamanan dalam 12 bulan terakhir?",
-        "choices": ["Ya", "Tidak"]
-    },
-    {
-        "question": "Jenis data sensitif apa yang Anda kelola (misalnya data pelanggan, keuangan, kesehatan)?",
-        "choices": ["Data Pelanggan", "Data Keuangan", "Data Kesehatan", "Lainnya"]
-    },
-    {
-        "question": "Apakah Anda menggunakan solusi keamanan berbasis cloud atau on-premise?",
-        "choices": ["Cloud", "On-premise", "Keduanya"]
-    },
-    {
-        "question": "Seberapa sering dilakukan pelatihan atau sosialisasi keamanan kepada staf?",
-        "choices": ["Setiap bulan", "Setiap kuartal", "Setiap tahun", "Tidak ada"]
-    }
+  {
+    "question": "Apa jenis industri atau bidang usaha yang Anda geluti?",
+    "choices": [
+      { "label": "Teknologi" },
+      { "label": "Keuangan" },
+      { "label": "Pendidikan" },
+      { "label": "Kesehatan" },
+      { "label": "Lainnya", "is_field": True }
+    ]
+  },
+  {
+    "question": "Berapa jumlah total karyawan di organisasi Anda?",
+    "choices": [
+      { "label": "1-10" },
+      { "label": "11-50" },
+      { "label": "51-200" },
+      { "label": "201+" }
+    ]
+  },
+  {
+    "question": "Apa posisi atau jabatan Anda dalam organisasi?",
+    "choices": [
+      { "label": "Manager" },
+      { "label": "Staff" },
+      { "label": "Direktur" },
+      { "label": "Lainnya", "is_field": True }
+    ]
+  },
+  {
+    "question": "Berapa tahun pengalaman Anda dalam bidang keamanan siber?",
+    "choices": [
+      { "label": "0-2" },
+      { "label": "3-5" },
+      { "label": "6-10" },
+      { "label": "10+" }
+    ]
+  },
+  {
+    "question": "Apakah organisasi Anda pernah mengalami insiden keamanan? Jika ya, jelaskan.",
+    "choices": [
+      { "label": "Ya", "is_field": True },
+      { "label": "Tidak" }
+    ]
+  },
+  {
+    "question": "Apakah Anda memiliki tim internal khusus untuk keamanan TI?",
+    "choices": [
+      { "label": "Ya" },
+      { "label": "Tidak" }
+    ]
+  },
+  {
+    "question": "Apakah organisasi Anda telah menjalani audit keamanan dalam 12 bulan terakhir?",
+    "choices": [
+      { "label": "Ya" },
+      { "label": "Tidak" }
+    ]
+  },
+  {
+    "question": "Jenis data sensitif apa yang Anda kelola (misalnya data pelanggan, keuangan, kesehatan)?",
+    "choices": [
+      { "label": "Data Pelanggan" },
+      { "label": "Data Keuangan" },
+      { "label": "Data Kesehatan" },
+      { "label": "Lainnya", "is_field": True }
+    ]
+  },
+  {
+    "question": "Apakah Anda menggunakan solusi keamanan berbasis cloud atau on-premise?",
+    "choices": [
+      { "label": "Cloud" },
+      { "label": "On-premise" },
+      { "label": "Keduanya" }
+    ]
+  },
+  {
+    "question": "Seberapa sering dilakukan pelatihan atau sosialisasi keamanan kepada staf?",
+    "choices": [
+      { "label": "Setiap bulan" },
+      { "label": "Setiap kuartal" },
+      { "label": "Setiap tahun" },
+      { "label": "Tidak ada" }
+    ]
+  }
 ]
 
 QUESTION_KEYS = [
@@ -119,13 +166,12 @@ session_managers = {}
 
 def get_or_create_session():
     """Get or create session manager"""
-    session_id = session.get('session_id')
-    
-    if not session_id:
-        session_id = request.headers.get('X-Session-ID')
-        if not session_id and request.is_json:
-            data = request.get_json()
-            session_id = data.get('session_id') if data else None
+    session_id = (
+        request.args.get('session_id') or
+        request.headers.get('X-Session-ID') or
+        ((request.get_json(silent=True) or {}).get('session_id') if request.is_json else None) or
+        session.get('session_id')
+    )
     
     if not session_id or session_id not in session_managers:
         manager = SessionManager()
@@ -189,9 +235,12 @@ def parse_answers_from_request(data: Dict) -> Dict[str, Any]:
 
 def update_profile_from_qa(manager: SessionManager, qa_pairs: Dict[str, Any]):
     """Update user profile from Q&A pairs"""
-    for idx, (question, answer) in enumerate(sorted(qa_pairs.items())):
-        if idx < len(QUESTION_KEYS):
-            manager.update_profile_data(QUESTION_KEYS[idx], answer)
+    # Fix: Process questions in their original order (question1, question2, etc.)
+    for i in range(1, len(PROFILING_QUESTIONS) + 1):
+        question_key = f"question{i}"
+        if question_key in qa_pairs:
+            profile_key = QUESTION_KEYS[i - 1]  # Convert to 0-based index
+            manager.update_profile_data(profile_key, qa_pairs[question_key])
 
 async def get_assessment_level_from_llm(qa_pairs: Dict[str, Any]) -> tuple:
     """Get assessment level from LLM analysis"""
@@ -200,7 +249,8 @@ async def get_assessment_level_from_llm(qa_pairs: Dict[str, Any]) -> tuple:
     
     # Get the response from LLM service
     ai_response = await llm_service.generate_response(prompt, [])
-    
+    assessment_level = ""
+
     try:
         # Try parsing the response as JSON
         if '{' in ai_response and '}' in ai_response:
@@ -239,7 +289,7 @@ async def get_questions_from_database(assessment_level: str) -> List[Dict]:
         raise Exception(f"Database connection failed: {str(e)}")
     
     # Get questions for the specified level
-    questions = await db_service.get_questions_by_level(assessment_level)
+    questions = await db_service.get_questions_by_level(assessment_level, limit=10)
     
     if not questions:
         raise Exception(f"No questions found for the {assessment_level} level")
@@ -275,6 +325,28 @@ async def evaluate_with_llm(manager: SessionManager) -> Dict[str, Any]:
         evaluation["raw_llm_response"] = ai_response
     
     return evaluation
+
+resend.api_key = settings.MAIL_RESEND_API_KEY
+
+def send_email(to: str, subject: str, body: str):
+    """Send email notification using Resend"""
+    try:
+        params = {
+            "from": "noreply@stelarea.com",
+            "to": [to],
+            "subject": subject,
+            "html": body,  # Resend accepts HTML content
+        }
+        
+        email = resend.Emails.send(params)
+        
+        print(f"Email sent successfully to {to}")
+        print(f"Email ID: {email.get('id')}")
+        return email
+        
+    except Exception as e:
+        print(f"Failed to send email to {to}: {str(e)}")
+        raise e
 
 # Routes
 @app.route('/', methods=['GET'])
@@ -346,7 +418,7 @@ async def get_test_questions():
     try:
         manager = get_or_create_session()
         
-        if manager.context["current_phase"] != "assessment_level":
+        if manager.context["current_phase"] != "assessment_level" and manager.context["current_phase"] != "testing":
             return jsonify({"error": "Please complete profiling first"}), 400
         
         assessment_level = manager.context.get("assessment_level")
@@ -370,6 +442,7 @@ async def get_test_questions():
             "session_id": manager.session_id,
             "assessment_level": assessment_level,
             "questions": questions,
+            "questions_count": len(questions),
             "current_phase": manager.context["current_phase"],
         })
         
@@ -413,6 +486,35 @@ def submit_test_answers():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+@app.route('/submit_email', methods=['POST'])
+def submit_email():
+    """Submit user email for notifications"""
+    try:
+        manager = get_or_create_session()
+        
+        if not request.is_json:
+            return jsonify({"error": "Request must be JSON"}), 400
+        
+        data = request.get_json()
+        email = data.get('email')
+        
+        if not email or '@' not in email:
+            return jsonify({"error": "Invalid email address"}), 400
+        
+        # Store email in user profile
+        manager.context["user_profile"]["email"] = email
+        
+        return jsonify({
+            "session_id": manager.session_id,
+            "email": email,
+            "message": "Email submitted successfully"
+        })
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route('/get_results', methods=['GET'])
 @async_route
 async def get_results():
@@ -420,28 +522,56 @@ async def get_results():
     try:
         manager = get_or_create_session()
         
-        if manager.context["current_phase"] != "evaluation":
+        if manager.context["current_phase"] == "evaluation":
+            # Perform LLM evaluation
+            evaluation = await evaluate_with_llm(manager)
+            
+            # Store final evaluation
+            manager.context["final_evaluation"] = evaluation
+            manager.context["current_phase"] = "completed"
+
+            # Send email notification
+            user_email = manager.context["user_profile"].get("email")
+            if user_email:
+                email_subject = "Digital Forensic Readiness (DFR) Test Results"
+                email_body = generate_email_template(manager)
+                try:
+                    send_email(user_email, email_subject, email_body)
+                except Exception as e:
+                    print(f"Failed to send email: {str(e)}")
+            else:
+                return jsonify({
+                    "error": "Email not provided. Please submit your email to receive results."
+                })
+            
+            return jsonify({
+                "session_id": manager.session_id,
+                "assessment_level": manager.context["assessment_level"],
+                "user_profile": manager.context["user_profile"],
+                "profiling_qa": manager.context.get("profiling_qa_pairs", {}),
+                "test_questions": len(manager.context["test_questions"]),
+                "evaluation": manager.context["final_evaluation"],
+                "questions_answered": len(manager.context["test_answers"]),
+                "current_phase": manager.context["current_phase"],
+                "assessment_complete": True,
+                "timestamp": datetime.now().isoformat()
+            })
+        elif manager.context["current_phase"] == "completed":
+            # Already completed, return cached results
+            return jsonify({
+                "session_id": manager.session_id,
+                "assessment_level": manager.context["assessment_level"],
+                "user_profile": manager.context["user_profile"],
+                "profiling_qa": manager.context.get("profiling_qa_pairs", {}),
+                "test_questions": len(manager.context["test_questions"]),
+                "evaluation": manager.context["final_evaluation"],
+                "questions_answered": len(manager.context["test_answers"]),
+                "current_phase": manager.context["current_phase"],
+                "assessment_complete": True,
+                "timestamp": datetime.now().isoformat()
+            })
+        else:
             return jsonify({"error": "Please submit test answers first"}), 400
-        
-        # Perform LLM evaluation
-        evaluation = await evaluate_with_llm(manager)
-        
-        # Store final evaluation
-        manager.context["final_evaluation"] = evaluation
-        manager.context["current_phase"] = "completed"
-        
-        return jsonify({
-            "session_id": manager.session_id,
-            "assessment_level": manager.context["assessment_level"],
-            "user_profile": manager.context["user_profile"],
-            "profiling_qa": manager.context.get("profiling_qa_pairs", {}),
-            "test_questions": len(manager.context["test_questions"]),
-            "evaluation": evaluation,
-            "questions_answered": len(manager.context["test_answers"]),
-            "current_phase": manager.context["current_phase"],
-            "assessment_complete": True,
-            "timestamp": datetime.now().isoformat()
-        })
         
     except Exception as e:
         print(f"Error in get_results: {str(e)}")

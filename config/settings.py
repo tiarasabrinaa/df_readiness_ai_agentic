@@ -37,6 +37,9 @@ class Settings:
     MONGODB_URI: str = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
     DATABASE_NAME: str = os.getenv("DATABASE_NAME", "df_readiness")
     
+    # Mail Resend API Key
+    MAIL_RESEND_API_KEY: str = os.getenv("MAIL_RESEND_API_KEY", "")
+
     # Collection Names
     USERS_COLLECTION: str = "users"
     ASSESSMENTS_COLLECTION: str = "assessments"
