@@ -522,42 +522,56 @@ async def get_results():
     try:
         manager = get_or_create_session()
         
-        if manager.context["current_phase"] != "evaluation":
-            return jsonify({"error": "Please submit test answers first"}), 400
-        
-        # Perform LLM evaluation
-        evaluation = await evaluate_with_llm(manager)
-        
-        # Store final evaluation
-        manager.context["final_evaluation"] = evaluation
-        manager.context["current_phase"] = "completed"
+        if manager.context["current_phase"] == "evaluation":
+            # Perform LLM evaluation
+            evaluation = await evaluate_with_llm(manager)
+            
+            # Store final evaluation
+            manager.context["final_evaluation"] = evaluation
+            manager.context["current_phase"] = "completed"
 
-        # Send email notification
-        user_email = manager.context["user_profile"].get("email")
-        if user_email:
-            email_subject = "Digital Forensic Readiness (DFR) Test Results"
-            email_body = generate_email_template(manager)
-            try:
-                send_email(user_email, email_subject, email_body)
-            except Exception as e:
-                print(f"Failed to send email: {str(e)}")
-        else:
+            # Send email notification
+            user_email = manager.context["user_profile"].get("email")
+            if user_email:
+                email_subject = "Digital Forensic Readiness (DFR) Test Results"
+                email_body = generate_email_template(manager)
+                try:
+                    send_email(user_email, email_subject, email_body)
+                except Exception as e:
+                    print(f"Failed to send email: {str(e)}")
+            else:
+                return jsonify({
+                    "error": "Email not provided. Please submit your email to receive results."
+                })
+            
             return jsonify({
-                "error": "Email not provided. Please submit your email to receive results."
+                "session_id": manager.session_id,
+                "assessment_level": manager.context["assessment_level"],
+                "user_profile": manager.context["user_profile"],
+                "profiling_qa": manager.context.get("profiling_qa_pairs", {}),
+                "test_questions": len(manager.context["test_questions"]),
+                "evaluation": manager.context["final_evaluation"],
+                "questions_answered": len(manager.context["test_answers"]),
+                "current_phase": manager.context["current_phase"],
+                "assessment_complete": True,
+                "timestamp": datetime.now().isoformat()
             })
-        
-        return jsonify({
-            "session_id": manager.session_id,
-            "assessment_level": manager.context["assessment_level"],
-            "user_profile": manager.context["user_profile"],
-            "profiling_qa": manager.context.get("profiling_qa_pairs", {}),
-            "test_questions": len(manager.context["test_questions"]),
-            "evaluation": evaluation,
-            "questions_answered": len(manager.context["test_answers"]),
-            "current_phase": manager.context["current_phase"],
-            "assessment_complete": True,
-            "timestamp": datetime.now().isoformat()
-        })
+        elif manager.context["current_phase"] == "completed":
+            # Already completed, return cached results
+            return jsonify({
+                "session_id": manager.session_id,
+                "assessment_level": manager.context["assessment_level"],
+                "user_profile": manager.context["user_profile"],
+                "profiling_qa": manager.context.get("profiling_qa_pairs", {}),
+                "test_questions": len(manager.context["test_questions"]),
+                "evaluation": manager.context["final_evaluation"],
+                "questions_answered": len(manager.context["test_answers"]),
+                "current_phase": manager.context["current_phase"],
+                "assessment_complete": True,
+                "timestamp": datetime.now().isoformat()
+            })
+        else:
+            return jsonify({"error": "Please submit test answers first"}), 400
         
     except Exception as e:
         print(f"Error in get_results: {str(e)}")
