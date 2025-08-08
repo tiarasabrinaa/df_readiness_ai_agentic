@@ -204,7 +204,8 @@ async def get_assessment_level_from_llm(qa_pairs: Dict[str, Any]) -> tuple:
     
     # Get the response from LLM service
     ai_response = await llm_service.generate_response(prompt, [])
-    
+    assessment_level = ""
+
     try:
         # Try parsing the response as JSON
         if '{' in ai_response and '}' in ai_response:
