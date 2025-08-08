@@ -20,12 +20,19 @@ def generate_email_template(manager) -> str:
         or evaluation.get("overall_level")
         or "N/A"
     )
-    risk_level = evaluation.get("risk_level", "N/A")
-    priority_score = evaluation.get("priority_score", evaluation.get("priority", "N/A"))
-    gaps = evaluation.get("critical_gaps", evaluation.get("gaps", [])) or []
+    
+    # risk assessment
+    risk_assessment = evaluation.get("risk_assessment", {})
+    risk_level = risk_assessment.get("risk_level", "N/A")
+    priority_score = risk_assessment.get("priority_score", "N/A")
+    critical_gaps = risk_assessment.get("critical_gaps", []) or []
+
+    # strengths and weaknesses
     strengths = evaluation.get("strengths", []) or []
-    weaknesses = evaluation.get("weaknesses", evaluation.get("areas_for_improvement", [])) or []
-    analysis_summary = evaluation.get("summary", "")
+    weaknesses = evaluation.get("weaknesses", []) or []
+
+    # detailed analysis
+    analysis_summary = evaluation.get("detailed_analysis", "")
     next_steps = evaluation.get("next_steps", "")
 
     def render_list(items) -> str:
@@ -47,7 +54,16 @@ def generate_email_template(manager) -> str:
         return f"<li>{str(items)}</li>"
 
     recommendations = evaluation.get("recommendations", []) or []
-    if isinstance(recommendations, dict):
+    if isinstance(recommendations, list) and recommendations:
+        # Handle new structure with category and items
+        rec_html = ""
+        for rec in recommendations:
+            if isinstance(rec, dict) and "category" in rec and "items" in rec:
+                rec_html += f"<li><strong>{rec['category']}</strong><ul>"
+                for item in rec['items']:
+                    rec_html += f"<li>{str(item)}</li>"
+                rec_html += "</ul></li>"
+    elif isinstance(recommendations, dict):
         rec_html = "".join(
             f"<li><strong>{cat}</strong><ul>{render_list(recs)}</ul></li>"
             for cat, recs in recommendations.items()
@@ -102,7 +118,7 @@ def generate_email_template(manager) -> str:
             <li>Priority Score: {priority_score}</li>
             <li>Critical Gaps:</li>
             <ul>
-              {render_list(gaps)}
+              {render_list(critical_gaps)}
             </ul>
           </ul>
         </div>
