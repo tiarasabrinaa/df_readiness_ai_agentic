@@ -21,96 +21,120 @@ app.secret_key = 'secret_key'
 CORS(app, supports_credentials=True)
 
 # Constants
-PROFILING_QUESTIONS = [
+PROFILING_ORGANIZATION_QUESTIONS = [
   {
-    "question": "Apa jenis industri atau bidang usaha yang Anda geluti?",
+    "question": "Apakah organisasi Anda tergolong dalam kategori Usaha Mikro, Kecil, dan Menengah (UMKM)?",
     "choices": [
-      { "label": "Teknologi" },
-      { "label": "Keuangan" },
-      { "label": "Pendidikan" },
-      { "label": "Kesehatan" },
-      { "label": "Lainnya", "is_field": True }
+      { "label": "Ya, organisasi saya termasuk UMKM" },
+      { "label": "Tidak, organisasi saya bukan UMKM" }
     ]
   },
   {
-    "question": "Berapa jumlah total karyawan di organisasi Anda?",
+    "question": "Apakah organisasi Anda merupakan Badan Usaha Milik Negara (BUMN)?",
     "choices": [
-      { "label": "1-10" },
-      { "label": "11-50" },
+      { "label": "Ya, organisasi saya adalah BUMN" },
+      { "label": "Tidak, organisasi saya bukan BUMN" },
+      { "label": "51-200" }
+    ]
+  },
+  {
+    "question": "Berapa jumlah karyawan di organisasi Anda?",
+    "choices": [
+      { "label": "<10" },
+      { "label": "10-50" },
       { "label": "51-200" },
-      { "label": "201+" }
+      { "label": "200+"}
     ]
   },
   {
-    "question": "Apa posisi atau jabatan Anda dalam organisasi?",
+    "question": "Berapa omzet tahunan organisasi Anda?",
     "choices": [
-      { "label": "Manager" },
-      { "label": "Staff" },
-      { "label": "Direktur" },
+      { "label": "< 1 Miliar" },
+      { "label": "1-5 Miliar" },
+      { "label": "6-20 Miliar" },
+      { "label": "20+ Miliar" }
+    ]
+  },
+  {
+    "question": "Bagaimana status permodalan organisasi Anda?",
+    "choices": [
+      { "label": "Mandiri" },
+      { "label": "Dibiayai oleh investor"},
+      { "label": "Dibiayai oleh bank atau lembaga keuangan lainnya" }
+    ]
+  },
+  {
+    "question": "Seperti apa struktur organisasi Anda?",
+    "choices": [
+      { "label": "Piramidal" },
+      { "label": "Flat" },
+      { "label": "Matriks" },
       { "label": "Lainnya", "is_field": True }
     ]
   },
   {
-    "question": "Berapa tahun pengalaman Anda dalam bidang keamanan siber?",
+    "question": "Berapa total asset yang dimiliki oleh organisasi Anda?",
     "choices": [
-      { "label": "0-2" },
-      { "label": "3-5" },
-      { "label": "6-10" },
-      { "label": "10+" }
+      { "label": "< 1 Miliar" },
+      { "label": "1 - 10 Miliar" },
+      { "label": "11 - 50 Miliar"},
+      { "label": "50+ Miliar"}
     ]
   },
   {
-    "question": "Apakah organisasi Anda pernah mengalami insiden keamanan? Jika ya, jelaskan.",
+    "question": "Berapa besar pajak yang dibayarkan oleh organisasi Anda dalam setahun?",
     "choices": [
-      { "label": "Ya", "is_field": True },
-      { "label": "Tidak" }
-    ]
-  },
-  {
-    "question": "Apakah Anda memiliki tim internal khusus untuk keamanan TI?",
-    "choices": [
-      { "label": "Ya" },
-      { "label": "Tidak" }
-    ]
-  },
-  {
-    "question": "Apakah organisasi Anda telah menjalani audit keamanan dalam 12 bulan terakhir?",
-    "choices": [
-      { "label": "Ya" },
-      { "label": "Tidak" }
-    ]
-  },
-  {
-    "question": "Jenis data sensitif apa yang Anda kelola (misalnya data pelanggan, keuangan, kesehatan)?",
-    "choices": [
-      { "label": "Data Pelanggan" },
-      { "label": "Data Keuangan" },
-      { "label": "Data Kesehatan" },
-      { "label": "Lainnya", "is_field": True }
-    ]
-  },
-  {
-    "question": "Apakah Anda menggunakan solusi keamanan berbasis cloud atau on-premise?",
-    "choices": [
-      { "label": "Cloud" },
-      { "label": "On-premise" },
-      { "label": "Keduanya" }
-    ]
-  },
-  {
-    "question": "Seberapa sering dilakukan pelatihan atau sosialisasi keamanan kepada staf?",
-    "choices": [
-      { "label": "Setiap bulan" },
-      { "label": "Setiap kuartal" },
-      { "label": "Setiap tahun" },
-      { "label": "Tidak ada" }
+      { "label": "<500 Juta" },
+      { "label": "500 Juta - 5 Miliar" },
+      { "label": "5 - 50 Miliar" },
+      { "label": "50+ Miliar" }
     ]
   }
 ]
 
-QUESTION_KEYS = [
-    "industry", "company_size", "position", "experience", "security_incidents",
-    "has_security_team", "recent_audit", "sensitive_data", "security_solution", "training_frequency"
+PROFILING_PERSONAL_QUESTIONS = [
+    {
+        "question": "Berapa lama Anda telah menjabat posisi ini?",
+        "choices": 
+        [
+            { "label": "< 1 tahun" },
+            { "label": "1-3 tahun" },
+            { "label": "4-5 tahun" },
+            { "label": "> 5 tahun"}
+        ]
+    },
+    {
+        "question": "Apa tingkat pendidikan Anda?",
+        "choices": 
+        [
+            { "label": "SMA/SMK" },
+            { "label": "D3" },
+            { "label": "S1" },
+            { "label": "S2" },
+            { "label": "S3" },
+            { "label": "Lainnya", "is_field": True }
+        ]
+    },
+    {
+        "question": "Apa pengalaman kerja Anda dalam bidang ini?",
+        "choices": 
+        [
+            { "label": "< 1 tahun" },
+            { "label": "1-3 tahun" },
+            { "label": "4-5 tahun" },
+            { "label": "S2" },
+            { "label": "S3" },
+            { "label": "Lainnya", "is_field": True }
+        ]
+    }
+]
+
+QUESTION_KEYS_ORGANIZATION = [
+    "umkm", "bumn", "company_size", "omzet", "funding", "structure", "total_assets", "tax"
+]
+
+QUESTION_KEYS_PERSONAL = [
+    "tenure", "education", "experience"
 ]
 
 # Decorators
@@ -218,16 +242,16 @@ def parse_answers_from_request(data: Dict) -> Dict[str, Any]:
     
     if 'answers' in data and isinstance(data['answers'], list):
         answers = data.get('answers', [])
-        if len(answers) != len(PROFILING_QUESTIONS):
-            raise ValueError(f"Please provide exactly {len(PROFILING_QUESTIONS)} answers.")
+        if len(answers) != len(PROFILING_ORGANIZATION_QUESTIONS):
+            raise ValueError(f"Please provide exactly {len(PROFILING_ORGANIZATION_QUESTIONS)} answers.")
         
         for idx, answer in enumerate(answers):
             qa_pairs[f"question{idx+1}"] = answer
     
     elif any(key.startswith('question') for key in data.keys()):
         qa_pairs = {k: v for k, v in data.items() if k.startswith('question')}
-        if len(qa_pairs) != len(PROFILING_QUESTIONS):
-            raise ValueError(f"Please provide exactly {len(PROFILING_QUESTIONS)} question-answer pairs.")
+        if len(qa_pairs) != len(PROFILING_ORGANIZATION_QUESTIONS):
+            raise ValueError(f"Please provide exactly {len(PROFILING_ORGANIZATION_QUESTIONS)} question-answer pairs.")
     else:
         raise ValueError("Invalid format. Provide either an 'answers' array or 'question1'–'question10' keys.")
     
@@ -236,10 +260,10 @@ def parse_answers_from_request(data: Dict) -> Dict[str, Any]:
 def update_profile_from_qa(manager: SessionManager, qa_pairs: Dict[str, Any]):
     """Update user profile from Q&A pairs"""
     # Fix: Process questions in their original order (question1, question2, etc.)
-    for i in range(1, len(PROFILING_QUESTIONS) + 1):
+    for i in range(1, len(PROFILING_ORGANIZATION_QUESTIONS) + 1):
         question_key = f"question{i}"
         if question_key in qa_pairs:
-            profile_key = QUESTION_KEYS[i - 1]  # Convert to 0-based index
+            profile_key = QUESTION_KEYS_ORGANIZATION[i - 1]  # Convert to 0-based index
             manager.update_profile_data(profile_key, qa_pairs[question_key])
 
 async def get_assessment_level_from_llm(qa_pairs: Dict[str, Any]) -> tuple:
