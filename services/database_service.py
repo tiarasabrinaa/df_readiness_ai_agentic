@@ -1,295 +1,347 @@
-import asyncio
+# services/database_service.py
 from motor.motor_asyncio import AsyncIOMotorClient
-from typing import List, Dict, Any, Optional
-import os
-from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
+from typing import Dict, List, Optional, Any
+import logging
+from config.settings import settings
+
+logger = logging.getLogger(__name__)
 
 class DatabaseService:
     def __init__(self):
-        self.client: Optional[AsyncIOMotorClient] = None
+        self.client = None
         self.db = None
         self.questions_collection = None
-        self.connection_string = os.getenv('MONGODB_URI', 'mongodb://localhost:27017')
-        self.database_name = os.getenv('DATABASE_NAME', 'cybersecurity_assessment')
-        self.collection_name = os.getenv('COLLECTION_NAME', 'questions')
-    
+        self.keterangan_collection = None
+        
     async def connect(self):
-        """Connect to MongoDB database"""
+        """Connect to MongoDB"""
         try:
-            if self.client is not None:
-                await self.disconnect()
+            # Create connection string
+            if hasattr(settings, 'MONGODB_URL'):
+                connection_string = settings.MONGODB_URL
+            else:
+                # Fallback to individual settings
+                username = getattr(settings, 'MONGODB_USERNAME', 'admin')
+                password = getattr(settings, 'MONGODB_PASSWORD', 'securepassword123')
+                host = getattr(settings, 'MONGODB_HOST', 'mongodb')
+                port = getattr(settings, 'MONGODB_PORT', 27017)
+                database = getattr(settings, 'MONGODB_DATABASE', 'cybersecurity_assessment')
+                
+                connection_string = f"mongodb://{username}:{password}@{host}:{port}/{database}?authSource=admin"
             
-            self.client = AsyncIOMotorClient(self.connection_string, serverSelectionTimeoutMS=5000)
+            self.client = AsyncIOMotorClient(connection_string)
             
-            # Test the connection
+            # Test connection
             await self.client.admin.command('ping')
+            logger.info("MongoDB connection successful")
             
-            self.db = self.client[self.database_name]
-            self.questions_collection = self.db[self.collection_name]
+            # Get database and collections
+            self.db = self.client[getattr(settings, 'MONGODB_DATABASE', 'cybersecurity_assessment')]
+            self.questions_collection = self.db.questions
+            self.keterangan_collection = self.db.keterangan
             
-            print(f"Successfully connected to MongoDB: {self.database_name}.{self.collection_name}")
+            logger.info("Database and collections initialized")
             
-        except (ConnectionFailure, ServerSelectionTimeoutError) as e:
-            print(f"Failed to connect to MongoDB: {str(e)}")
-            raise Exception(f"Database connection failed: {str(e)}")
         except Exception as e:
-            print(f"Unexpected error connecting to MongoDB: {str(e)}")
-            raise Exception(f"Database connection error: {str(e)}")
+            logger.error(f"MongoDB connection failed: {e}")
+            raise e
     
     async def disconnect(self):
-        """Disconnect from MongoDB database"""
-        if self.client is not None:
+        """Disconnect from MongoDB"""
+        if self.client:
             self.client.close()
-            self.client = None
-            self.db = None
-            self.questions_collection = None
-            print("Disconnected from MongoDB")
-    
-    def _ensure_connection(self):
-        """Ensure database connection exists"""
-        if self.client is None or self.db is None or self.questions_collection is None:
-            raise Exception("Database not connected. Call connect() first.")
+            logger.info("MongoDB disconnected")
     
     async def count_questions(self) -> int:
         """Count total questions in database"""
         try:
-            self._ensure_connection()
+            if not self.questions_collection:
+                await self.connect()
+            
             count = await self.questions_collection.count_documents({})
             return count
         except Exception as e:
-            print(f"Error counting questions: {str(e)}")
+            logger.error(f"Error counting questions: {e}")
             return 0
     
-    async def count_questions_by_level(self, level: str) -> int:
-        """Count questions by DMAIC-S level"""
+    async def count_keterangan(self) -> int:
+        """Count total keterangan documents in database"""
         try:
-            self._ensure_connection()
-            count = await self.questions_collection.count_documents({"category": level})
+            if not self.keterangan_collection:
+                await self.connect()
+            
+            count = await self.keterangan_collection.count_documents({})
             return count
         except Exception as e:
-            print(f"Error counting questions for level {level}: {str(e)}")
+            logger.error(f"Error counting keterangan: {e}")
             return 0
     
-    async def get_questions_by_level(self, level: str, limit: Optional[int] = None) -> List[Dict[str, Any]]:
-        """Get questions by category level"""
-        try:
-            self._ensure_connection()
-
-            query = {"category": level}
-
-            projection = {
-                "qualification": 1,
-                "why": 1,
-                "question": 1
-            }
-
-            # Execute query
-            if limit is not None:
-                cursor = self.questions_collection.find(query, projection).limit(limit)
-            else:
-                cursor = self.questions_collection.find(query, projection)
-            
-            # Convert cursor to list
-            questions = []
-            async for question in cursor:
-                # Convert ObjectId to string for JSON serialization
-                if '_id' in question:
-                    question['_id'] = str(question['_id'])
-                questions.append(question)
-            
-            print(f"Retrieved {len(questions)} questions for level: {level}")
-            return questions
-            
-        except Exception as e:
-            print(f"Error getting questions for level {level}: {str(e)}")
-            return []
-
-    
-    async def get_all_questions(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    async def get_all_questions_from_database(self) -> List[Dict]:
         """Get all questions from database"""
         try:
-            self._ensure_connection()
+            if not self.questions_collection:
+                await self.connect()
             
-            # Execute query
-            if limit is not None:
-                cursor = self.questions_collection.find({}).limit(limit)
-            else:
-                cursor = self.questions_collection.find({})
-            
-            # Convert cursor to list
+            cursor = self.questions_collection.find({})
             questions = []
-            async for question in cursor:
-                # Convert ObjectId to string for JSON serialization
-                if '_id' in question:
-                    question['_id'] = str(question['_id'])
-                questions.append(question)
             
-            print(f"Retrieved {len(questions)} total questions")
+            async for doc in cursor:
+                # Convert MongoDB document to dict and clean up
+                question_dict = {
+                    "id": str(doc.get("_id", "")),
+                    "question": doc.get("question", doc.get("pertanyaan", "")),
+                    "package": doc.get("package", doc.get("paket", "basic")),
+                    "level": doc.get("level", "basic"),
+                    "category": doc.get("category", doc.get("kategori", "general")),
+                    "created_at": doc.get("created_at"),
+                    "updated_at": doc.get("updated_at")
+                }
+                
+                # Only add if question text exists
+                if question_dict["question"]:
+                    questions.append(question_dict)
+            
+            logger.info(f"Retrieved {len(questions)} questions from database")
             return questions
             
         except Exception as e:
-            print(f"Error getting all questions: {str(e)}")
+            logger.error(f"Error getting all questions: {e}")
             return []
     
-    async def insert_question(self, question: Dict[str, Any]) -> bool:
-        """Insert a single question into database"""
+    async def get_all_keterangan(self) -> List[Dict]:
+        """Get all keterangan documents from database"""
         try:
-            self._ensure_connection()
+            if not self.keterangan_collection:
+                await self.connect()
             
-            # Validate required fields
-            required_fields = ['question', 'level']
-            for field in required_fields:
-                if field not in question:
-                    raise ValueError(f"Missing required field: {field}")
+            cursor = self.keterangan_collection.find({})
+            keterangan_docs = []
             
-            result = await self.questions_collection.insert_one(question)
+            async for doc in cursor:
+                # Convert MongoDB document to dict and clean up
+                keterangan_dict = {
+                    "id": str(doc.get("_id", "")),
+                    # Handle different field names from CSV
+                    "package": doc.get("package", doc.get("Package", "0")),  
+                    "description": doc.get("keterangan", doc.get("Keterangan", doc.get("description", ""))),
+                    "embedded": doc.get("embedded", doc.get("embedding", "")),
+                    "created_at": doc.get("created_at"),
+                    "updated_at": doc.get("updated_at")
+                }
+                
+                # Only add if description and embedding exist
+                if keterangan_dict["description"] and keterangan_dict["embedded"]:
+                    keterangan_docs.append(keterangan_dict)
             
-            if result.inserted_id is not None:
-                print(f"Successfully inserted question with ID: {result.inserted_id}")
-                return True
+            logger.info(f"Retrieved {len(keterangan_docs)} keterangan documents from database")
+            return keterangan_docs
+            
+        except Exception as e:
+            logger.error(f"Error getting all keterangan: {e}")
+            return []
+    
+    async def get_questions_by_package(self, package: str, limit: int = 15) -> List[Dict]:
+        """Get questions filtered by package with limit"""
+        try:
+            if not self.questions_collection:
+                await self.connect()
+            
+            # Create query for package (check both 'package' and 'paket' fields)
+            query = {
+                "$or": [
+                    {"package": package},
+                    {"paket": package}
+                ]
+            }
+            
+            cursor = self.questions_collection.find(query).limit(limit)
+            questions = []
+            
+            async for doc in cursor:
+                # Convert MongoDB document to dict and clean up
+                question_dict = {
+                    "id": str(doc.get("_id", "")),
+                    "question": doc.get("question", doc.get("pertanyaan", "")),
+                    "package": doc.get("package", doc.get("paket", package)),
+                    "level": doc.get("level", "basic"),
+                    "category": doc.get("category", doc.get("kategori", "general")),
+                    "created_at": doc.get("created_at"),
+                    "updated_at": doc.get("updated_at")
+                }
+                
+                # Only add if question text exists
+                if question_dict["question"]:
+                    questions.append(question_dict)
+            
+            logger.info(f"Retrieved {len(questions)} questions for package '{package}'")
+            return questions
+            
+        except Exception as e:
+            logger.error(f"Error getting questions by package '{package}': {e}")
+            return []
+    
+    async def get_questions_by_level(self, level: str, limit: int = 10) -> List[Dict]:
+        """Get questions filtered by level (keeping for backward compatibility)"""
+        try:
+            if not self.questions_collection:
+                await self.connect()
+            
+            query = {"level": level}
+            cursor = self.questions_collection.find(query).limit(limit)
+            questions = []
+            
+            async for doc in cursor:
+                question_dict = {
+                    "id": str(doc.get("_id", "")),
+                    "question": doc.get("question", doc.get("pertanyaan", "")),
+                    "level": doc.get("level", level),
+                    "package": doc.get("package", doc.get("paket", "basic")),
+                    "category": doc.get("category", doc.get("kategori", "general")),
+                    "created_at": doc.get("created_at"),
+                    "updated_at": doc.get("updated_at")
+                }
+                
+                if question_dict["question"]:
+                    questions.append(question_dict)
+            
+            logger.info(f"Retrieved {len(questions)} questions for level '{level}'")
+            return questions
+            
+        except Exception as e:
+            logger.error(f"Error getting questions by level '{level}': {e}")
+            return []
+    
+    async def get_keterangan_by_package(self, package: str) -> Optional[Dict]:
+        """Get keterangan document by package"""
+        try:
+            if not self.keterangan_collection:
+                await self.connect()
+            
+            # Create query for package (check both 'package' and 'paket' fields)
+            query = {
+                "$or": [
+                    {"package": package},
+                    {"paket": package}
+                ]
+            }
+            
+            doc = await self.keterangan_collection.find_one(query)
+            
+            if doc:
+                keterangan_dict = {
+                    "id": str(doc.get("_id", "")),
+                    "description": doc.get("description", doc.get("deskripsi", "")),
+                    "package": doc.get("package", doc.get("paket", package)),
+                    "level": doc.get("level", "basic"),
+                    "created_at": doc.get("created_at"),
+                    "updated_at": doc.get("updated_at")
+                }
+                
+                logger.info(f"Retrieved keterangan for package '{package}'")
+                return keterangan_dict
             else:
-                print("Failed to insert question")
-                return False
+                logger.warning(f"No keterangan found for package '{package}'")
+                return None
                 
         except Exception as e:
-            print(f"Error inserting question: {str(e)}")
+            logger.error(f"Error getting keterangan by package '{package}': {e}")
+            return None
+    
+    async def insert_question(self, question_data: Dict) -> str:
+        """Insert new question into database"""
+        try:
+            if not self.questions_collection:
+                await self.connect()
+            
+            result = await self.questions_collection.insert_one(question_data)
+            logger.info(f"Inserted question with ID: {result.inserted_id}")
+            return str(result.inserted_id)
+            
+        except Exception as e:
+            logger.error(f"Error inserting question: {e}")
+            raise e
+    
+    async def insert_keterangan(self, keterangan_data: Dict) -> str:
+        """Insert new keterangan into database"""
+        try:
+            if not self.keterangan_collection:
+                await self.connect()
+            
+            result = await self.keterangan_collection.insert_one(keterangan_data)
+            logger.info(f"Inserted keterangan with ID: {result.inserted_id}")
+            return str(result.inserted_id)
+            
+        except Exception as e:
+            logger.error(f"Error inserting keterangan: {e}")
+            raise e
+    
+    async def update_question(self, question_id: str, update_data: Dict) -> bool:
+        """Update existing question"""
+        try:
+            if not self.questions_collection:
+                await self.connect()
+            
+            from bson import ObjectId
+            result = await self.questions_collection.update_one(
+                {"_id": ObjectId(question_id)}, 
+                {"$set": update_data}
+            )
+            
+            logger.info(f"Updated question {question_id}: {result.modified_count} document(s) modified")
+            return result.modified_count > 0
+            
+        except Exception as e:
+            logger.error(f"Error updating question {question_id}: {e}")
             return False
     
-    async def insert_questions_bulk(self, questions: List[Dict[str, Any]]) -> int:
-        """Insert multiple questions into database"""
+    async def delete_question(self, question_id: str) -> bool:
+        """Delete question from database"""
         try:
-            self._ensure_connection()
+            if not self.questions_collection:
+                await self.connect()
             
-            if not questions:
-                return 0
+            from bson import ObjectId
+            result = await self.questions_collection.delete_one({"_id": ObjectId(question_id)})
             
-            # Validate all questions
-            for i, question in enumerate(questions):
-                required_fields = ['question', 'level']
-                for field in required_fields:
-                    if field not in question:
-                        raise ValueError(f"Question {i+1} missing required field: {field}")
-            
-            result = await self.questions_collection.insert_many(questions)
-            
-            inserted_count = len(result.inserted_ids) if result.inserted_ids is not None else 0
-            print(f"Successfully inserted {inserted_count} questions")
-            return inserted_count
+            logger.info(f"Deleted question {question_id}: {result.deleted_count} document(s) deleted")
+            return result.deleted_count > 0
             
         except Exception as e:
-            print(f"Error inserting questions in bulk: {str(e)}")
-            return 0
+            logger.error(f"Error deleting question {question_id}: {e}")
+            return False
     
-    async def delete_all_questions(self) -> int:
-        """Delete all questions from database"""
+    async def get_packages_list(self) -> List[str]:
+        """Get list of unique packages from both collections"""
         try:
-            self._ensure_connection()
+            packages = set()
             
-            result = await self.questions_collection.delete_many({})
-            deleted_count = result.deleted_count if result.deleted_count is not None else 0
+            # Get packages from questions collection
+            if self.questions_collection:
+                questions_packages = await self.questions_collection.distinct("package")
+                packages.update(questions_packages)
+                
+                # Also check 'paket' field for Indonesian naming
+                paket_packages = await self.questions_collection.distinct("paket")
+                packages.update(paket_packages)
             
-            print(f"Deleted {deleted_count} questions")
-            return deleted_count
+            # Get packages from keterangan collection
+            if self.keterangan_collection:
+                keterangan_packages = await self.keterangan_collection.distinct("package")
+                packages.update(keterangan_packages)
+                
+                # Also check 'paket' field
+                keterangan_paket = await self.keterangan_collection.distinct("paket")
+                packages.update(keterangan_paket)
+            
+            # Filter out None and empty values
+            packages = {pkg for pkg in packages if pkg}
+            
+            logger.info(f"Found {len(packages)} unique packages: {list(packages)}")
+            return list(packages)
             
         except Exception as e:
-            print(f"Error deleting questions: {str(e)}")
-            return 0
-    
-    async def delete_questions_by_level(self, level: str) -> int:
-        """Delete questions by DMAIC-S level"""
-        try:
-            self._ensure_connection()
-            
-            result = await self.questions_collection.delete_many({"level": level})
-            deleted_count = result.deleted_count if result.deleted_count is not None else 0
-            
-            print(f"Deleted {deleted_count} questions for level: {level}")
-            return deleted_count
-            
-        except Exception as e:
-            print(f"Error deleting questions for level {level}: {str(e)}")
-            return 0
-    
-    async def get_levels_with_questions(self) -> List[str]:
-        """Get all DMAIC-S levels that have questions"""
-        try:
-            self._ensure_connection()
-            
-            # Use aggregation to get distinct levels
-            pipeline = [
-                {"$group": {"_id": "$level"}},
-                {"$sort": {"_id": 1}}
-            ]
-            
-            levels = []
-            async for doc in self.questions_collection.aggregate(pipeline):
-                if doc['_id'] is not None:  # Check for None explicitly
-                    levels.append(doc['_id'])
-            
-            print(f"Found levels with questions: {levels}")
-            return levels
-            
-        except Exception as e:
-            print(f"Error getting levels with questions: {str(e)}")
-            return []
-    
-    async def health_check(self) -> Dict[str, Any]:
-        """Perform database health check"""
-        try:
-            if self.client is None:
-                return {
-                    "status": "disconnected",
-                    "connected": False,
-                    "error": "Database client not initialized"
-                }
-            
-            # Test connection
-            await self.client.admin.command('ping')
-            
-            # Get collection stats
-            total_questions = await self.count_questions()
-            levels_with_questions = await self.get_levels_with_questions()
-            
-            return {
-                "status": "healthy",
-                "connected": True,
-                "database": self.database_name,
-                "collection": self.collection_name,
-                "total_questions": total_questions,
-                "levels_with_questions": levels_with_questions,
-                "connection_string": self.connection_string.replace(
-                    self.connection_string.split('@')[-1], 
-                    '@***'
-                ) if '@' in self.connection_string else self.connection_string
-            }
-            
-        except Exception as e:
-            return {
-                "status": "unhealthy",
-                "connected": False,
-                "error": str(e)
-            }
+            logger.error(f"Error getting packages list: {e}")
+            return ["basic"]  # Return default package as fallback
 
-# Global database service instance
+# Create global instance
 db_service = DatabaseService()
-
-# Convenience functions for backward compatibility
-async def connect_db():
-    """Connect to database"""
-    await db_service.connect()
-
-async def disconnect_db():
-    """Disconnect from database"""
-    await db_service.disconnect()
-
-async def get_questions_by_level(level: str, limit: Optional[int] = None) -> List[Dict[str, Any]]:
-    """Get questions by level"""
-    return await db_service.get_questions_by_level(level, limit)
-
-async def count_questions() -> int:
-    """Count total questions"""
-    return await db_service.count_questions()
-
-async def count_questions_by_level(level: str) -> int:
-    """Count questions by level"""
-    return await db_service.count_questions_by_level(level)

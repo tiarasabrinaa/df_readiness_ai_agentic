@@ -111,6 +111,250 @@ class LLMService:
         logger.info(f"Generating response with {len(messages)} messages")
         return await self.call_llm(messages, max_tokens=1500, temperature=0.7)
     
+    async def generate_profile_description(self, qa_pairs: Dict[str, Any], questions: List[Dict]) -> str:
+        """
+        Generate comprehensive profile description from Q&A pairs using LLM
+        """
+        # Create structured profile information
+        profile_info = []
+        
+        for i, (key, answer) in enumerate(qa_pairs.items()):
+            if i < len(questions):
+                question_text = questions[i]["question"]
+                profile_info.append(f"Q: {question_text}\nA: {answer}")
+        
+        profile_text = "\n\n".join(profile_info)
+        
+        system_prompt = """
+        Anda adalah AI ahli dalam analisis profil organisasi dan digital forensics readiness assessment.
+        
+        Tugasmu adalah membuat deskripsi karakteristik organisasi dan pengguna dalam 1 paragraf komprehensif berdasarkan jawaban profiling.
+        
+        Deskripsi harus mencakup:
+        1. Karakteristik organisasi (ukuran, jenis, struktur, kondisi finansial)
+        2. Profil pengguna (pengalaman, pendidikan, posisi, masa jabat)
+        3. Konteks bisnis dan operasional
+        4. Level kesiapan digital forensics yang mungkin dibutuhkan
+        
+        Buatlah dalam bahasa Indonesia yang profesional dan dapat digunakan untuk menentukan paket assessment yang paling sesuai.
+        Fokus pada aspek-aspek yang relevan dengan digital forensics readiness.
+        """
+        
+        user_prompt = f"""
+        Berdasarkan informasi profiling berikut, buatlah deskripsi karakteristik organisasi dan pengguna:
+
+        {profile_text}
+
+        Buatlah deskripsi 1 paragraf yang komprehensif dan dapat digunakan untuk similarity matching.
+        """
+        
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
+        
+        try:
+            description = await self.call_llm(messages, max_tokens=800, temperature=0.3)
+            logger.info(f"Generated profile description: {description[:100]}...")
+            return description.strip()
+            
+        except Exception as e:
+            logger.error(f"Error generating profile description: {e}")
+            # Fallback description
+            return self._create_fallback_description(qa_pairs)
+    
+    def _create_fallback_description(self, qa_pairs: Dict[str, Any]) -> str:
+        """Create fallback description when LLM fails"""
+        try:
+            # Extract key information
+            company_size = qa_pairs.get('question3', 'tidak diketahui')
+            structure = qa_pairs.get('question6', 'tidak diketahui')
+            assets = qa_pairs.get('question7', 'tidak diketahui')
+            education = qa_pairs.get('question10', 'tidak diketahui')
+            experience = qa_pairs.get('question11', 'tidak diketahui')
+            
+            description = f"""
+            Organisasi dengan {company_size} karyawan dan struktur {structure}, 
+            memiliki total aset {assets}. Responden memiliki pendidikan {education} 
+            dengan pengalaman {experience} di bidangnya. Organisasi ini membutuhkan 
+            assessment digital forensics readiness yang sesuai dengan skala dan 
+            kompleksitas operasionalnya.
+            """.strip().replace('\n', ' ').replace('  ', ' ')
+            
+            return description
+            
+        except Exception as e:
+            logger.error(f"Error creating fallback description: {e}")
+            return "Organisasi yang membutuhkan assessment digital forensics readiness sesuai dengan karakteristik dan kebutuhan operasionalnya."
+    
+    async def evaluate_assessment_comprehensive(self, 
+                                              user_profile: Dict[str, Any],
+                                              package: str,
+                                              qa_pairs: Dict[str, Any],
+                                              questions: List[Dict],
+                                              answers: List[int],
+                                              average_score: float) -> str:
+        """
+        Comprehensive evaluation using LLM based on all assessment data
+        """
+        
+        # Prepare evaluation context
+        profile_summary = self._format_profile_summary(user_profile, qa_pairs)
+        questions_summary = self._format_questions_summary(questions, answers)
+        
+        system_prompt = """
+        Anda adalah expert dalam Digital Forensics Readiness (DFR) assessment dan cybersecurity.
+        
+        Tugasmu adalah melakukan evaluasi komprehensif berdasarkan:
+        1. Profil organisasi dan pengguna
+        2. Paket assessment yang dipilih
+        3. Jawaban terhadap pertanyaan assessment (skala Likert 1-4)
+        4. Rata-rata skor yang diperoleh
+        
+        Berikan evaluasi dalam format JSON dengan struktur:
+        {
+            "overall_level": "Basic/Intermediate/Advanced",
+            "overall_score": 0-100,
+            "readiness_percentage": 0-100,
+            "strengths": ["kekuatan1", "kekuatan2", "kekuatan3"],
+            "weaknesses": ["kelemahan1", "kelemahan2", "kelemahan3"],
+            "recommendations": ["rekomendasi1", "rekomendasi2", "rekomendasi3"],
+            "priority_actions": ["aksi1", "aksi2", "aksi3"],
+            "detailed_analysis": "analisis detail dalam bahasa Indonesia",
+            "improvement_roadmap": "roadmap perbaikan",
+            "risk_assessment": "penilaian risiko saat ini"
+        }
+        
+        Evaluasi harus:
+        - Realistis berdasarkan data yang ada
+        - Memberikan insight yang actionable
+        - Menggunakan bahasa Indonesia yang profesional
+        - Fokus pada digital forensics readiness
+        """
+        
+        user_prompt = f"""
+        Lakukan evaluasi komprehensif berdasarkan data berikut:
+
+        PROFIL ORGANISASI & PENGGUNA:
+        {profile_summary}
+
+        PAKET ASSESSMENT: {package}
+
+        HASIL ASSESSMENT:
+        Rata-rata skor: {average_score:.2f} dari 4.0
+        Total pertanyaan: {len(questions)}
+        
+        {questions_summary}
+
+        Berikan evaluasi dalam format JSON yang diminta.
+        """
+        
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ]
+        
+        try:
+            evaluation = await self.call_llm(messages, max_tokens=2500, temperature=0.2)
+            logger.info("Generated comprehensive evaluation")
+            return evaluation
+            
+        except Exception as e:
+            logger.error(f"Error generating comprehensive evaluation: {e}")
+            return self._create_fallback_evaluation(average_score, len(questions))
+    
+    def _format_profile_summary(self, user_profile: Dict[str, Any], qa_pairs: Dict[str, Any]) -> str:
+        """Format profile information for LLM evaluation"""
+        summary_parts = []
+        
+        # Organization info
+        company_size = qa_pairs.get('question3', 'tidak diketahui')
+        structure = qa_pairs.get('question6', 'tidak diketahui')
+        assets = qa_pairs.get('question7', 'tidak diketahui')
+        funding = qa_pairs.get('question5', 'tidak diketahui')
+        
+        summary_parts.append(f"Organisasi: {company_size} karyawan, struktur {structure}, aset {assets}, permodalan {funding}")
+        
+        # Personal info
+        education = qa_pairs.get('question10', 'tidak diketahui')
+        experience = qa_pairs.get('question11', 'tidak diketahui')
+        tenure = qa_pairs.get('question9', 'tidak diketahui')
+        
+        summary_parts.append(f"Responden: pendidikan {education}, pengalaman {experience}, masa jabat {tenure}")
+        
+        return " | ".join(summary_parts)
+    
+    def _format_questions_summary(self, questions: List[Dict], answers: List[int]) -> str:
+        """Format questions and answers summary for LLM evaluation"""
+        summary_parts = []
+        
+        # Calculate score distribution
+        score_counts = {1: 0, 2: 0, 3: 0, 4: 0}
+        for answer in answers:
+            if answer in score_counts:
+                score_counts[answer] += 1
+        
+        summary_parts.append(f"Distribusi jawaban: Skor 1({score_counts[1]}), Skor 2({score_counts[2]}), Skor 3({score_counts[3]}), Skor 4({score_counts[4]})")
+        
+        # Add sample questions with their answers
+        for i in range(min(3, len(questions))):  # Show first 3 questions as examples
+            q_text = questions[i].get('question', '')[:100]  # Limit length
+            answer = answers[i] if i < len(answers) else 0
+            summary_parts.append(f"Contoh Q{i+1}: {q_text}... (Jawaban: {answer})")
+        
+        return "\n".join(summary_parts)
+    
+    def _create_fallback_evaluation(self, average_score: float, total_questions: int) -> str:
+        """Create fallback evaluation when LLM fails"""
+        try:
+            # Determine level based on average score
+            if average_score >= 3.5:
+                level = "Advanced"
+                readiness = 85
+            elif average_score >= 2.5:
+                level = "Intermediate"
+                readiness = 65
+            else:
+                level = "Basic"
+                readiness = 40
+            
+            overall_score = int((average_score / 4.0) * 100)
+            
+            fallback_eval = {
+                "overall_level": level,
+                "overall_score": overall_score,
+                "readiness_percentage": readiness,
+                "strengths": [
+                    "Telah menyelesaikan assessment dengan lengkap",
+                    "Menunjukkan komitmen terhadap digital forensics readiness",
+                    "Memiliki kesadaran akan pentingnya cybersecurity"
+                ],
+                "weaknesses": [
+                    "Masih terdapat area yang perlu diperkuat",
+                    "Perlu peningkatan pemahaman prosedur digital forensics",
+                    "Membutuhkan pelatihan tambahan dalam beberapa aspek"
+                ],
+                "recommendations": [
+                    "Lakukan pelatihan digital forensics sesuai level organisasi",
+                    "Implementasikan kebijakan keamanan yang lebih komprehensif",
+                    "Tingkatkan awareness seluruh karyawan tentang cybersecurity"
+                ],
+                "priority_actions": [
+                    "Audit sistem keamanan saat ini",
+                    "Buat incident response plan yang jelas",
+                    "Siapkan tools dan prosedur digital forensics"
+                ],
+                "detailed_analysis": f"Berdasarkan assessment dengan rata-rata skor {average_score:.2f} dari {total_questions} pertanyaan, organisasi menunjukkan tingkat kesiapan digital forensics pada level {level}. Diperlukan upaya berkelanjutan untuk meningkatkan kapabilitas digital forensics readiness.",
+                "improvement_roadmap": "Fokus pada peningkatan prosedur, pelatihan tim, dan implementasi tools yang sesuai dengan kebutuhan organisasi.",
+                "risk_assessment": "Risiko moderate dengan beberapa area yang memerlukan perhatian khusus untuk mencegah insiden keamanan."
+            }
+            
+            return json.dumps(fallback_eval, indent=2, ensure_ascii=False)
+            
+        except Exception as e:
+            logger.error(f"Error creating fallback evaluation: {e}")
+            return '{"error": "Failed to generate evaluation", "overall_level": "Basic", "overall_score": 0}'
+    
     async def generate_personalization_questions(self, context: str = "") -> str:
         """
         Generate personalization questions for user profiling
@@ -172,7 +416,7 @@ class LLMService:
     
     async def evaluate_assessment_result(self, answers: list, questions: list) -> Dict[str, Any]:
         """
-        Evaluate user answers and generate assessment result
+        Evaluate user answers and generate assessment result (keeping for backward compatibility)
         """
         system_prompt = """
         Kamu adalah expert dalam digital forensics readiness assessment.
@@ -219,4 +463,5 @@ class LLMService:
                 "raw_result": result
             }
 
+# Create global instance
 llm_service = LLMService()

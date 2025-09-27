@@ -4,11 +4,15 @@ import uuid
 import json
 import asyncio
 import random
+import numpy as np
+import faiss
 from datetime import datetime
 from typing import Dict, Any, List
 from functools import wraps
 import resend
-
+import threading
+from sentence_transformers import SentenceTransformer
+from pymongo import MongoClient
 # Local imports
 from services.database_service import db_service
 from services.llm_service import llm_service
@@ -20,9 +24,41 @@ app = Flask(__name__)
 app.secret_key = 'secret_key'
 CORS(app, supports_credentials=True)
 
+# Global event loop for async operations
+_loop = None
+_loop_thread = None
+
+# Initialize sentence transformer model for embeddings
+embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# Global FAISS index
+faiss_index = None
+package_mappings = {}
+
+def get_event_loop():
+    """Get or create a persistent event loop for async operations"""
+    global _loop, _loop_thread
+    
+    if _loop is None or _loop.is_closed():
+        def run_loop():
+            global _loop
+            _loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(_loop)
+            _loop.run_forever()
+        
+        _loop_thread = threading.Thread(target=run_loop, daemon=True)
+        _loop_thread.start()
+        
+        # Wait for loop to be created
+        while _loop is None:
+            threading.Event().wait(0.01)
+    
+    return _loop
+
 # Constants
-PROFILING_ORGANIZATION_QUESTIONS = [
+PROFILING_QUESTIONS = [
   {
+    "type": "organization",
     "question": "Apakah organisasi Anda tergolong dalam kategori Usaha Mikro, Kecil, dan Menengah (UMKM)?",
     "choices": [
       { "label": "Ya, organisasi saya termasuk UMKM" },
@@ -30,14 +66,15 @@ PROFILING_ORGANIZATION_QUESTIONS = [
     ]
   },
   {
+    "type": "organization",
     "question": "Apakah organisasi Anda merupakan Badan Usaha Milik Negara (BUMN)?",
     "choices": [
       { "label": "Ya, organisasi saya adalah BUMN" },
-      { "label": "Tidak, organisasi saya bukan BUMN" },
-      { "label": "51-200" }
+      { "label": "Tidak, organisasi saya bukan BUMN" }
     ]
   },
   {
+    "type": "organization",
     "question": "Berapa jumlah karyawan di organisasi Anda?",
     "choices": [
       { "label": "<10" },
@@ -47,6 +84,7 @@ PROFILING_ORGANIZATION_QUESTIONS = [
     ]
   },
   {
+    "type": "organization",
     "question": "Berapa omzet tahunan organisasi Anda?",
     "choices": [
       { "label": "< 1 Miliar" },
@@ -56,6 +94,7 @@ PROFILING_ORGANIZATION_QUESTIONS = [
     ]
   },
   {
+    "type": "organization",
     "question": "Bagaimana status permodalan organisasi Anda?",
     "choices": [
       { "label": "Mandiri" },
@@ -64,6 +103,7 @@ PROFILING_ORGANIZATION_QUESTIONS = [
     ]
   },
   {
+    "type": "organization",
     "question": "Seperti apa struktur organisasi Anda?",
     "choices": [
       { "label": "Piramidal" },
@@ -73,6 +113,7 @@ PROFILING_ORGANIZATION_QUESTIONS = [
     ]
   },
   {
+    "type": "organization",
     "question": "Berapa total asset yang dimiliki oleh organisasi Anda?",
     "choices": [
       { "label": "< 1 Miliar" },
@@ -82,6 +123,7 @@ PROFILING_ORGANIZATION_QUESTIONS = [
     ]
   },
   {
+    "type": "organization",
     "question": "Berapa besar pajak yang dibayarkan oleh organisasi Anda dalam setahun?",
     "choices": [
       { "label": "<500 Juta" },
@@ -89,66 +131,223 @@ PROFILING_ORGANIZATION_QUESTIONS = [
       { "label": "5 - 50 Miliar" },
       { "label": "50+ Miliar" }
     ]
+  },
+  {
+    "type": "personal",
+    "question": "Berapa lama Anda telah menjabat posisi ini?",
+    "choices": [
+      { "label": "< 1 tahun" },
+      { "label": "1-3 tahun" },
+      { "label": "4-5 tahun" },
+      { "label": "> 5 tahun"}
+    ]
+  },
+  {
+    "type": "personal",
+    "question": "Apa tingkat pendidikan Anda?",
+    "choices": [
+      { "label": "SMA/SMK" },
+      { "label": "D3" },
+      { "label": "S1" },
+      { "label": "S2" },
+      { "label": "S3" },
+      { "label": "Lainnya", "is_field": True }
+    ]
+  },
+  {
+    "type": "personal",
+    "question": "Apa pengalaman kerja Anda dalam bidang ini?",
+    "choices": [
+      { "label": "< 1 tahun" },
+      { "label": "1-3 tahun" },
+      { "label": "4-5 tahun" },
+      { "label": "> 5 tahun" },
+      { "label": "Lainnya", "is_field": True }
+    ]
   }
 ]
 
-PROFILING_PERSONAL_QUESTIONS = [
-    {
-        "question": "Berapa lama Anda telah menjabat posisi ini?",
-        "choices": 
-        [
-            { "label": "< 1 tahun" },
-            { "label": "1-3 tahun" },
-            { "label": "4-5 tahun" },
-            { "label": "> 5 tahun"}
-        ]
-    },
-    {
-        "question": "Apa tingkat pendidikan Anda?",
-        "choices": 
-        [
-            { "label": "SMA/SMK" },
-            { "label": "D3" },
-            { "label": "S1" },
-            { "label": "S2" },
-            { "label": "S3" },
-            { "label": "Lainnya", "is_field": True }
-        ]
-    },
-    {
-        "question": "Apa pengalaman kerja Anda dalam bidang ini?",
-        "choices": 
-        [
-            { "label": "< 1 tahun" },
-            { "label": "1-3 tahun" },
-            { "label": "4-5 tahun" },
-            { "label": "S2" },
-            { "label": "S3" },
-            { "label": "Lainnya", "is_field": True }
-        ]
-    }
-]
-
-QUESTION_KEYS_ORGANIZATION = [
-    "umkm", "bumn", "company_size", "omzet", "funding", "structure", "total_assets", "tax"
-]
-
-QUESTION_KEYS_PERSONAL = [
-    "tenure", "education", "experience"
+QUESTION_KEYS = [
+    "umkm", "bumn", "company_size", "omzet", "funding", "structure", "total_assets", "tax", "tenure", "education", "experience"
 ]
 
 # Decorators
 def async_route(f):
-    """Decorator to handle async routes in Flask"""
+    """Decorator to handle async routes in Flask using persistent event loop"""
     @wraps(f)
     def wrapper(*args, **kwargs):
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        loop = get_event_loop()
+        future = asyncio.run_coroutine_threadsafe(f(*args, **kwargs), loop)
         try:
-            return loop.run_until_complete(f(*args, **kwargs))
-        finally:
-            loop.close()
+            return future.result(timeout=60)  # 30 second timeout
+        except asyncio.TimeoutError:
+            return jsonify({"error": "Request timeout"}), 504
+        except Exception as e:
+            print(f"Async route error: {str(e)}")
+            return jsonify({"error": str(e)}), 500
     return wrapper
+
+# FAISS and Embedding Functions
+async def generate_profile_description(qa_pairs: Dict[str, Any]) -> str:
+    """Generate profile description using LLM based on Q&A pairs"""
+    
+    # Create a structured prompt for LLM
+    profile_info = []
+    for i, (key, answer) in enumerate(qa_pairs.items()):
+        question = PROFILING_QUESTIONS[i]["question"]
+        profile_info.append(f"Q: {question}\nA: {answer}")
+    
+    profile_text = "\n\n".join(profile_info)
+    
+    prompt = f"""
+    Berdasarkan informasi profiling pengguna berikut, buatlah deskripsi karakteristik organisasi dan pengguna dalam 1 paragraf yang komprehensif:
+
+    {profile_text}
+
+    Buatlah deskripsi yang mencakup:
+    - Karakteristik organisasi (ukuran, jenis, struktur)
+    - Profil pengguna (pengalaman, pendidikan, posisi)
+    - Konteks bisnis dan operasional
+
+    Deskripsi harus dalam bahasa Indonesia dan dapat digunakan untuk menentukan paket assessment yang paling sesuai.
+    """
+    
+    try:
+        description = await llm_service.generate_response(prompt, [])
+        return description.strip()
+    except Exception as e:
+        print(f"Error generating profile description: {str(e)}")
+        return f"Organisasi dengan {qa_pairs.get('question3', 'ukuran tidak diketahui')} karyawan dan struktur {qa_pairs.get('question6', 'tidak diketahui')}"
+
+def create_embedding(text: str) -> np.ndarray:
+    """Create embedding vector for given text"""
+    try:
+        embedding = embedding_model.encode([text])
+        return embedding[0]
+    except Exception as e:
+        print(f"Error creating embedding: {str(e)}")
+        # Return zero vector as fallback
+        return np.zeros(384)  # all-MiniLM-L6-v2 has 384 dimensions
+
+async def initialize_faiss_index():
+    """Initialize FAISS index from database keterangan collection"""
+    global faiss_index, package_mappings
+    
+    try:
+        # Get all descriptions from keterangan collection
+        await db_service.connect()
+        keterangan_docs = await db_service.get_all_keterangan()
+        
+        if not keterangan_docs:
+            print("No keterangan documents found in database")
+            return False
+        
+        print(f"Found {len(keterangan_docs)} keterangan documents")
+        
+        # Create embeddings for all descriptions
+        descriptions = []
+        packages = []
+        
+        for doc in keterangan_docs:
+            description = doc.get('description', '')
+            package = doc.get('package', doc.get('paket', 'unknown'))
+            
+            if description and package:
+                descriptions.append(description)
+                packages.append(package)
+        
+        if not descriptions:
+            print("No valid descriptions found")
+            return False
+        
+        print(f"Creating embeddings for {len(descriptions)} descriptions...")
+        embeddings = []
+        for desc in descriptions:
+            embedding = create_embedding(desc)
+            embeddings.append(embedding)
+        
+        embeddings_array = np.array(embeddings).astype('float32')
+        
+        # Create FAISS index
+        dimension = embeddings_array.shape[1]
+        faiss_index = faiss.IndexFlatIP(dimension)  # Inner product for similarity
+        
+        # Normalize embeddings for cosine similarity
+        faiss.normalize_L2(embeddings_array)
+        faiss_index.add(embeddings_array)
+        
+        # Create package mappings
+        package_mappings = {i: packages[i] for i in range(len(packages))}
+        
+        print(f"FAISS index initialized with {faiss_index.ntotal} vectors")
+        return True
+        
+    except Exception as e:
+        print(f"Error initializing FAISS index: {str(e)}")
+        return False
+
+async def find_best_package(profile_description: str) -> str:
+    """Find best matching package using FAISS similarity search"""
+    global faiss_index, package_mappings
+    
+    if faiss_index is None:
+        print("FAISS index not initialized, initializing now...")
+        await initialize_faiss_index()
+    
+    if faiss_index is None:
+        print("Failed to initialize FAISS index, returning default package '0'")
+        return '0'  # Return '0' as the default package
+    
+    try:
+        # Create embedding for profile description
+        query_embedding = create_embedding(profile_description)
+        query_embedding = np.array([query_embedding]).astype('float32')
+        
+        # Normalize for cosine similarity
+        faiss.normalize_L2(query_embedding)
+        
+        # Search for the most similar description
+        k = 1  # Get top 1 match
+        similarities, indices = faiss_index.search(query_embedding, k)
+        
+        if len(indices[0]) > 0:
+            # Get the best match index and its similarity score
+            best_match_idx = indices[0][0]
+            similarity_score = similarities[0][0]
+            
+            # Map the index to the corresponding package ID
+            best_package = str(best_match_idx)  # Package IDs are stored as string in the database
+            
+            print(f"Best matching package: {best_package} (similarity: {similarity_score:.4f})")
+            return best_package
+        else:
+            print("No matches found, returning default package '0'")
+            return '0'  # If no match, return '0' as default
+            
+    except Exception as e:
+        print(f"Error in similarity search: {str(e)}")
+        return '0'  # Return '0' in case of error
+
+
+async def get_questions_by_package(package: str, limit: int = 15) -> List[Dict]:
+    """Get questions from database filtered by package"""
+    try:
+        await db_service.connect()
+        questions = await db_service.get_questions_by_package(package, limit)
+        
+        if not questions:
+            print(f"No questions found for package: {package}, trying default")
+            questions = await db_service.get_questions_by_package("basic", limit)
+        
+        if not questions:
+            print("No questions found even for basic package")
+            return []
+        
+        return questions[:limit]  # Limit to top 15 questions
+        
+    except Exception as e:
+        print(f"Error getting questions by package: {str(e)}")
+        return []
 
 # Session Management
 class SessionManager:
@@ -166,7 +365,10 @@ class SessionManager:
             "total_profiling_questions": len(PROFILING_QUESTIONS),
             "test_questions": [],
             "test_answers": [],
-            "final_evaluation": {}
+            "final_evaluation": {},
+            "profile_description": "",
+            "selected_package": "",
+            "likert_scores": []
         }
         self.conversation_summary = ""
         self.last_ai_message = ""
@@ -182,7 +384,8 @@ class SessionManager:
             "phase": self.context["current_phase"],
             "user_profile": self.context["user_profile"],
             "profiling_progress": f"{self.context['profiling_progress']}/{self.context['total_profiling_questions']}",
-            "assessment_level": self.context["assessment_level"]
+            "assessment_level": self.context["assessment_level"],
+            "selected_package": self.context["selected_package"]
         }
 
 # Global session storage
@@ -209,31 +412,36 @@ def get_or_create_session():
     return session_managers[session_id]
 
 # Database initialization
-def startup():
-    """Connect to database on startup"""
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    
-    async def _startup():
-        try:
-            await db_service.connect()
-            print("Database connected successfully")
-            
-            # Menghitung jumlah total pertanyaan di database
-            question_count = await db_service.count_questions()
-            print(f"Total questions in database: {question_count}")
-            
-            if question_count == 0:
-                print("No questions found in database. You may need to load questions.")
-        
-        except Exception as e:
-            print(f"Failed to initialize database: {str(e)}")
-    
+async def startup_async():
+    """Async startup function"""
     try:
-        loop.run_until_complete(_startup())
-    finally:
-        loop.close()
+        await db_service.connect()
+        print("Database connected successfully")
+        
+        question_count = await db_service.count_questions()
+        keterangan_count = await db_service.count_keterangan()
+        
+        print(f"Total questions in database: {question_count}")
+        print(f"Total keterangan in database: {keterangan_count}")
+        
+        if question_count == 0:
+            print("No questions found in database. You may need to load questions.")
+        
+        if keterangan_count == 0:
+            print("No keterangan found in database. You may need to load keterangan data.")
+        
+        # Initialize FAISS index
+        if keterangan_count > 0:
+            await initialize_faiss_index()
+    
+    except Exception as e:
+        print(f"Failed to initialize database: {str(e)}")
 
+def startup():
+    """Connect to database on startup using persistent event loop"""
+    loop = get_event_loop()
+    future = asyncio.run_coroutine_threadsafe(startup_async(), loop)
+    future.result(timeout=15)  # 15 second timeout for startup
 
 # Utility functions
 def parse_answers_from_request(data: Dict) -> Dict[str, Any]:
@@ -242,113 +450,93 @@ def parse_answers_from_request(data: Dict) -> Dict[str, Any]:
     
     if 'answers' in data and isinstance(data['answers'], list):
         answers = data.get('answers', [])
-        if len(answers) != len(PROFILING_ORGANIZATION_QUESTIONS):
-            raise ValueError(f"Please provide exactly {len(PROFILING_ORGANIZATION_QUESTIONS)} answers.")
+        if len(answers) != len(PROFILING_QUESTIONS):
+            raise ValueError(f"Please provide exactly {len(PROFILING_QUESTIONS)} answers.")
         
         for idx, answer in enumerate(answers):
             qa_pairs[f"question{idx+1}"] = answer
     
     elif any(key.startswith('question') for key in data.keys()):
         qa_pairs = {k: v for k, v in data.items() if k.startswith('question')}
-        if len(qa_pairs) != len(PROFILING_ORGANIZATION_QUESTIONS):
-            raise ValueError(f"Please provide exactly {len(PROFILING_ORGANIZATION_QUESTIONS)} question-answer pairs.")
+        if len(qa_pairs) != len(PROFILING_QUESTIONS):
+            raise ValueError(f"Please provide exactly {len(PROFILING_QUESTIONS)} question-answer pairs.")
     else:
-        raise ValueError("Invalid format. Provide either an 'answers' array or 'question1'–'question10' keys.")
+        raise ValueError("Invalid format. Provide either an 'answers' array or 'question1'–'question11' keys.")
     
     return qa_pairs
 
 def update_profile_from_qa(manager: SessionManager, qa_pairs: Dict[str, Any]):
     """Update user profile from Q&A pairs"""
-    # Fix: Process questions in their original order (question1, question2, etc.)
-    for i in range(1, len(PROFILING_ORGANIZATION_QUESTIONS) + 1):
+    for i in range(1, len(PROFILING_QUESTIONS) + 1):
         question_key = f"question{i}"
         if question_key in qa_pairs:
-            profile_key = QUESTION_KEYS_ORGANIZATION[i - 1]  # Convert to 0-based index
+            profile_key = QUESTION_KEYS[i - 1]  # Convert to 0-based index
             manager.update_profile_data(profile_key, qa_pairs[question_key])
 
-async def get_assessment_level_from_llm(qa_pairs: Dict[str, Any]) -> tuple:
-    """Get assessment level from LLM analysis"""
-    # Generate the prompt for LLM
-    prompt = AssessmentPrompts.get_profiling_analysis_prompt(qa_pairs)
+def calculate_likert_average(scores: List[int]) -> float:
+    """Calculate average of Likert scale responses"""
+    if not scores:
+        return 0.0
     
-    # Get the response from LLM service
-    ai_response = await llm_service.generate_response(prompt, [])
-    assessment_level = ""
-
-    try:
-        # Try parsing the response as JSON
-        if '{' in ai_response and '}' in ai_response:
-            json_start = ai_response.find('{')
-            json_end = ai_response.rfind('}') + 1
-            json_str = ai_response[json_start:json_end]
-            llm_result = json.loads(json_str)
-        else:
-            raise json.JSONDecodeError("No JSON found", ai_response, 0)
-        
-        # Directly get the assessment level from the LLM response
-        assessment_level = llm_result.get("assessment_level", "Recognize")
-        
-    except json.JSONDecodeError as e:
-
-        print(f"JSON parsing failed: {str(e)}")
-        print(f"Raw LLM response: {ai_response}")
-        
-        # Default result in case of failure
-        llm_result = {
-            "assessment_level": "Recognize",
-        }
+    valid_scores = [score for score in scores if isinstance(score, int) and 1 <= score <= 4]
+    if not valid_scores:
+        return 0.0
     
-    # Return the assessment level and the LLM result
-    return assessment_level, llm_result
-
-async def get_questions_from_database(assessment_level: str) -> List[Dict]:
-    """Get questions from database for the specified assessment level"""
-    
-    try:
-        await db_service.disconnect()
-        await db_service.connect()
-        print("Database reconnected successfully")
-    except Exception as e:
-        print(f"Reconnection failed: {str(e)}")
-        raise Exception(f"Database connection failed: {str(e)}")
-    
-    # Get questions for the specified level
-    questions = await db_service.get_questions_by_level(assessment_level, limit=10)
-    
-    if not questions:
-        raise Exception(f"No questions found for the {assessment_level} level")
-    
-    return questions
+    return sum(valid_scores) / len(valid_scores)
 
 async def evaluate_with_llm(manager: SessionManager) -> Dict[str, Any]:
     """Perform comprehensive evaluation using LLM"""
-    questions = manager.context["test_questions"]
-    answers = manager.context["test_answers"]
-    user_profile = manager.context["user_profile"]
-    assessment_level = manager.context["assessment_level"]
-    qa_pairs = manager.context.get("profiling_qa_pairs", {})
-    
-    prompt = AssessmentPrompts.get_evaluation_prompt(
-        user_profile, assessment_level, qa_pairs, questions, answers
-    )
-    
-    ai_response = await llm_service.generate_response(prompt, [])
-    
     try:
-        if '{' in ai_response and '}' in ai_response:
-            json_start = ai_response.find('{')
-            json_end = ai_response.rfind('}') + 1
-            json_str = ai_response[json_start:json_end]
-            evaluation = json.loads(json_str)
-        else:
-            raise json.JSONDecodeError("No JSON found", ai_response, 0)
-            
-    except json.JSONDecodeError as e:
-        print(f"Evaluation JSON parsing failed: {str(e)}")
-        evaluation = AssessmentPrompts.get_fallback_evaluation()
-        evaluation["raw_llm_response"] = ai_response
-    
-    return evaluation
+        questions = manager.context["test_questions"]
+        answers = manager.context["test_answers"]
+        user_profile = manager.context.get("user_profile", {}) if isinstance (manager.context.get("user_profile", {}), dict) else None
+        
+        # Log and Check if user_profile is a dictionary
+        print(f"user_profile: {user_profile} (type: {type(user_profile)})")
+        
+        # Ensure user_profile is a dictionary
+        if not isinstance(user_profile, dict):
+            print("Error: user_profile is not a dictionary. Fallback to empty dictionary.")
+            user_profile = {}  # Fallback to an empty dictionary
+        
+        # Proceed if it's a valid dictionary
+        selected_package = manager.context["selected_package"]
+        qa_pairs = manager.context.get("profiling_qa_pairs", {}) if isinstance(manager.context.get("profiling_qa_pairs", {}), dict) else {}
+        likert_scores = manager.context.get("likert_scores", [])
+        
+        # Calculate average score
+        avg_score = calculate_likert_average(likert_scores)
+        
+        prompt = AssessmentPrompts.get_evaluation_prompt(
+            user_profile, selected_package, qa_pairs, questions, answers, avg_score
+        )
+        
+        ai_response = await llm_service.generate_response(prompt, [])
+        
+        try:
+            if '{' in ai_response and '}' in ai_response:
+                json_start = ai_response.find('{')
+                json_end = ai_response.rfind('}') + 1
+                json_str = ai_response[json_start:json_end]
+                evaluation = json.loads(json_str)
+            else:
+                raise json.JSONDecodeError("No JSON found", ai_response, 0)
+                
+        except json.JSONDecodeError as e:
+            print(f"Evaluation JSON parsing failed: {str(e)}")
+            evaluation = AssessmentPrompts.get_fallback_evaluation()
+            evaluation["raw_llm_response"] = ai_response
+        
+        # Add calculated metrics
+        evaluation["likert_average"] = avg_score
+        evaluation["total_responses"] = len(likert_scores)
+        
+        return evaluation
+
+    except Exception as e:
+        print(f"Error during evaluation: {str(e)}")
+        return {"error di main": str(e)}
+
 
 resend.api_key = settings.MAIL_RESEND_API_KEY
 
@@ -359,7 +547,7 @@ def send_email(to: str, subject: str, body: str):
             "from": "noreply@stelarea.com",
             "to": [to],
             "subject": subject,
-            "html": body,  # Resend accepts HTML content
+            "html": body,
         }
         
         email = resend.Emails.send(params)
@@ -377,7 +565,9 @@ def send_email(to: str, subject: str, body: str):
 def home():
     """API information"""
     return jsonify({
-        "message": "ok"
+        "message": "Digital Forensics Readiness Assessment API",
+        "version": "2.0",
+        "features": ["Profiling", "FAISS Similarity Search", "Likert Scale Assessment", "LLM Evaluation"]
     })
 
 @app.route('/start_profiling', methods=['GET'])
@@ -396,11 +586,11 @@ def start_profiling():
     except Exception as e:
         print(f"Error in start_profiling: {str(e)}")
         return jsonify({"error": str(e)}), 500
-    
+
 @app.route('/submit_answers', methods=['POST'])
 @async_route
 async def submit_answers():
-    """Process profiling answers and determine assessment level using LLM"""
+    """Process profiling answers, generate description, and find matching package"""
     try:
         manager = get_or_create_session()
         
@@ -416,18 +606,22 @@ async def submit_answers():
         
         update_profile_from_qa(manager, qa_pairs)
         
-        # Get the assessment level from LLM
-        assessment_level, llm_result = await get_assessment_level_from_llm(qa_pairs)
+        # Generate profile description using LLM
+        profile_description = await generate_profile_description(qa_pairs)
         
-        # Store the assessment level in the session
-        manager.context["assessment_level"] = assessment_level
-        manager.context["current_phase"] = "assessment_level"
-        manager.context["llm_analysis"] = llm_result
+        # Find best matching package using FAISS similarity search
+        selected_package = await find_best_package(profile_description)
+        
+        # Store results in session
+        manager.context["profile_description"] = profile_description
+        manager.context["selected_package"] = selected_package
+        manager.context["current_phase"] = "package_selected"
         manager.context["profiling_qa_pairs"] = qa_pairs
         
         return jsonify({
             "session_id": manager.session_id,
-            "assessment_level": assessment_level,
+            "profile_description": profile_description,
+            "selected_package": selected_package,
             "current_phase": manager.context["current_phase"],
         })
         
@@ -435,39 +629,53 @@ async def submit_answers():
         print(f"Error in submit_answers: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+from pymongo import MongoClient  # Gunakan MongoClient biasa
+
 @app.route('/get_test_questions', methods=['GET'])
-@async_route
-async def get_test_questions():
-    """Get questions from MongoDB based on assessment level"""
+def get_test_questions():
+    """Get test questions based on selected package"""
     try:
         manager = get_or_create_session()
         
-        if manager.context["current_phase"] != "assessment_level" and manager.context["current_phase"] != "testing":
+        if manager.context["current_phase"] not in ["package_selected", "testing"]:
             return jsonify({"error": "Please complete profiling first"}), 400
         
-        assessment_level = manager.context.get("assessment_level")
-        if not assessment_level:
-            return jsonify({"error": "Assessment level not determined. Please complete profiling first."}), 400
+        selected_package = manager.context.get("selected_package")
+        if not selected_package:
+            return jsonify({"error": "No package selected"}), 400
         
-        print(f"Fetching questions from MongoDB for level: {assessment_level}")
+        print(f"Fetching questions for package: {selected_package}")
         
-        try:
-            questions = await get_questions_from_database(assessment_level)
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+        # Gunakan MongoClient biasa
+        client = MongoClient('mongodb://admin:securepassword123@mongodb:27017/cybersecurity_assessment?authSource=admin')
+        db = client.cybersecurity_assessment
+        
+        # Menggunakan metode sinkron untuk mendapatkan data
+        questions_cursor = db.questions.find({"package": selected_package}).limit(15)
+        
+        questions = []
+        for question in questions_cursor:  # Iterasi menggunakan for biasa (sinkron)
+            questions.append({
+                "question": question.get("question"),
+                "indikator": question.get("indikator"),
+                "level": question.get("level"),
+                # Include other fields as necessary
+            })
         
         if not questions:
-            return jsonify({"error": f"No questions found for {assessment_level} level."}), 404
+            return jsonify({"error": f"No questions found for package: {selected_package}"}), 404
         
+        # Store questions in session
         manager.context["test_questions"] = questions
         manager.context["current_phase"] = "testing"
         
         return jsonify({
             "session_id": manager.session_id,
-            "assessment_level": assessment_level,
+            "package": selected_package,
             "questions": questions,
             "questions_count": len(questions),
             "current_phase": manager.context["current_phase"],
+            "instruction": "Please respond with numbers 1-4 for each question (Likert scale)"
         })
         
     except Exception as e:
@@ -477,7 +685,7 @@ async def get_test_questions():
 
 @app.route('/submit_test_answers', methods=['POST'])
 def submit_test_answers():
-    """Submit test answers and prepare for LLM evaluation"""
+    """Submit Likert scale test answers (1-4 scale)"""
     try:
         manager = get_or_create_session()
         
@@ -494,22 +702,40 @@ def submit_test_answers():
         if len(answers) != expected_count:
             return jsonify({"error": f"Please provide exactly {expected_count} answers"}), 400
         
-        # Validate answers
-        if not all(str(answer).strip() for answer in answers):
-            return jsonify({"error": "All answers must be non-empty"}), 400
+        # Validate Likert scale answers (1-4)
+        likert_scores = []
+        for i, answer in enumerate(answers):
+            try:
+                score = int(answer)
+                if score not in [1, 2, 3, 4]:
+                    return jsonify({"error": f"Answer {i+1} must be 1, 2, 3, or 4"}), 400
+                likert_scores.append(score)
+            except (ValueError, TypeError):
+                return jsonify({"error": f"Answer {i+1} must be a number (1-4)"}), 400
         
-        # Store answers
+        # Store answers and scores
         manager.context["test_answers"] = answers
+        manager.context["likert_scores"] = likert_scores
         manager.context["current_phase"] = "evaluation"
         
+        # Calculate average score
+        avg_score = calculate_likert_average(likert_scores)
+        
         return jsonify({
-            "session_id": manager.session_id, 
+            "session_id": manager.session_id,
             "current_phase": manager.context["current_phase"],
+            "average_score": round(avg_score, 2),
+            "total_responses": len(likert_scores),
+            "score_distribution": {
+                "1": likert_scores.count(1),
+                "2": likert_scores.count(2), 
+                "3": likert_scores.count(3),
+                "4": likert_scores.count(4)
+            }
         })
         
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/submit_email', methods=['POST'])
 def submit_email():
@@ -538,7 +764,6 @@ def submit_email():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route('/get_results', methods=['GET'])
 @async_route
 async def get_results():
@@ -554,8 +779,10 @@ async def get_results():
             manager.context["final_evaluation"] = evaluation
             manager.context["current_phase"] = "completed"
 
-            # Send email notification
-            user_email = manager.context["user_profile"].get("email")
+            # Ensure 'user_profile' is a dictionary and contains 'email'
+            user_profile = manager.context.get("user_profile", {}) if isinstance(manager.context.get("user_profile", {}), dict) else None
+            user_email = user_profile.get("email") if isinstance(user_profile, dict) else None
+            
             if user_email:
                 email_subject = "Digital Forensic Readiness (DFR) Test Results"
                 email_body = generate_email_template(manager)
@@ -570,9 +797,10 @@ async def get_results():
             
             return jsonify({
                 "session_id": manager.session_id,
-                "assessment_level": manager.context["assessment_level"],
+                "selected_package": manager.context["selected_package"],
+                "profile_description": manager.context["profile_description"],
                 "user_profile": manager.context["user_profile"],
-                "profiling_qa": manager.context.get("profiling_qa_pairs", {}),
+                "profiling_qa": manager.context.get("profiling_qa_pairs", {}) if isinstance(manager.context.get("profiling_qa_pairs", {}), dict) else {},
                 "test_questions": len(manager.context["test_questions"]),
                 "evaluation": manager.context["final_evaluation"],
                 "questions_answered": len(manager.context["test_answers"]),
@@ -584,9 +812,10 @@ async def get_results():
             # Already completed, return cached results
             return jsonify({
                 "session_id": manager.session_id,
-                "assessment_level": manager.context["assessment_level"],
+                "selected_package": manager.context["selected_package"],
+                "profile_description": manager.context["profile_description"],
                 "user_profile": manager.context["user_profile"],
-                "profiling_qa": manager.context.get("profiling_qa_pairs", {}),
+                "profiling_qa": manager.context.get("profiling_qa_pairs", {}) if isinstance(manager.context.get("profiling_qa_pairs", {}), dict) else {},
                 "test_questions": len(manager.context["test_questions"]),
                 "evaluation": manager.context["final_evaluation"],
                 "questions_answered": len(manager.context["test_answers"]),
@@ -601,6 +830,7 @@ async def get_results():
         print(f"Error in get_results: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+
 @app.route('/session_status', methods=['GET'])
 def session_status():
     """Get current session status"""
@@ -609,11 +839,13 @@ def session_status():
         return jsonify({
             "session_id": manager.session_id,
             "current_phase": manager.context["current_phase"],
-            "assessment_level": manager.context.get("assessment_level"),
+            "selected_package": manager.context.get("selected_package"),
+            "profile_description": manager.context.get("profile_description", ""),
             "profiling_progress": f"{manager.context['profiling_progress']}/{manager.context['total_profiling_questions']}",
             "created_at": manager.created_at.isoformat(),
             "questions_available": len(manager.context.get("test_questions", [])),
-            "answers_submitted": len(manager.context.get("test_answers", []))
+            "answers_submitted": len(manager.context.get("test_answers", [])),
+            "average_score": round(calculate_likert_average(manager.context.get("likert_scores", [])), 2) if manager.context.get("likert_scores") else 0.0
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -633,6 +865,55 @@ def method_not_allowed(error):
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
+
+@app.route('/check_db', methods=['GET'])
+def check_db():
+    try:
+        client = MongoClient('mongodb://admin:securepassword123@mongodb:27017/cybersecurity_assessment?authSource=admin')
+        db = client.cybersecurity_assessment
+        keterangan_count = db.keterangan.count_documents({})
+        questions_count = db.questions.count_documents({})
+        return jsonify({
+            "keterangan_count": keterangan_count,
+            "questions_count": questions_count
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+from bson import ObjectId
+
+from flask import Flask, jsonify
+from pymongo import MongoClient
+from bson import ObjectId  # Import ObjectId to handle serialization
+def json_serialize(doc):
+    """Convert MongoDB document to JSON-serializable format"""
+    if isinstance(doc, dict):
+        for key, value in doc.items():
+            if isinstance(value, ObjectId):
+                doc[key] = str(value)  # Convert ObjectId to string
+    return doc
+
+@app.route('/get_keterangan', methods=['GET'])
+def get_keterangan():
+    try:
+        # Connect to MongoDB
+        client = MongoClient('mongodb://admin:securepassword123@mongodb:27017/cybersecurity_assessment?authSource=admin')
+        db = client.cybersecurity_assessment
+        
+        # Find documents with package == "0"
+        keterangan = db.questions.find({"package": "0"})
+        
+        # Convert the cursor to a list
+        keterangan_list = list(keterangan)
+        
+        if keterangan_list:
+            # Convert ObjectId to string for JSON serialization
+            return jsonify([json_serialize(doc) for doc in keterangan_list])
+        else:
+            return jsonify({"message": "No keterangan found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     # Initialize database connection

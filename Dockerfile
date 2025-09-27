@@ -15,6 +15,9 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install additional dependencies explicitly (optional)
+RUN pip install sentence-transformers
+
 # Copy application code
 COPY . .
 

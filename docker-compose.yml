@@ -13,7 +13,7 @@ services:
       MONGO_INITDB_DATABASE: cybersecurity_assessment
     volumes:
       - mongodb_data:/data/db
-      - ./mongo-init:/docker-entrypoint-initdb.d:ro
+      - ./database:/docker-entrypoint-initdb.d:ro
     networks:
       - cybersec-network
     healthcheck:
@@ -31,7 +31,7 @@ services:
       mongodb:
         condition: service_healthy
     volumes:
-      - ./mongo-init:/data
+      - ./database:/database
     networks:
       - cybersec-network
     command: 
@@ -43,11 +43,10 @@ services:
 
         pip install --no-cache-dir pymongo dnspython
 
-        python /data/clean-and-import.py
+        python /database/clean-and-import.py
     restart: "no"
     environment:
       MONGODB_URI: mongodb://admin:securepassword123@mongodb:27017/cybersecurity_assessment?authSource=admin
-
 
   flask-app:
     build: 
@@ -63,10 +62,8 @@ services:
       - SECRET_KEY=your_super_secret_key_change_in_production
       - PYTHONPATH=/app
     depends_on:
-      mongodb:
-        condition: service_healthy
-      data-importer:
-        condition: service_completed_successfully
+      - mongodb
+      - data-importer
     volumes:
       - .:/app
       - /app/.venv
