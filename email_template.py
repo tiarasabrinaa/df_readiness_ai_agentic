@@ -1,210 +1,146 @@
-from datetime import datetime
-from typing import Any, Dict, List
+# email_template.py
+from typing import Dict, Any
+import json
 
 def generate_email_template(manager) -> str:
-    ctx = getattr(manager, "context", {}) or {}
-    
-    user_profile = ctx.get("user_profile", {})
-    if isinstance(user_profile, str):
-        user_profile = {}
-    
-    profile = user_profile
-    
-    level = (
-        ctx.get("assessment_level")
-        or (ctx.get("final_evaluation", {}) or {}).get("assessment_level")
-        or "N/A"
-    )
-    total_questions = len(ctx.get("test_questions", []) or [])
-    answered = len(ctx.get("test_answers", []) or [])
+    """Generate email template with assessment results"""
+    try:
+        ctx = manager.context
+        
+        # Fix: Handle final_evaluation safely - could be string or dict
+        final_evaluation = ctx.get("final_evaluation", {})
+        
+        # Parse final_evaluation properly
+        if isinstance(final_evaluation, str):
+            # If it's a string, try to parse as JSON first
+            try:
+                evaluation_data = json.loads(final_evaluation)
+            except (json.JSONDecodeError, ValueError):
+                # If parsing fails, create fallback structure
+                evaluation_data = {
+                    "overall_level": "Basic",
+                    "overall_score": 0,
+                    "readiness_percentage": 40,
+                    "strengths": ["Assessment telah diselesaikan"],
+                    "weaknesses": ["Perlu evaluasi lebih lanjut"],
+                    "recommendations": ["Konsultasi dengan tim untuk analisis mendalam"],
+                    "priority_actions": ["Review hasil assessment"],
+                    "detailed_analysis": final_evaluation,  # Include the original string
+                    "improvement_roadmap": "Diperlukan analisis lebih detail",
+                    "risk_assessment": "Status assessment perlu dikonfirmasi"
+                }
+        elif isinstance(final_evaluation, dict):
+            evaluation_data = final_evaluation
+        else:
+            # Fallback for any other type
+            evaluation_data = {
+                "overall_level": "Unknown",
+                "overall_score": 0,
+                "readiness_percentage": 0,
+                "strengths": ["Assessment attempted"],
+                "weaknesses": ["Technical issue occurred"],
+                "recommendations": ["Please contact support"],
+                "priority_actions": ["Contact technical team"],
+                "detailed_analysis": "Technical issue during evaluation",
+                "improvement_roadmap": "Technical support required",
+                "risk_assessment": "Unable to assess due to technical issue"
+            }
+        
+        # Safe get with fallback values
+        overall_level = evaluation_data.get("overall_level", "Basic")
+        overall_score = evaluation_data.get("overall_score", 0)
+        readiness_percentage = evaluation_data.get("readiness_percentage", 40)
+        strengths = evaluation_data.get("strengths", ["Assessment completed"])
+        weaknesses = evaluation_data.get("weaknesses", ["Areas for improvement identified"])
+        recommendations = evaluation_data.get("recommendations", ["Follow up recommended"])
+        priority_actions = evaluation_data.get("priority_actions", ["Review assessment results"])
+        detailed_analysis = evaluation_data.get("detailed_analysis", "Analysis not available")
+        improvement_roadmap = evaluation_data.get("improvement_roadmap", "Roadmap to be developed")
+        risk_assessment = evaluation_data.get("risk_assessment", "Risk assessment pending")
+        
+        # Get other context data safely
+        user_profile = ctx.get("user_profile", {})
+        if isinstance(user_profile, str):
+            try:
+                user_profile = json.loads(user_profile)
+            except:
+                user_profile = {}
+        
+        user_email = user_profile.get("email", "Unknown") if isinstance(user_profile, dict) else "Unknown"
+        selected_package = ctx.get("selected_package", "Unknown")
+        test_questions_count = len(ctx.get("test_questions", []))
+        test_answers_count = len(ctx.get("test_answers", []))
+        
+        # Calculate completion percentage
+        completion_percentage = (test_answers_count / test_questions_count * 100) if test_questions_count > 0 else 0
+        
+        # Format strengths, weaknesses, recommendations, and priority actions as lists
+        strengths_list = "\n".join([f"• {strength}" for strength in strengths]) if isinstance(strengths, list) else "• Assessment completed"
+        weaknesses_list = "\n".join([f"• {weakness}" for weakness in weaknesses]) if isinstance(weaknesses, list) else "• Areas for improvement identified"
+        recommendations_list = "\n".join([f"• {rec}" for rec in recommendations]) if isinstance(recommendations, list) else "• Follow up recommended"
+        priority_actions_list = "\n".join([f"• {action}" for action in priority_actions]) if isinstance(priority_actions, list) else "• Review results"
+        
+        email_template = f"""
+Subject: Hasil Assessment Digital Forensics Readiness - {user_email}
 
-    evaluation: Dict[str, Any] = ctx.get("final_evaluation", {}) or {}
-    score = evaluation.get("overall_score", "N/A")
-    readiness = (
-        evaluation.get("readiness_percent")
-        or evaluation.get("readiness_percentage")
-        or evaluation.get("readiness_level")
-        or evaluation.get("overall_level")
-        or "N/A"
-    )
-    
-    # risk assessment
-    risk_assessment = evaluation.get("risk_assessment", {})
-    if isinstance(risk_assessment, str):
-        risk_assessment = {}
-    risk_level = risk_assessment.get("risk_level", "N/A") if isinstance(risk_assessment, dict) else "N/A"
-    priority_score = risk_assessment.get("priority_score", "N/A") if isinstance(risk_assessment, dict) else "N/A"
-    critical_gaps = risk_assessment.get("critical_gaps", []) if isinstance(risk_assessment, dict) else []
-    if not isinstance(critical_gaps, list):
-        critical_gaps = []
+Terima kasih telah menyelesaikan Digital Forensics Readiness Assessment.
 
-    # strengths and weaknesses
-    strengths = evaluation.get("strengths", []) or []
-    if not isinstance(strengths, list):
-        strengths = []
-    weaknesses = evaluation.get("weaknesses", []) or []
-    if not isinstance(weaknesses, list):
-        weaknesses = []
+=== RINGKASAN HASIL ASSESSMENT ===
 
-    # detailed analysis
-    analysis_summary = evaluation.get("detailed_analysis", "")
-    next_steps = evaluation.get("next_steps", "") or evaluation.get("improvement_roadmap", "")
+Email: {user_email}
+Paket Assessment: {selected_package}
+Level Kesiapan: {overall_level}
+Overall Score: {overall_score}/100
+Readiness Percentage: {readiness_percentage}%
+Completion Rate: {completion_percentage:.1f}%
 
-    def render_list(items) -> str:
-        if not items:
-            return "<li>-</li>"
-        if isinstance(items, dict):
-            inner = ""
-            for k, v in items.items():
-                inner += f"<li><strong>{k}</strong></li>"
-                inner += "<ul>"
-                if isinstance(v, (list, tuple)):
-                    inner += "".join(f"<li>{str(it)}</li>" for it in v)
-                else:
-                    inner += f"<li>{str(v)}</li>"
-                inner += "</ul>"
-            return inner
-        if isinstance(items, (list, tuple)):
-            return "".join(f"<li>{str(it)}</li>" for it in items) or "<li>-</li>"
-        return f"<li>{str(items)}</li>"
+=== KEKUATAN ORGANISASI ===
+{strengths_list}
 
-    recommendations = evaluation.get("recommendations", []) or []
-    rec_html = ""
-    
-    if isinstance(recommendations, list) and recommendations:
-        # Handle new structure with category and items
-        for rec in recommendations:
-            if isinstance(rec, dict) and "category" in rec and "items" in rec:
-                rec_html += f"<li><strong>{rec['category']}</strong><ul>"
-                for item in rec['items']:
-                    rec_html += f"<li>{str(item)}</li>"
-                rec_html += "</ul></li>"
-            elif isinstance(rec, str):
-                rec_html += f"<li>{rec}</li>"
-            else:
-                rec_html += f"<li>{str(rec)}</li>"
-    elif isinstance(recommendations, dict):
-        rec_html = "".join(
-            f"<li><strong>{cat}</strong><ul>{render_list(recs)}</ul></li>"
-            for cat, recs in recommendations.items()
-        )
-    else:
-        rec_html = render_list(recommendations)
-    
-    if not rec_html:
-        rec_html = "<li>Lakukan pelatihan keamanan siber secara berkala</li><li>Implementasikan kebijakan keamanan yang komprehensif</li><li>Audit sistem keamanan secara rutin</li>"
+=== AREA YANG PERLU DIPERBAIKI ===
+{weaknesses_list}
 
-    html = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="UTF-8" />
-        <title>Digital Forensics Readiness Report</title>
-        <style>
-        body {{ font-family: Arial, sans-serif; color: #1f2937; margin: 0; padding: 0; }}
-        .container {{ max-width: 720px; margin: 0 auto; padding: 24px; }}
-        .card {{ background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }}
-        h1 {{ color: #111827; }}
-        h2 {{ color: #111827; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }}
-        .badge {{ display: inline-block; background: #eef2ff; color: #3730a3; padding: 4px 10px; border-radius: 9999px; font-size: 12px; margin-right: 8px; }}
-        ul {{ padding-left: 20px; }}
-        .muted {{ color: #6b7280; }}
-        .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }}
-        .section {{ margin-top: 20px; }}
-        </style>
-    </head>
-    <body>
-    <div class="container">
-        <div class="card">
-        <h1>Digital Forensics Readiness Report</h1>
-        <p class="muted">Comprehensive analysis of your organization's digital forensics readiness based on industry best practices.</p>
+=== REKOMENDASI ===
+{recommendations_list}
 
-        <div class="section">
-        <h2>Status</h2>
-        <span class="badge">Assessment Complete</span>
-        <span class="badge">Level: {level}</span>
-        </div>
+=== PRIORITAS TINDAKAN ===
+{priority_actions_list}
 
-        <div class="section">
-        <h2>Key Metrics</h2>
-        <ul>
-            <li>Overall Score: {score}</li>
-            <li>Readiness: {readiness}</li>
-            <li>Completion: {answered}/{total_questions} questions</li>
-        </ul>
-        </div>
+=== ANALISIS DETAIL ===
+{detailed_analysis}
 
-        <div class="section">
-        <h2>Risk Assessment</h2>
-        <ul>
-            <li>Risk Level: {risk_level}</li>
-            <li>Priority Score: {priority_score}</li>
-            <li>Critical Gaps:</li>
-            <ul>
-            {render_list(critical_gaps)}
-            </ul>
-        </ul>
-        </div>
+=== ROADMAP PERBAIKAN ===
+{improvement_roadmap}
 
-        <div class="section">
-        <h2>Action Plan & Recommendations</h2>
-        <ul>
-            {rec_html}
-        </ul>
-        </div>
+=== PENILAIAN RISIKO ===
+{risk_assessment}
 
-        <div class="section">
-        <h2>Strengths & Areas for Improvement</h2>
-        <h3>Key Strengths</h3>
-        <ul>
-            {render_list(strengths)}
-        </ul>
-        <h3>Areas for Improvement</h3>
-        <ul>
-            {render_list(weaknesses)}
-        </ul>
-        </div>
+=== INFORMASI ASSESSMENT ===
+Total Pertanyaan: {test_questions_count}
+Pertanyaan Dijawab: {test_answers_count}
+Tanggal Assessment: {ctx.get('timestamp', 'N/A')}
 
-        <div class="section">
-        <h2>Detailed Analysis</h2>
-        <h3>Analysis Summary</h3>
-        <p>{analysis_summary or 'Assessment telah diselesaikan dengan baik. Organisasi menunjukkan komitmen terhadap peningkatan keamanan digital.'}
-        </p>
-        <h3>Next Steps</h3>
-        <p>{next_steps or 'Lanjutkan dengan implementasi rekomendasi yang diberikan dan lakukan evaluasi berkala.'}
-        </p>
-        </div>
+Untuk informasi lebih lanjut atau konsultasi, silakan hubungi tim kami.
 
-        <div class="section">
-        <h2>Organization Profile</h2>
-        <div class="grid">
-            <div>
-            <ul>
-                <li>Industry: {profile.get('industry', '-')}</li>
-                <li>Company Size: {profile.get('company_size', '-')}</li>
-                <li>Position: {profile.get('position', '-')}</li>
-                <li>Experience: {profile.get('experience', '-')}</li>
-                <li>Security Incidents: {profile.get('security_incidents', '-')}</li>
-            </ul>
-            </div>
-            <div>
-            <ul>
-                <li>Security Team: {profile.get('has_security_team', '-')}</li>
-                <li>Recent Audit: {profile.get('recent_audit', '-')}</li>
-                <li>Sensitive Data: {profile.get('sensitive_data', '-')}</li>
-                <li>Security Solution: {profile.get('security_solution', '-')}</li>
-                <li>Training Frequency: {profile.get('training_frequency', '-')}</li>
-            </ul>
-            </div>
-        </div>
-        </div>
+Terima kasih,
+Tim Digital Forensics Readiness Assessment
+        """
+        
+        return email_template.strip()
+        
+    except Exception as e:
+        print(f"ERROR in generate_email_template: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        
+        # Return fallback email template
+        return f"""
+Subject: Hasil Assessment Digital Forensics Readiness
 
-        <div class="section">
-        <p class="muted">Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
-        </div>
-        </div>
-    </div>
-    </body>
-    </html>
-    """
-    return html
+Terima kasih telah menyelesaikan Digital Forensics Readiness Assessment.
+
+Terjadi kendala teknis dalam generate email template: {str(e)}
+Silakan hubungi tim support untuk mendapatkan hasil assessment lengkap.
+
+Tim Digital Forensics Readiness Assessment
+        """

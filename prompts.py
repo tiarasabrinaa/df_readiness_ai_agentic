@@ -47,9 +47,9 @@ class AssessmentPrompts:
         # Format sample questions
         sample_questions = []
         for i in range(min(5, len(questions))):
-            q_text = questions[i].get('question', '')[:150]
+            # q_text = questions[i].get('question', '')[:150]
             answer_val = answers[i] if i < len(answers) else 0
-            sample_questions.append(f"Q{i+1}: {q_text}... (Skor: {answer_val})")
+            # sample_questions.append(f"Q{i+1}: {q_text}... (Skor: {answer_val})")
         
         sample_text = "\n".join(sample_questions)
         
@@ -85,9 +85,6 @@ INSTRUKSI EVALUASI:
 Berikan evaluasi dalam format JSON dengan struktur TEPAT berikut:
 
 {{
-    "overall_level": "Basic/Intermediate/Advanced",
-    "overall_score": 0-100,
-    "readiness_percentage": 0-100,
     "strengths": ["kekuatan1", "kekuatan2", "kekuatan3"],
     "weaknesses": ["kelemahan1", "kelemahan2", "kelemahan3"],
     "recommendations": ["rekomendasi1", "rekomendasi2", "rekomendasi3"],
@@ -97,11 +94,6 @@ Berikan evaluasi dalam format JSON dengan struktur TEPAT berikut:
     "risk_assessment": "penilaian risiko keamanan saat ini",
     "package_suitability": "evaluasi kesesuaian paket yang dipilih"
 }}
-
-KRITERIA EVALUASI:
-- Basic (1.0-2.0): Kesiapan minimal, perlu peningkatan fundamental
-- Intermediate (2.1-3.0): Kesiapan moderate, beberapa area sudah baik
-- Advanced (3.1-4.0): Kesiapan tinggi, minor improvements needed
 
 FOKUS EVALUASI:
 1. Analisis berdasarkan karakteristik organisasi (ukuran, struktur, finansial)

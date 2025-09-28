@@ -489,21 +489,25 @@ async def evaluate_with_llm(manager: SessionManager) -> Dict[str, Any]:
     try:
         questions = manager.context["test_questions"]
         answers = manager.context["test_answers"]
-        user_profile = manager.context.get("user_profile", {}) if isinstance (manager.context.get("user_profile", {}), dict) else None
-        
-        # Log and Check if user_profile is a dictionary
-        print(f"user_profile: {user_profile} (type: {type(user_profile)})")
+        # user_profile = manager.context.get("user_profile", {}) if isinstance(manager.context.get("user_profile", {}), dict) else None
+        user_profile = ""
+        # print(f"user_profile: {user_profile} (type: {type(user_profile)})")
         
         # Ensure user_profile is a dictionary
-        if not isinstance(user_profile, dict):
-            print("Error: user_profile is not a dictionary. Fallback to empty dictionary.")
-            user_profile = {}  # Fallback to an empty dictionary
+        # if not isinstance(user_profile, dict):
+        #     print("Error: user_profile is not a dictionary. Fallback to empty dictionary.")
+            # user_profile = ""  # Fallback to an empty dictionary
         
         # Proceed if it's a valid dictionary
-        selected_package = manager.context["selected_package"]
-        qa_pairs = manager.context.get("profiling_qa_pairs", {}) if isinstance(manager.context.get("profiling_qa_pairs", {}), dict) else {}
-        likert_scores = manager.context.get("likert_scores", [])
+        # selected_package = manager.context["selected_package"]
+        # qa_pairs = manager.context.get("profiling_qa_pairs", {}) if isinstance(manager.context.get("profiling_qa_pairs", {}), dict) else {}
+        # likert_scores = manager.context.get("likert_scores", []) if isinstance(manager.context.get("likert_scores", []), list) else []
         
+        selected_package = "0"
+        qa_pairs = {}
+        likert_scores = [random.randint(1, 4) for _ in range(len(questions))]  # Simulated scores
+
+
         # Calculate average score
         avg_score = calculate_likert_average(likert_scores)
         
@@ -513,29 +517,28 @@ async def evaluate_with_llm(manager: SessionManager) -> Dict[str, Any]:
         
         ai_response = await llm_service.generate_response(prompt, [])
         
-        try:
-            if '{' in ai_response and '}' in ai_response:
-                json_start = ai_response.find('{')
-                json_end = ai_response.rfind('}') + 1
-                json_str = ai_response[json_start:json_end]
-                evaluation = json.loads(json_str)
-            else:
-                raise json.JSONDecodeError("No JSON found", ai_response, 0)
-                
-        except json.JSONDecodeError as e:
-            print(f"Evaluation JSON parsing failed: {str(e)}")
-            evaluation = AssessmentPrompts.get_fallback_evaluation()
-            evaluation["raw_llm_response"] = ai_response
+        # # Ensure the response is not empty and contains JSON
+        # if ai_response and ai_response.strip().startswith("{") and ai_response.strip().endswith("}"):
+        #     try:
+        #         # Try parsing the JSON response
+        #         evaluation = json.loads(ai_response)
+        #     except json.JSONDecodeError as e:
+        #         print(f"Error parsing JSON response: {str(e)}")
+        #         return {"error": "Failed to parse evaluation response"}
+        # else:
+        #     print(f"Invalid or empty response from LLM: {ai_response}")
+        #     return {"error": "No valid JSON response from LLM"}
         
-        # Add calculated metrics
-        evaluation["likert_average"] = avg_score
-        evaluation["total_responses"] = len(likert_scores)
+        # # Add calculated metrics
+        # evaluation["likert_average"] = avg_score
+        # evaluation["total_responses"] = len(likert_scores)
         
-        return evaluation
+        return ai_response
 
     except Exception as e:
         print(f"Error during evaluation: {str(e)}")
         return {"error di main": str(e)}
+
 
 
 resend.api_key = settings.MAIL_RESEND_API_KEY
@@ -771,64 +774,169 @@ async def get_results():
     try:
         manager = get_or_create_session()
         
-        if manager.context["current_phase"] == "evaluation":
+        # DEBUG: Print manager and context types
+        print(f"DEBUG: manager type: {type(manager)}")
+        print(f"DEBUG: manager.context type: {type(manager.context)}")
+        print(f"DEBUG: manager.context value: {manager.context}")
+        
+        # Check if context is actually a dictionary
+        if not isinstance(manager.context, dict):
+            print(f"ERROR: manager.context is not a dict! Type: {type(manager.context)}")
+            return jsonify({"error": "Session context is corrupted"}), 500
+        
+        # Log current phase to see if we're in the correct phase
+        current_phase = manager.context.get('current_phase')
+        print(f"Current phase: {current_phase}")
+        
+        if current_phase == "evaluation":
+            # DEBUG: Check all context keys before accessing them
+            print(f"DEBUG: manager.context keys: {list(manager.context.keys())}")
+            
             # Perform LLM evaluation
+            print("Performing LLM evaluation...")
+            
+            # DEBUG: Check evaluate_with_llm function call
+            print("DEBUG: About to call evaluate_with_llm...")
             evaluation = await evaluate_with_llm(manager)
+            print(f"DEBUG: evaluation type: {type(evaluation)}, value: {evaluation}")
             
             # Store final evaluation
             manager.context["final_evaluation"] = evaluation
             manager.context["current_phase"] = "completed"
 
-            # Ensure 'user_profile' is a dictionary and contains 'email'
-            user_profile = manager.context.get("user_profile", {}) if isinstance(manager.context.get("user_profile", {}), dict) else None
-            user_email = user_profile.get("email") if isinstance(user_profile, dict) else None
+            # DEBUG: Check each context access individually
+            print("DEBUG: Getting user_profile from context...")
+            user_profile = manager.context.get("user_profile", {})
+            print(f"DEBUG: user_profile type: {type(user_profile)}, value: {user_profile}")
             
+            print("DEBUG: Getting profiling_qa_pairs from context...")
+            profiling_qa = manager.context.get("profiling_qa_pairs", {})
+            print(f"DEBUG: profiling_qa type: {type(profiling_qa)}")
+            
+            print("DEBUG: Getting selected_package from context...")
+            selected_package = manager.context.get("selected_package")
+            print(f"DEBUG: selected_package type: {type(selected_package)}")
+            
+            print("DEBUG: Getting profile_description from context...")
+            profile_description = manager.context.get("profile_description")
+            print(f"DEBUG: profile_description type: {type(profile_description)}")
+            
+            print("DEBUG: Getting test_questions from context...")
+            test_questions = manager.context.get("test_questions", [])
+            print(f"DEBUG: test_questions type: {type(test_questions)}")
+            
+            print("DEBUG: Getting test_answers from context...")
+            test_answers = manager.context.get("test_answers", [])
+            print(f"DEBUG: test_answers type: {type(test_answers)}")
+
+            # Fix: Ensure user_profile is always a dictionary
+            if not isinstance(user_profile, dict):
+                print(f"DEBUG: user_profile is not a dict, converting. Current type: {type(user_profile)}")
+                # If it's a string, try to parse as JSON, otherwise create empty dict
+                if isinstance(user_profile, str):
+                    try:
+                        import json
+                        user_profile = json.loads(user_profile)
+                        print("DEBUG: Successfully parsed user_profile as JSON")
+                    except (json.JSONDecodeError, ValueError) as e:
+                        print(f"DEBUG: Could not parse user_profile as JSON: {e}")
+                        user_profile = {}
+                else:
+                    user_profile = {}
+
+            # Now safely get email from user_profile dict
+            print("DEBUG: Getting email from user_profile...")
+            user_email = user_profile.get("email") if isinstance(user_profile, dict) else None
+            print(f"DEBUG: User email: {user_email}")
+
             if user_email:
                 email_subject = "Digital Forensic Readiness (DFR) Test Results"
+                print("DEBUG: About to call generate_email_template...")
                 email_body = generate_email_template(manager)
+                print("DEBUG: Email template generated successfully")
                 try:
+                    print(f"Sending email to: {user_email}")
                     send_email(user_email, email_subject, email_body)
+                    print("DEBUG: Email sent successfully")
                 except Exception as e:
                     print(f"Failed to send email: {str(e)}")
             else:
+                print("Email not provided. Returning error response.")
                 return jsonify({
                     "error": "Email not provided. Please submit your email to receive results."
                 })
             
+            # Debugging: Log the final evaluation
+            print(f"Final evaluation: {evaluation}")
+            
+            print("DEBUG: About to create return JSON...")
             return jsonify({
                 "session_id": manager.session_id,
-                "selected_package": manager.context["selected_package"],
-                "profile_description": manager.context["profile_description"],
-                "user_profile": manager.context["user_profile"],
-                "profiling_qa": manager.context.get("profiling_qa_pairs", {}) if isinstance(manager.context.get("profiling_qa_pairs", {}), dict) else {},
-                "test_questions": len(manager.context["test_questions"]),
+                "selected_package": selected_package,
+                "profile_description": profile_description,
+                "user_profile": user_profile,  # Now guaranteed to be a dict
+                "profiling_qa": profiling_qa,
+                "test_questions": len(test_questions),
                 "evaluation": manager.context["final_evaluation"],
-                "questions_answered": len(manager.context["test_answers"]),
+                "questions_answered": len(test_answers),
                 "current_phase": manager.context["current_phase"],
                 "assessment_complete": True,
                 "timestamp": datetime.now().isoformat()
             })
-        elif manager.context["current_phase"] == "completed":
+        elif current_phase == "completed":
             # Already completed, return cached results
+            print("DEBUG: In completed phase, getting cached results...")
+            
+            # DEBUG: Check each context access for cached results
+            print("DEBUG: Getting cached user_profile...")
+            user_profile = manager.context.get("user_profile", {})
+            print(f"DEBUG: cached user_profile type: {type(user_profile)}")
+            
+            if not isinstance(user_profile, dict):
+                print("DEBUG: Converting cached user_profile to dict...")
+                if isinstance(user_profile, str):
+                    try:
+                        import json
+                        user_profile = json.loads(user_profile)
+                    except (json.JSONDecodeError, ValueError):
+                        user_profile = {}
+                else:
+                    user_profile = {}
+            
+            # Get other cached values
+            selected_package = manager.context.get("selected_package")
+            profile_description = manager.context.get("profile_description")
+            profiling_qa = manager.context.get("profiling_qa_pairs", {})
+            test_questions = manager.context.get("test_questions", [])
+            test_answers = manager.context.get("test_answers", [])
+            final_evaluation = manager.context.get("final_evaluation")
+            
+            print("DEBUG: About to return cached results...")
             return jsonify({
                 "session_id": manager.session_id,
-                "selected_package": manager.context["selected_package"],
-                "profile_description": manager.context["profile_description"],
-                "user_profile": manager.context["user_profile"],
-                "profiling_qa": manager.context.get("profiling_qa_pairs", {}) if isinstance(manager.context.get("profiling_qa_pairs", {}), dict) else {},
-                "test_questions": len(manager.context["test_questions"]),
-                "evaluation": manager.context["final_evaluation"],
-                "questions_answered": len(manager.context["test_answers"]),
-                "current_phase": manager.context["current_phase"],
+                "selected_package": selected_package,
+                "profile_description": profile_description,
+                "user_profile": user_profile,  # Now guaranteed to be a dict
+                "profiling_qa": profiling_qa,
+                "test_questions": len(test_questions),
+                "evaluation": final_evaluation,
+                "questions_answered": len(test_answers),
+                "current_phase": current_phase,
                 "assessment_complete": True,
                 "timestamp": datetime.now().isoformat()
             })
         else:
+            print(f"DEBUG: Unexpected phase: {current_phase}")
+            print("Test answers not submitted. Returning error response.")
             return jsonify({"error": "Please submit test answers first"}), 400
         
     except Exception as e:
-        print(f"Error in get_results: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        print(f"ERROR: Exception in get_results: {str(e)}")
+        print(f"ERROR: Exception type: {type(e)}")
+        import traceback
+        print(f"ERROR: Full traceback:")
+        traceback.print_exc()
+        return jsonify({"error in get_results": str(e)}), 500
 
 
 @app.route('/session_status', methods=['GET'])
