@@ -501,19 +501,19 @@ async def evaluate_with_llm(manager: SessionManager) -> Dict[str, Any]:
     try:
         questions = manager.context["test_questions"]
         answers = manager.context["test_answers"]
-        # user_profile = manager.context.get("user_profile", {}) if isinstance(manager.context.get("user_profile", {}), dict) else None
-        user_profile = ""
+        user_profile = manager.context.get("user_profile", {}) if isinstance(manager.context.get("user_profile", {}), dict) else None
+        # user_profile = ""
         # print(f"user_profile: {user_profile} (type: {type(user_profile)})")
         
         # Ensure user_profile is a dictionary
-        # if not isinstance(user_profile, dict):
-        #     print("Error: user_profile is not a dictionary. Fallback to empty dictionary.")
-            # user_profile = ""  # Fallback to an empty dictionary
+        if not isinstance(user_profile, dict):
+            print("Error: user_profile is not a dictionary. Fallback to empty dictionary.")
+            user_profile = ""  # Fallback to an empty dictionary
         
         # Proceed if it's a valid dictionary
-        # selected_package = manager.context["selected_package"]
-        # qa_pairs = manager.context.get("profiling_qa_pairs", {}) if isinstance(manager.context.get("profiling_qa_pairs", {}), dict) else {}
-        # likert_scores = manager.context.get("likert_scores", []) if isinstance(manager.context.get("likert_scores", []), list) else []
+        selected_package = manager.context["selected_package"]
+        qa_pairs = manager.context.get("profiling_qa_pairs", {}) if isinstance(manager.context.get("profiling_qa_pairs", {}), dict) else {}
+        likert_scores = manager.context.get("likert_scores", []) if isinstance(manager.context.get("likert_scores", []), list) else []
         
         selected_package = "0"
         qa_pairs = {}
@@ -529,21 +529,21 @@ async def evaluate_with_llm(manager: SessionManager) -> Dict[str, Any]:
         
         ai_response = await llm_service.generate_response(prompt, [])
         
-        # # Ensure the response is not empty and contains JSON
-        # if ai_response and ai_response.strip().startswith("{") and ai_response.strip().endswith("}"):
-        #     try:
-        #         # Try parsing the JSON response
-        #         evaluation = json.loads(ai_response)
-        #     except json.JSONDecodeError as e:
-        #         print(f"Error parsing JSON response: {str(e)}")
-        #         return {"error": "Failed to parse evaluation response"}
-        # else:
-        #     print(f"Invalid or empty response from LLM: {ai_response}")
-        #     return {"error": "No valid JSON response from LLM"}
+        # Ensure the response is not empty and contains JSON
+        if ai_response and ai_response.strip().startswith("{") and ai_response.strip().endswith("}"):
+            try:
+                # Try parsing the JSON response
+                evaluation = json.loads(ai_response)
+            except json.JSONDecodeError as e:
+                print(f"Error parsing JSON response: {str(e)}")
+                return {"error": "Failed to parse evaluation response"}
+        else:
+            print(f"Invalid or empty response from LLM: {ai_response}")
+            return {"error": "No valid JSON response from LLM"}
         
-        # # Add calculated metrics
-        # evaluation["likert_average"] = avg_score
-        # evaluation["total_responses"] = len(likert_scores)
+        # Add calculated metrics
+        evaluation["likert_average"] = avg_score
+        evaluation["total_responses"] = len(likert_scores)
         
         return ai_response
 
@@ -625,6 +625,7 @@ async def submit_answers():
         profile_description = await generate_profile_description(qa_pairs)
         
         # Find best matching package using FAISS similarity search
+        print("Finding best matching package using FAISS...")
         selected_package = await find_best_package(profile_description)
         
         # Store results in session
@@ -643,8 +644,6 @@ async def submit_answers():
     except Exception as e:
         print(f"Error in submit_answers: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
-from pymongo import MongoClient  # Gunakan MongoClient biasa
 
 @app.route('/get_test_questions', methods=['GET'])
 def get_test_questions():

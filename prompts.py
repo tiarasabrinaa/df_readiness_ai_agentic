@@ -1,5 +1,6 @@
 # prompts.py
 from typing import Dict, Any, List
+import json
 
 class AssessmentPrompts:
     """Collection of prompts for digital forensics readiness assessment"""
@@ -12,31 +13,19 @@ class AssessmentPrompts:
                             answers: List[int],
                             average_score: float) -> str:
         """
-        Generate comprehensive evaluation prompt for LLM
+        Generate comprehensive evaluation prompt for LLM with improved JSON reliability
         """
         
-        # Format profile information
-        profile_info = []
-        if user_profile:
-            for key, value in user_profile.items():
-                if value:
-                    profile_info.append(f"{key}: {value}")
-        
-        profile_text = " | ".join(profile_info) if profile_info else "Tidak ada informasi profil"
-        
-        # Format Q&A pairs summary
-        qa_summary = []
-        qa_keys = [
-            "UMKM Status", "BUMN Status", "Jumlah Karyawan", "Omzet Tahunan",
-            "Status Permodalan", "Struktur Organisasi", "Total Aset", "Pajak Tahunan",
-            "Masa Jabat", "Tingkat Pendidikan", "Pengalaman Kerja"
-        ]
-        
-        for i, (key, answer) in enumerate(qa_pairs.items()):
-            if i < len(qa_keys):
-                qa_summary.append(f"{qa_keys[i]}: {answer}")
-        
-        qa_text = " | ".join(qa_summary) if qa_summary else "Tidak ada data profiling"
+        # Determine readiness level hint based on score
+        if average_score >= 3.5:
+            level_hint = "Advanced/Tinggi"
+            risk_hint = "Low/Rendah"
+        elif average_score >= 2.5:
+            level_hint = "Intermediate/Sedang"
+            risk_hint = "Medium/Sedang"
+        else:
+            level_hint = "Basic/Rendah"
+            risk_hint = "High/Tinggi"
         
         # Calculate score distribution
         score_counts = {1: 0, 2: 0, 3: 0, 4: 0}
@@ -44,111 +33,202 @@ class AssessmentPrompts:
             if isinstance(answer, int) and answer in score_counts:
                 score_counts[answer] += 1
         
-        # Format sample questions
-        sample_questions = []
-        for i in range(min(5, len(questions))):
-            # q_text = questions[i].get('question', '')[:150]
-            answer_val = answers[i] if i < len(answers) else 0
-            # sample_questions.append(f"Q{i+1}: {q_text}... (Skor: {answer_val})")
+        # Format profile information safely
+        profile_info = []
+        if isinstance(user_profile, dict):
+            for key, value in user_profile.items():
+                if value and str(value).strip():
+                    profile_info.append(f"{key}: {value}")
         
-        sample_text = "\n".join(sample_questions)
+        profile_text = " | ".join(profile_info) if profile_info else "Profil tidak lengkap"
+        
+        # Format Q&A pairs summary with safe key mapping
+        qa_summary = []
+        qa_keys = [
+            "Status UMKM", "Status BUMN", "Jumlah Karyawan", "Omzet Tahunan",
+            "Status Permodalan", "Struktur Organisasi", "Total Aset", "Pajak Tahunan",
+            "Masa Jabat", "Tingkat Pendidikan", "Pengalaman Kerja"
+        ]
+        
+        if isinstance(qa_pairs, dict):
+            for i, (key, answer) in enumerate(qa_pairs.items()):
+                if i < len(qa_keys) and answer:
+                    qa_summary.append(f"{qa_keys[i]}: {answer}")
+        
+        qa_text = " | ".join(qa_summary) if qa_summary else "Data profiling tidak lengkap"
         
         prompt = f"""
-Anda adalah expert Digital Forensics Readiness (DFR) Assessment yang berpengalaman dalam mengevaluasi kesiapan organisasi terhadap digital forensics.
+Sebagai expert Digital Forensic Readiness Assessment, analisis data berikut dan berikan evaluasi dalam format JSON yang TEPAT:
 
-TUGAS:
-Lakukan evaluasi komprehensif berdasarkan semua data yang tersedia dan berikan hasil dalam format JSON yang tepat.
+=== DATA ASSESSMENT ===
+PROFIL PENGGUNA: {profile_text}
+DATA ORGANISASI: {qa_text}
+PAKET TERPILIH: {selected_package}
+TOTAL PERTANYAAN: {len(questions)}
+RATA-RATA SKOR: {average_score:.2f}/4.0 (Level: {level_hint})
+DISTRIBUSI JAWABAN: Skor 1({score_counts[1]}), Skor 2({score_counts[2]}), Skor 3({score_counts[3]}), Skor 4({score_counts[4]})
 
-DATA ASSESSMENT:
-=================
-
-PROFIL RESPONDEN:
-{profile_text}
-
-DATA PROFILING ORGANISASI:
-{qa_text}
-
-PAKET ASSESSMENT TERPILIH: {selected_package}
-
-HASIL ASSESSMENT:
-- Total Pertanyaan: {len(questions)}
-- Total Jawaban: {len(answers)}
-- Rata-rata Skor: {average_score:.2f} dari 4.0
-- Distribusi Skor: 1({score_counts[1]}), 2({score_counts[2]}), 3({score_counts[3]}), 4({score_counts[4]})
-
-CONTOH PERTANYAAN & JAWABAN:
-{sample_text}
-
-INSTRUKSI EVALUASI:
-==================
-
-Berikan evaluasi dalam format JSON dengan struktur TEPAT berikut:
+=== INSTRUKSI EVALUASI ===
+Berikan evaluasi dalam format JSON yang PERSIS seperti contoh berikut (tanpa tambahan teks apapun):
 
 {{
-    "strengths": ["kekuatan1", "kekuatan2", "kekuatan3"],
-    "weaknesses": ["kelemahan1", "kelemahan2", "kelemahan3"],
-    "recommendations": ["rekomendasi1", "rekomendasi2", "rekomendasi3"],
-    "priority_actions": ["aksi_prioritas1", "aksi_prioritas2", "aksi_prioritas3"],
-    "detailed_analysis": "analisis detail dalam bahasa Indonesia (2-3 paragraf)",
-    "improvement_roadmap": "roadmap perbaikan dan pengembangan",
-    "risk_assessment": "penilaian risiko keamanan saat ini",
-    "package_suitability": "evaluasi kesesuaian paket yang dipilih"
+    "overall_score": {average_score:.2f},
+    "readiness_level": "{level_hint.split('/')[0]}",
+    "summary": "Ringkasan kondisi kesiapan Digital Forensic organisasi dalam 1-2 kalimat yang mencakup tingkat kesiapan dan area utama yang perlu perhatian",
+    "strengths": [
+        "Kekuatan utama yang teridentifikasi dari assessment",
+        "Area yang sudah diimplementasikan dengan baik", 
+        "Aspek positif dari kondisi organisasi saat ini"
+    ],
+    "weaknesses": [
+        "Area yang memerlukan perbaikan prioritas",
+        "Gap utama dalam implementasi DFR",
+        "Kelemahan yang perlu segera ditangani"
+    ],
+    "recommendations": [
+        "Rekomendasi prioritas pertama yang spesifik dan actionable",
+        "Saran perbaikan untuk area weakness utama",
+        "Langkah implementasi yang dapat segera dilakukan",
+        "Investasi teknologi atau pelatihan yang dibutuhkan"
+    ],
+    "next_steps": [
+        "Langkah prioritas pertama yang harus dilakukan",
+        "Tindakan follow-up dalam jangka pendek",
+        "Rencana evaluasi dan monitoring progress"
+    ],
+    "risk_level": "{risk_hint.split('/')[0]}",
+    "detailed_analysis": "Analisis komprehensif dalam 2-3 kalimat mengenai kondisi Digital Forensic Readiness organisasi berdasarkan skor dan karakteristik yang teridentifikasi"
 }}
 
-FOKUS EVALUASI:
-1. Analisis berdasarkan karakteristik organisasi (ukuran, struktur, finansial)
-2. Kesesuaian dengan paket assessment yang dipilih
-3. Identifikasi gap dan area improvement
-4. Rekomendasi praktis dan actionable
-5. Roadmap implementasi yang realistis
-
-Pastikan semua nilai array memiliki minimal 3 item dan gunakan bahasa Indonesia yang profesional.
-Berikan HANYA JSON tanpa penjelasan tambahan.
+PENTING: 
+- Berikan HANYA JSON tanpa penjelasan atau teks tambahan
+- Pastikan semua field diisi dengan konten yang relevan
+- Gunakan bahasa Indonesia yang profesional
+- Sesuaikan konten dengan skor {average_score:.2f} dan level {level_hint}
 """
         return prompt.strip()
     
     @staticmethod
-    def get_fallback_evaluation() -> Dict[str, Any]:
+    def get_simple_evaluation_prompt(question_count: int, average_score: float, package: str) -> str:
         """
-        Fallback evaluation when LLM fails
+        Simplified evaluation prompt for better JSON reliability
         """
+        
+        if average_score >= 3.5:
+            level = "Advanced"
+            risk = "Low"
+        elif average_score >= 2.5:
+            level = "Intermediate"
+            risk = "Medium"
+        else:
+            level = "Basic"
+            risk = "High"
+        
+        return f"""
+Sebagai expert Digital Forensic Readiness, buat evaluasi untuk organisasi dengan:
+- {question_count} pertanyaan assessment
+- Skor rata-rata: {average_score:.2f}/4.0
+- Paket: {package}
+
+Berikan evaluasi dalam format JSON berikut (tanpa teks lain):
+
+{{
+    "overall_score": {average_score:.2f},
+    "readiness_level": "{level}",
+    "summary": "Organisasi menunjukkan tingkat kesiapan {level.lower()} dalam Digital Forensic Readiness berdasarkan hasil assessment",
+    "strengths": [
+        "Telah menyelesaikan assessment dengan lengkap",
+        "Menunjukkan komitmen terhadap keamanan digital",
+        "Memiliki kesadaran akan pentingnya DFR"
+    ],
+    "weaknesses": [
+        "Perlu peningkatan implementasi prosedur",
+        "Memerlukan pengembangan kapasitas tim",
+        "Butuh investasi dalam teknologi pendukung"
+    ],
+    "recommendations": [
+        "Kembangkan kebijakan DFR yang komprehensif",
+        "Lakukan pelatihan tim secara berkala",
+        "Implementasikan tools monitoring yang memadai",
+        "Buat incident response plan yang terstruktur"
+    ],
+    "next_steps": [
+        "Review hasil dengan tim manajemen",
+        "Prioritaskan area improvement",
+        "Buat timeline implementasi perbaikan"
+    ],
+    "risk_level": "{risk}",
+    "detailed_analysis": "Berdasarkan skor {average_score:.2f}, organisasi berada pada level {level.lower()} dan memerlukan fokus pada peningkatan berkelanjutan untuk mencapai kesiapan optimal dalam Digital Forensic Readiness"
+}}
+"""
+    
+    @staticmethod
+    def get_fallback_evaluation(average_score: float = 2.5, question_count: int = 10, package: str = "0") -> Dict[str, Any]:
+        """
+        Static fallback evaluation when LLM completely fails
+        """
+        
+        if average_score >= 3.5:
+            level = "Advanced"
+            risk = "Low"
+            summary = f"Organisasi menunjukkan kesiapan Digital Forensic yang baik dengan skor {average_score:.2f}. Sebagian besar aspek sudah diimplementasikan dengan baik."
+            main_strength = "Implementasi keamanan yang sudah matang"
+            main_weakness = "Optimasi proses yang dapat ditingkatkan"
+            priority = "Lakukan fine-tuning dan standardisasi proses"
+        elif average_score >= 2.5:
+            level = "Intermediate"
+            risk = "Medium"
+            summary = f"Organisasi berada pada level menengah dengan skor {average_score:.2f}. Beberapa aspek sudah baik namun masih ada area yang perlu ditingkatkan."
+            main_strength = "Fondasi keamanan dasar sudah ada"
+            main_weakness = "Perlu peningkatan implementasi dan prosedur"
+            priority = "Fokus pada peningkatan gap utama"
+        else:
+            level = "Basic"
+            risk = "High"
+            summary = f"Organisasi masih dalam tahap awal dengan skor {average_score:.2f}. Diperlukan pengembangan menyeluruh dalam kesiapan Digital Forensic."
+            main_strength = "Kesadaran akan pentingnya Digital Forensic sudah ada"
+            main_weakness = "Hampir semua aspek memerlukan pengembangan"
+            priority = "Mulai dengan pengembangan kebijakan dan pelatihan dasar"
+        
         return {
-            "overall_level": "Basic",
-            "overall_score": 45,
-            "readiness_percentage": 40,
+            "overall_score": round(average_score, 2),
+            "readiness_level": level,
+            "summary": summary,
             "strengths": [
-                "Telah menyelesaikan assessment dengan lengkap",
-                "Menunjukkan komitmen untuk meningkatkan keamanan",
-                "Memiliki kesadaran akan pentingnya digital forensics"
+                main_strength,
+                "Telah menyelesaikan assessment lengkap",
+                "Menunjukkan komitmen untuk evaluasi dan peningkatan",
+                "Tim management mendukung inisiatif keamanan"
             ],
             "weaknesses": [
-                "Masih terdapat gap dalam kesiapan digital forensics",
-                "Perlu peningkatan pemahaman prosedur dan tools",
-                "Membutuhkan pelatihan tambahan untuk tim"
+                main_weakness,
+                "Perlu peningkatan dokumentasi dan prosedur",
+                "Memerlukan investasi dalam teknologi dan pelatihan",
+                "Sistem monitoring dan response perlu diperkuat"
             ],
             "recommendations": [
-                "Implementasikan kebijakan keamanan yang komprehensif",
-                "Lakukan pelatihan digital forensics untuk tim IT",
-                "Siapkan incident response plan yang terstruktur"
+                priority,
+                "Kembangkan kebijakan Digital Forensic yang komprehensif",
+                "Investasikan dalam pelatihan tim IT dan keamanan",
+                "Implementasikan tools logging dan monitoring yang memadai",
+                "Buat incident response plan yang terstruktur"
             ],
-            "priority_actions": [
-                "Audit sistem keamanan saat ini",
-                "Buat prosedur handling digital evidence",
-                "Investasi dalam tools digital forensics dasar"
+            "next_steps": [
+                "Review hasil assessment dengan tim manajemen",
+                "Prioritaskan area improvement berdasarkan risk assessment",
+                "Buat timeline dan budget untuk implementasi perbaikan"
             ],
-            "detailed_analysis": "Berdasarkan hasil assessment, organisasi menunjukkan tingkat kesiapan digital forensics pada level dasar. Terdapat beberapa area yang memerlukan perhatian khusus untuk meningkatkan kapabilitas dalam menangani insiden keamanan dan pengumpulan digital evidence. Diperlukan komitmen manajemen dan investasi yang tepat untuk mencapai tingkat kesiapan yang optimal.",
-            "improvement_roadmap": "Fokus pada pengembangan kebijakan, pelatihan SDM, dan implementasi tools yang sesuai dengan kebutuhan organisasi. Lakukan evaluasi berkala untuk memantau progress.",
-            "risk_assessment": "Risiko moderate dengan potensi kesulitan dalam penanganan insiden keamanan dan investigasi digital forensics jika terjadi kejadian yang tidak diinginkan.",
-            "package_suitability": "Paket assessment yang dipilih sesuai dengan karakteristik organisasi dan memberikan insight yang relevan untuk pengembangan lebih lanjut."
+            "risk_level": risk,
+            "detailed_analysis": f"Berdasarkan assessment terhadap {question_count} aspek Digital Forensic Readiness, organisasi menunjukkan tingkat kesiapan {level.lower()}. Organisasi {'sudah memiliki fondasi yang baik' if average_score >= 3.0 else 'perlu fokus pada pengembangan dasar'} dan {'dapat melanjutkan ke optimasi lanjutan' if average_score >= 3.5 else 'memerlukan peningkatan bertahap namun konsisten'} untuk mencapai level kesiapan yang optimal."
         }
     
     @staticmethod
     def get_profile_generation_prompt(qa_pairs: Dict[str, Any]) -> str:
         """
-        Generate prompt for creating profile description
+        Generate prompt for creating profile description with better error handling
         """
         
-        # Format Q&A information
+        # Format Q&A information safely
         profile_info = []
         question_texts = [
             "Status UMKM organisasi",
@@ -164,16 +244,20 @@ Berikan HANYA JSON tanpa penjelasan tambahan.
             "Pengalaman kerja responden"
         ]
         
-        for i, (key, answer) in enumerate(qa_pairs.items()):
-            if i < len(question_texts):
-                profile_info.append(f"{question_texts[i]}: {answer}")
+        if isinstance(qa_pairs, dict):
+            for i, (key, answer) in enumerate(qa_pairs.items()):
+                if i < len(question_texts) and answer and str(answer).strip():
+                    profile_info.append(f"{question_texts[i]}: {answer}")
+        
+        if not profile_info:
+            profile_info = ["Organisasi yang mengikuti assessment Digital Forensic Readiness"]
         
         profile_text = "\n".join(profile_info)
         
         prompt = f"""
 Anda adalah ahli analisis profil organisasi untuk digital forensics readiness assessment.
 
-Berdasarkan data profiling berikut, buatlah deskripsi karakteristik organisasi dan responden dalam 1 paragraf komprehensif:
+Berdasarkan data profiling berikut, buatlah deskripsi karakteristik organisasi dalam 1 paragraf komprehensif:
 
 DATA PROFILING:
 {profile_text}
@@ -196,9 +280,10 @@ Buatlah deskripsi yang akan membantu sistem menentukan paket assessment yang pal
         """
         
         context_info = []
-        for key, value in user_context.items():
-            if value and value != 'tidak diketahui':
-                context_info.append(f"{key}: {value}")
+        if isinstance(user_context, dict):
+            for key, value in user_context.items():
+                if value and str(value).strip() and str(value).lower() != 'tidak diketahui':
+                    context_info.append(f"{key}: {value}")
         
         context_text = " | ".join(context_info) if context_info else "Context minimal"
         
@@ -229,7 +314,7 @@ Berikan HANYA pertanyaan yang sudah dipersonalisasi tanpa penjelasan tambahan.
         Generate prompt for package recommendation based on profile
         """
         
-        packages_list = ", ".join(available_packages) if available_packages else "basic, intermediate, advanced"
+        packages_list = ", ".join(available_packages) if available_packages else "0, 1, 2, 3"
         
         prompt = f"""
 Anda adalah expert dalam menentukan paket assessment digital forensics readiness yang tepat.
@@ -247,11 +332,12 @@ INSTRUKSI:
 4. Berikan rekomendasi dalam format: nama_paket
 
 KRITERIA PEMILIHAN:
-- Basic: Organisasi kecil, resources terbatas, kompleksitas rendah
-- Intermediate: Organisasi menengah, resources moderate, kompleksitas sedang  
-- Advanced: Organisasi besar, resources memadai, kompleksitas tinggi
+- 0: Organisasi kecil, resources terbatas, kompleksitas rendah
+- 1: Organisasi kecil-menengah, resources moderate, kompleksitas sedang
+- 2: Organisasi menengah, resources cukup, kompleksitas menengah
+- 3: Organisasi besar, resources memadai, kompleksitas tinggi
 
-Berikan HANYA nama paket yang direkomendasikan.
+Berikan HANYA nomor/nama paket yang direkomendasikan.
 """
         return prompt.strip()
     
@@ -261,7 +347,8 @@ Berikan HANYA nama paket yang direkomendasikan.
         Generate prompt for similarity search when FAISS is not available
         """
         
-        candidates_text = "\n".join([f"{i+1}. {desc}" for i, desc in enumerate(candidate_descriptions)])
+        candidates_text = "\n".join([f"{i}. {desc[:200]}..." if len(desc) > 200 else f"{i}. {desc}" 
+                                   for i, desc in enumerate(candidate_descriptions)])
         
         prompt = f"""
 Anda adalah expert dalam matching profil organisasi dengan paket assessment yang tepat.
@@ -276,7 +363,7 @@ INSTRUKSI:
 1. Bandingkan deskripsi organisasi target dengan semua kandidat
 2. Tentukan kandidat mana yang paling mirip/sesuai
 3. Pertimbangkan: karakteristik organisasi, skala, kompleksitas
-4. Berikan nomor kandidat yang paling cocok (1, 2, 3, dst)
+4. Berikan nomor kandidat yang paling cocok (0, 1, 2, dst)
 
 Berikan HANYA nomor kandidat yang paling sesuai.
 """
@@ -288,11 +375,19 @@ Berikan HANYA nomor kandidat yang paling sesuai.
         Generate summary prompt for final assessment report
         """
         
+        # Safely extract key information
+        score = assessment_data.get('average_score', 0)
+        questions = assessment_data.get('question_count', 0)
+        package = assessment_data.get('package', '0')
+        
         prompt = f"""
 Anda adalah expert dalam membuat ringkasan assessment digital forensics readiness.
 
 DATA ASSESSMENT:
-{assessment_data}
+- Skor rata-rata: {score}
+- Jumlah pertanyaan: {questions}
+- Paket assessment: {package}
+- Data tambahan: {json.dumps(assessment_data, ensure_ascii=False, indent=2)}
 
 INSTRUKSI:
 Buat ringkasan executive summary dalam bahasa Indonesia yang mencakup:
@@ -304,3 +399,91 @@ Buat ringkasan executive summary dalam bahasa Indonesia yang mencakup:
 Format dalam 2-3 paragraf yang profesional dan mudah dipahami.
 """
         return prompt.strip()
+    
+    @staticmethod
+    def get_email_template_prompt(evaluation_data: Dict[str, Any]) -> str:
+        """
+        Generate prompt for creating email template with assessment results
+        """
+        
+        score = evaluation_data.get('overall_score', 0)
+        level = evaluation_data.get('readiness_level', 'Basic')
+        summary = evaluation_data.get('summary', '')
+        
+        prompt = f"""
+Buat email template profesional untuk hasil Digital Forensic Readiness Assessment dengan data:
+
+HASIL ASSESSMENT:
+- Level: {level}
+- Skor: {score}/4.0
+- Summary: {summary}
+
+INSTRUKSI:
+1. Buat email HTML yang profesional dan mudah dibaca
+2. Sertakan logo placeholder dan header yang menarik
+3. Tampilkan hasil utama dalam format yang jelas
+4. Berikan ringkasan rekomendasi
+5. Gunakan bahasa Indonesia yang formal namun ramah
+6. Sertakan call-to-action untuk tindak lanjut
+
+Template harus siap pakai dan terlihat profesional.
+"""
+        return prompt.strip()
+    
+    @staticmethod
+    def validate_evaluation_response(response: str) -> Dict[str, Any]:
+        """
+        Validate and parse evaluation response from LLM
+        """
+        try:
+            # Remove markdown code blocks if present
+            cleaned = response.strip()
+            if cleaned.startswith('```json'):
+                cleaned = cleaned[7:]
+            if cleaned.endswith('```'):
+                cleaned = cleaned[:-3]
+            cleaned = cleaned.strip()
+            
+            # Parse JSON
+            evaluation = json.loads(cleaned)
+            
+            # Validate required fields
+            required_fields = [
+                "overall_score", "readiness_level", "summary", 
+                "strengths", "weaknesses", "recommendations"
+            ]
+            
+            for field in required_fields:
+                if field not in evaluation:
+                    raise ValueError(f"Missing required field: {field}")
+            
+            # Validate data types
+            if not isinstance(evaluation["strengths"], list):
+                raise ValueError("strengths must be a list")
+            if not isinstance(evaluation["weaknesses"], list):
+                raise ValueError("weaknesses must be a list")
+            if not isinstance(evaluation["recommendations"], list):
+                raise ValueError("recommendations must be a list")
+                
+            return evaluation
+            
+        except (json.JSONDecodeError, ValueError, KeyError) as e:
+            print(f"Validation error: {str(e)}")
+            return None
+    
+    @staticmethod
+    def get_test_prompt() -> str:
+        """
+        Simple test prompt to verify LLM connectivity
+        """
+        return """
+Berikan respons sederhana dalam format JSON:
+
+{
+    "status": "success",
+    "message": "LLM service berfungsi dengan baik",
+    "timestamp": "test"
+}
+
+Berikan HANYA JSON tanpa teks tambahan.
+"""

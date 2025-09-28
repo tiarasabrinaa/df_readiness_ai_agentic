@@ -48,18 +48,21 @@ class DatabaseService:
     
     async def disconnect(self):
         """Disconnect from MongoDB"""
-        if self.client:
+        if self.client is not None:
             self.client.close()
             logger.info("MongoDB disconnected")
     
     async def count_questions(self) -> int:
         """Count total questions in database"""
         try:
-            if not self.questions_collection:
+            if self.questions_collection is None:
                 await self.connect()
             
-            count = await self.questions_collection.count_documents({})
-            return count
+            if self.questions_collection is not None:
+                count = await self.questions_collection.count_documents({})
+                return count
+            else:
+                return 0
         except Exception as e:
             logger.error(f"Error counting questions: {e}")
             return 0
@@ -67,11 +70,14 @@ class DatabaseService:
     async def count_keterangan(self) -> int:
         """Count total keterangan documents in database"""
         try:
-            if not self.keterangan_collection:
+            if self.keterangan_collection is None:
                 await self.connect()
             
-            count = await self.keterangan_collection.count_documents({})
-            return count
+            if self.keterangan_collection is not None:
+                count = await self.keterangan_collection.count_documents({})
+                return count
+            else:
+                return 0
         except Exception as e:
             logger.error(f"Error counting keterangan: {e}")
             return 0
@@ -79,30 +85,35 @@ class DatabaseService:
     async def get_all_questions_from_database(self) -> List[Dict]:
         """Get all questions from database"""
         try:
-            if not self.questions_collection:
+            if self.questions_collection is None:
                 await self.connect()
             
-            cursor = self.questions_collection.find({})
-            questions = []
-            
-            async for doc in cursor:
-                # Convert MongoDB document to dict and clean up
-                question_dict = {
-                    "id": str(doc.get("_id", "")),
-                    "question": doc.get("question", doc.get("pertanyaan", "")),
-                    "package": doc.get("package", doc.get("paket", "basic")),
-                    "level": doc.get("level", "basic"),
-                    "category": doc.get("category", doc.get("kategori", "general")),
-                    "created_at": doc.get("created_at"),
-                    "updated_at": doc.get("updated_at")
-                }
+            if self.questions_collection is not None:
+                cursor = self.questions_collection.find({})
+                questions = []
                 
-                # Only add if question text exists
-                if question_dict["question"]:
-                    questions.append(question_dict)
-            
-            logger.info(f"Retrieved {len(questions)} questions from database")
-            return questions
+                async for doc in cursor:
+                    # Convert MongoDB document to dict and clean up
+                    question_dict = {
+                        "id": str(doc.get("_id", "")),
+                        "question": doc.get("question", doc.get("pertanyaan", "")),
+                        "package": doc.get("package", doc.get("paket", "basic")),
+                        "level": doc.get("level", "basic"),
+                        "category": doc.get("category", doc.get("kategori", "general")),
+                        "indikator": doc.get("indikator", ""),
+                        "created_at": doc.get("created_at"),
+                        "updated_at": doc.get("updated_at")
+                    }
+                    
+                    # Only add if question text exists
+                    if question_dict["question"]:
+                        questions.append(question_dict)
+                
+                logger.info(f"Retrieved {len(questions)} questions from database")
+                return questions
+            else:
+                logger.warning("Questions collection is not available")
+                return []
             
         except Exception as e:
             logger.error(f"Error getting all questions: {e}")
@@ -111,30 +122,34 @@ class DatabaseService:
     async def get_all_keterangan(self) -> List[Dict]:
         """Get all keterangan documents from database"""
         try:
-            if not self.keterangan_collection:
+            if self.keterangan_collection is None:
                 await self.connect()
             
-            cursor = self.keterangan_collection.find({})
-            keterangan_docs = []
-            
-            async for doc in cursor:
-                # Convert MongoDB document to dict and clean up
-                keterangan_dict = {
-                    "id": str(doc.get("_id", "")),
-                    # Handle different field names from CSV
-                    "package": doc.get("package", doc.get("Package", "0")),  
-                    "description": doc.get("keterangan", doc.get("Keterangan", doc.get("description", ""))),
-                    "embedded": doc.get("embedded", doc.get("embedding", "")),
-                    "created_at": doc.get("created_at"),
-                    "updated_at": doc.get("updated_at")
-                }
+            if self.keterangan_collection is not None:
+                cursor = self.keterangan_collection.find({})
+                keterangan_docs = []
                 
-                # Only add if description and embedding exist
-                if keterangan_dict["description"] and keterangan_dict["embedded"]:
-                    keterangan_docs.append(keterangan_dict)
-            
-            logger.info(f"Retrieved {len(keterangan_docs)} keterangan documents from database")
-            return keterangan_docs
+                async for doc in cursor:
+                    # Convert MongoDB document to dict and clean up
+                    keterangan_dict = {
+                        "id": str(doc.get("_id", "")),
+                        # Handle different field names from CSV
+                        "package": doc.get("package", doc.get("Package", "0")),  
+                        "description": doc.get("keterangan", doc.get("Keterangan", doc.get("description", ""))),
+                        "embedded": doc.get("embedded", doc.get("embedding", "")),
+                        "created_at": doc.get("created_at"),
+                        "updated_at": doc.get("updated_at")
+                    }
+                    
+                    # Only add if description exists (embedding can be optional)
+                    if keterangan_dict["description"]:
+                        keterangan_docs.append(keterangan_dict)
+                
+                logger.info(f"Retrieved {len(keterangan_docs)} keterangan documents from database")
+                return keterangan_docs
+            else:
+                logger.warning("Keterangan collection is not available")
+                return []
             
         except Exception as e:
             logger.error(f"Error getting all keterangan: {e}")
@@ -143,38 +158,43 @@ class DatabaseService:
     async def get_questions_by_package(self, package: str, limit: int = 15) -> List[Dict]:
         """Get questions filtered by package with limit"""
         try:
-            if not self.questions_collection:
+            if self.questions_collection is None:
                 await self.connect()
             
-            # Create query for package (check both 'package' and 'paket' fields)
-            query = {
-                "$or": [
-                    {"package": package},
-                    {"paket": package}
-                ]
-            }
-            
-            cursor = self.questions_collection.find(query).limit(limit)
-            questions = []
-            
-            async for doc in cursor:
-                # Convert MongoDB document to dict and clean up
-                question_dict = {
-                    "id": str(doc.get("_id", "")),
-                    "question": doc.get("question", doc.get("pertanyaan", "")),
-                    "package": doc.get("package", doc.get("paket", package)),
-                    "level": doc.get("level", "basic"),
-                    "category": doc.get("category", doc.get("kategori", "general")),
-                    "created_at": doc.get("created_at"),
-                    "updated_at": doc.get("updated_at")
+            if self.questions_collection is not None:
+                # Create query for package (check both 'package' and 'paket' fields)
+                query = {
+                    "$or": [
+                        {"package": package},
+                        {"paket": package}
+                    ]
                 }
                 
-                # Only add if question text exists
-                if question_dict["question"]:
-                    questions.append(question_dict)
-            
-            logger.info(f"Retrieved {len(questions)} questions for package '{package}'")
-            return questions
+                cursor = self.questions_collection.find(query).limit(limit)
+                questions = []
+                
+                async for doc in cursor:
+                    # Convert MongoDB document to dict and clean up
+                    question_dict = {
+                        "id": str(doc.get("_id", "")),
+                        "question": doc.get("question", doc.get("pertanyaan", "")),
+                        "package": doc.get("package", doc.get("paket", package)),
+                        "level": doc.get("level", "basic"),
+                        "category": doc.get("category", doc.get("kategori", "general")),
+                        "indikator": doc.get("indikator", ""),
+                        "created_at": doc.get("created_at"),
+                        "updated_at": doc.get("updated_at")
+                    }
+                    
+                    # Only add if question text exists
+                    if question_dict["question"]:
+                        questions.append(question_dict)
+                
+                logger.info(f"Retrieved {len(questions)} questions for package '{package}'")
+                return questions
+            else:
+                logger.warning("Questions collection is not available")
+                return []
             
         except Exception as e:
             logger.error(f"Error getting questions by package '{package}': {e}")
@@ -183,29 +203,34 @@ class DatabaseService:
     async def get_questions_by_level(self, level: str, limit: int = 10) -> List[Dict]:
         """Get questions filtered by level (keeping for backward compatibility)"""
         try:
-            if not self.questions_collection:
+            if self.questions_collection is None:
                 await self.connect()
             
-            query = {"level": level}
-            cursor = self.questions_collection.find(query).limit(limit)
-            questions = []
-            
-            async for doc in cursor:
-                question_dict = {
-                    "id": str(doc.get("_id", "")),
-                    "question": doc.get("question", doc.get("pertanyaan", "")),
-                    "level": doc.get("level", level),
-                    "package": doc.get("package", doc.get("paket", "basic")),
-                    "category": doc.get("category", doc.get("kategori", "general")),
-                    "created_at": doc.get("created_at"),
-                    "updated_at": doc.get("updated_at")
-                }
+            if self.questions_collection is not None:
+                query = {"level": level}
+                cursor = self.questions_collection.find(query).limit(limit)
+                questions = []
                 
-                if question_dict["question"]:
-                    questions.append(question_dict)
-            
-            logger.info(f"Retrieved {len(questions)} questions for level '{level}'")
-            return questions
+                async for doc in cursor:
+                    question_dict = {
+                        "id": str(doc.get("_id", "")),
+                        "question": doc.get("question", doc.get("pertanyaan", "")),
+                        "level": doc.get("level", level),
+                        "package": doc.get("package", doc.get("paket", "basic")),
+                        "category": doc.get("category", doc.get("kategori", "general")),
+                        "indikator": doc.get("indikator", ""),
+                        "created_at": doc.get("created_at"),
+                        "updated_at": doc.get("updated_at")
+                    }
+                    
+                    if question_dict["question"]:
+                        questions.append(question_dict)
+                
+                logger.info(f"Retrieved {len(questions)} questions for level '{level}'")
+                return questions
+            else:
+                logger.warning("Questions collection is not available")
+                return []
             
         except Exception as e:
             logger.error(f"Error getting questions by level '{level}': {e}")
@@ -214,33 +239,37 @@ class DatabaseService:
     async def get_keterangan_by_package(self, package: str) -> Optional[Dict]:
         """Get keterangan document by package"""
         try:
-            if not self.keterangan_collection:
+            if self.keterangan_collection is None:
                 await self.connect()
             
-            # Create query for package (check both 'package' and 'paket' fields)
-            query = {
-                "$or": [
-                    {"package": package},
-                    {"paket": package}
-                ]
-            }
-            
-            doc = await self.keterangan_collection.find_one(query)
-            
-            if doc:
-                keterangan_dict = {
-                    "id": str(doc.get("_id", "")),
-                    "description": doc.get("description", doc.get("deskripsi", "")),
-                    "package": doc.get("package", doc.get("paket", package)),
-                    "level": doc.get("level", "basic"),
-                    "created_at": doc.get("created_at"),
-                    "updated_at": doc.get("updated_at")
+            if self.keterangan_collection is not None:
+                # Create query for package (check both 'package' and 'paket' fields)
+                query = {
+                    "$or": [
+                        {"package": package},
+                        {"paket": package}
+                    ]
                 }
                 
-                logger.info(f"Retrieved keterangan for package '{package}'")
-                return keterangan_dict
+                doc = await self.keterangan_collection.find_one(query)
+                
+                if doc:
+                    keterangan_dict = {
+                        "id": str(doc.get("_id", "")),
+                        "description": doc.get("description", doc.get("deskripsi", "")),
+                        "package": doc.get("package", doc.get("paket", package)),
+                        "level": doc.get("level", "basic"),
+                        "created_at": doc.get("created_at"),
+                        "updated_at": doc.get("updated_at")
+                    }
+                    
+                    logger.info(f"Retrieved keterangan for package '{package}'")
+                    return keterangan_dict
+                else:
+                    logger.warning(f"No keterangan found for package '{package}'")
+                    return None
             else:
-                logger.warning(f"No keterangan found for package '{package}'")
+                logger.warning("Keterangan collection is not available")
                 return None
                 
         except Exception as e:
@@ -250,12 +279,15 @@ class DatabaseService:
     async def insert_question(self, question_data: Dict) -> str:
         """Insert new question into database"""
         try:
-            if not self.questions_collection:
+            if self.questions_collection is None:
                 await self.connect()
             
-            result = await self.questions_collection.insert_one(question_data)
-            logger.info(f"Inserted question with ID: {result.inserted_id}")
-            return str(result.inserted_id)
+            if self.questions_collection is not None:
+                result = await self.questions_collection.insert_one(question_data)
+                logger.info(f"Inserted question with ID: {result.inserted_id}")
+                return str(result.inserted_id)
+            else:
+                raise Exception("Questions collection is not available")
             
         except Exception as e:
             logger.error(f"Error inserting question: {e}")
@@ -264,12 +296,15 @@ class DatabaseService:
     async def insert_keterangan(self, keterangan_data: Dict) -> str:
         """Insert new keterangan into database"""
         try:
-            if not self.keterangan_collection:
+            if self.keterangan_collection is None:
                 await self.connect()
             
-            result = await self.keterangan_collection.insert_one(keterangan_data)
-            logger.info(f"Inserted keterangan with ID: {result.inserted_id}")
-            return str(result.inserted_id)
+            if self.keterangan_collection is not None:
+                result = await self.keterangan_collection.insert_one(keterangan_data)
+                logger.info(f"Inserted keterangan with ID: {result.inserted_id}")
+                return str(result.inserted_id)
+            else:
+                raise Exception("Keterangan collection is not available")
             
         except Exception as e:
             logger.error(f"Error inserting keterangan: {e}")
@@ -278,17 +313,21 @@ class DatabaseService:
     async def update_question(self, question_id: str, update_data: Dict) -> bool:
         """Update existing question"""
         try:
-            if not self.questions_collection:
+            if self.questions_collection is None:
                 await self.connect()
             
-            from bson import ObjectId
-            result = await self.questions_collection.update_one(
-                {"_id": ObjectId(question_id)}, 
-                {"$set": update_data}
-            )
-            
-            logger.info(f"Updated question {question_id}: {result.modified_count} document(s) modified")
-            return result.modified_count > 0
+            if self.questions_collection is not None:
+                from bson import ObjectId
+                result = await self.questions_collection.update_one(
+                    {"_id": ObjectId(question_id)}, 
+                    {"$set": update_data}
+                )
+                
+                logger.info(f"Updated question {question_id}: {result.modified_count} document(s) modified")
+                return result.modified_count > 0
+            else:
+                logger.warning("Questions collection is not available")
+                return False
             
         except Exception as e:
             logger.error(f"Error updating question {question_id}: {e}")
@@ -297,14 +336,18 @@ class DatabaseService:
     async def delete_question(self, question_id: str) -> bool:
         """Delete question from database"""
         try:
-            if not self.questions_collection:
+            if self.questions_collection is None:
                 await self.connect()
             
-            from bson import ObjectId
-            result = await self.questions_collection.delete_one({"_id": ObjectId(question_id)})
-            
-            logger.info(f"Deleted question {question_id}: {result.deleted_count} document(s) deleted")
-            return result.deleted_count > 0
+            if self.questions_collection is not None:
+                from bson import ObjectId
+                result = await self.questions_collection.delete_one({"_id": ObjectId(question_id)})
+                
+                logger.info(f"Deleted question {question_id}: {result.deleted_count} document(s) deleted")
+                return result.deleted_count > 0
+            else:
+                logger.warning("Questions collection is not available")
+                return False
             
         except Exception as e:
             logger.error(f"Error deleting question {question_id}: {e}")
@@ -316,7 +359,7 @@ class DatabaseService:
             packages = set()
             
             # Get packages from questions collection
-            if self.questions_collection:
+            if self.questions_collection is not None:
                 questions_packages = await self.questions_collection.distinct("package")
                 packages.update(questions_packages)
                 
@@ -325,7 +368,7 @@ class DatabaseService:
                 packages.update(paket_packages)
             
             # Get packages from keterangan collection
-            if self.keterangan_collection:
+            if self.keterangan_collection is not None:
                 keterangan_packages = await self.keterangan_collection.distinct("package")
                 packages.update(keterangan_packages)
                 
