@@ -17,15 +17,18 @@ class AssessmentPrompts:
         """
         
         # Determine readiness level hint based on score
-        if average_score >= 3.5:
-            level_hint = "Advanced/Tinggi"
-            risk_hint = "Low/Rendah"
+        if average_score >3.5:
+            level_hint = "Siap"
+            risk_hint = "Rendah"
         elif average_score >= 2.5:
-            level_hint = "Intermediate/Sedang"
-            risk_hint = "Medium/Sedang"
+            level_hint = "Cukup siap"
+            risk_hint = "Sedang"
+        elif average_score >= 1.5:
+            level_hint = "Kurang siap"
+            risk_hint = "Tinggi"
         else:
-            level_hint = "Basic/Rendah"
-            risk_hint = "High/Tinggi"
+            level_hint = "Tidak siap"
+            risk_hint = "Sangat tinggi"
         
         # Calculate score distribution
         score_counts = {1: 0, 2: 0, 3: 0, 4: 0}
@@ -33,7 +36,6 @@ class AssessmentPrompts:
             if isinstance(answer, int) and answer in score_counts:
                 score_counts[answer] += 1
         
-        # Format profile information safely
         profile_info = []
         if isinstance(user_profile, dict):
             for key, value in user_profile.items():
