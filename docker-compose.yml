@@ -59,11 +59,12 @@ services:
     environment:
       - MONGODB_URI=mongodb://admin:securepassword123@mongodb:27017/cybersecurity_assessment?authSource=admin
       - FLASK_ENV=development
-      - SECRET_KEY=your_super_secret_key_change_in_production
+      - SECRET_KEY=dq2g7HMDfaeFafWYadfuiaXIAEFaehi
       - PYTHONPATH=/app
     depends_on:
       - mongodb
       - data-importer
+      - postgres
     volumes:
       - .:/app
       - /app/.venv
@@ -76,8 +77,31 @@ services:
       retries: 3
       start_period: 40s
 
+  postgres:
+    image: postgres:15-alpine
+    container_name: cybersec-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: rokade_db
+      POSTGRES_USER: rokade
+      POSTGRES_PASSWORD: chess2025
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - cybersec-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rokade -d rokade_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
 volumes:
   mongodb_data:
+    driver: local
+  pg_data:
     driver: local
 
 networks:

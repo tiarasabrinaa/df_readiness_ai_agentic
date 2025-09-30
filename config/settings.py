@@ -36,6 +36,16 @@ class Settings:
     # Database Configuration
     MONGODB_URI: str = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
     DATABASE_NAME: str = os.getenv("DATABASE_NAME", "df_readiness")
+    # PostgreSQL (Auth DB)
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "rokade_db")
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "rokade")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "chess2025")
+    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "postgres")
+    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT", "5432")
+    POSTGRES_URI: str = os.getenv(
+        "POSTGRES_URI",
+        f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+    )
     
     # Mail Resend API Key
     MAIL_RESEND_API_KEY: str = os.getenv("MAIL_RESEND_API_KEY", "")
@@ -109,6 +119,7 @@ class Settings:
    
    Database: {self.DATABASE_NAME}
    MongoDB: {self.MONGODB_URI.split('@')[-1] if '@' in self.MONGODB_URI else self.MONGODB_URI}
+        Postgres: {self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}
    
    LLM: {'✅ Configured' if self.LLM_URL and self.LLM_TOKEN else '❌ Not configured'}
    

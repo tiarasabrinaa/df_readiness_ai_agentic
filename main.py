@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, session
+import os
 from flask_cors import CORS
 import uuid
 import json
@@ -15,6 +16,9 @@ from sentence_transformers import SentenceTransformer
 from pymongo import MongoClient
 # Local imports
 from services.database_service import db_service
+from api.auth.models import db as pg_db, User
+from api.auth import auth_bp
+from api.auth.jwt_utils import decode_token
 from services.llm_service import llm_service
 from prompts import AssessmentPrompts
 from config.settings import settings
@@ -23,6 +27,37 @@ from email_template import generate_email_template
 app = Flask(__name__)
 app.secret_key = 'secret_key'
 CORS(app, supports_credentials=True)
+
+# SQLAlchemy (PostgreSQL) configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = settings.POSTGRES_URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+pg_db.init_app(app)
+app.register_blueprint(auth_bp, url_prefix='/auth')
+
+@app.before_request
+def jwt_protect_routes():
+    # Allow public endpoints
+    public_paths = {'/', '/auth/login', '/auth/register', '/auth/refresh'}
+    if request.path in public_paths or request.path.startswith('/static'):
+        return
+    # Skip OPTIONS for CORS preflight
+    if request.method == 'OPTIONS':
+        return
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.lower().startswith('bearer '):
+        return jsonify({'error': 'authorization header missing'}), 401
+    token = auth_header.split(' ', 1)[1].strip()
+    try:
+        payload = decode_token(token)
+        if payload.get('type') != 'access':
+            return jsonify({'error': 'invalid token type'}), 401
+        user = User.query.get(payload.get('sub'))
+        if not user:
+            return jsonify({'error': 'user not found'}), 401
+        # Attach user to request
+        setattr(request, 'current_user', user)
+    except Exception as e:
+        return jsonify({'error': 'invalid token', 'detail': str(e)}), 401
 
 # Global event loop for async operations
 _loop = None
@@ -990,5 +1025,25 @@ if __name__ == '__main__':
         startup()
     except Exception as e:
         print(f"Startup failed: {str(e)}")
-    
+    # Create Postgres tables
+    with app.app_context():
+        try:
+            pg_db.create_all()
+            print("PostgreSQL tables ensured.")
+            # Seed default user if not exists
+            try:
+                from api.auth.models import User as SeedUser
+                if not SeedUser.query.filter((SeedUser.username=="kingrokade") | (SeedUser.email=="kingrokade")).first():
+                    u = SeedUser(username="kingrokade", email="kingrokade@example.com")
+                    u.set_password("benteng88")
+                    pg_db.session.add(u)
+                    pg_db.session.commit()
+                    print("Seeded default user: kingrokade / benteng88")
+                else:
+                    print("Default user already present.")
+            except Exception as se:
+                print(f"Seeding default user failed: {se}")
+        except Exception as e:
+            print(f"Failed to create PostgreSQL tables: {e}")
+
     app.run(debug=True, host='0.0.0.0', port=5001)
