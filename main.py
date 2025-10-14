@@ -550,9 +550,9 @@ async def evaluate_with_llm(manager: SessionManager) -> Dict[str, Any]:
         qa_pairs = manager.context.get("profiling_qa_pairs", {}) if isinstance(manager.context.get("profiling_qa_pairs", {}), dict) else {}
         likert_scores = manager.context.get("likert_scores", []) if isinstance(manager.context.get("likert_scores", []), list) else []
         
-        selected_package = "0"
+        # selected_package = "0"
         qa_pairs = {}
-        likert_scores = [random.randint(1, 4) for _ in range(len(questions))]  # Simulated scores
+        # likert_scores = [random.randint(1, 4) for _ in range(len(questions))]  # Simulated scores
 
 
         # Calculate average score
@@ -564,21 +564,21 @@ async def evaluate_with_llm(manager: SessionManager) -> Dict[str, Any]:
         
         ai_response = await llm_service.generate_response(prompt, [])
         
-        # Ensure the response is not empty and contains JSON
-        if ai_response and ai_response.strip().startswith("{") and ai_response.strip().endswith("}"):
-            try:
-                # Try parsing the JSON response
-                evaluation = json.loads(ai_response)
-            except json.JSONDecodeError as e:
-                print(f"Error parsing JSON response: {str(e)}")
-                return {"error": "Failed to parse evaluation response"}
-        else:
-            print(f"Invalid or empty response from LLM: {ai_response}")
-            return {"error": "No valid JSON response from LLM"}
+        # # Ensure the response is not empty and contains JSON
+        # if ai_response and ai_response.strip().startswith("{") and ai_response.strip().endswith("}"):
+        #     try:
+        #         # Try parsing the JSON response
+        #         evaluation = json.loads(ai_response)
+        #     except json.JSONDecodeError as e:
+        #         print(f"Error parsing JSON response: {str(e)}")
+        #         return {"error": "Failed to parse evaluation response"}
+        # else:
+        #     print(f"Invalid or empty response from LLM: {ai_response}")
+        #     return {"error": "No valid JSON response from LLM"}
         
         # Add calculated metrics
-        evaluation["likert_average"] = avg_score
-        evaluation["total_responses"] = len(likert_scores)
+        # evaluation["likert_average"] = avg_score
+        # evaluation["total_responses"] = len(likert_scores)
         
         return ai_response
 
@@ -730,7 +730,6 @@ def get_test_questions():
     except Exception as e:
         print(f"Error getting test questions: {str(e)}")
         return jsonify({"error": str(e)}), 500
-
 
 @app.route('/submit_test_answers', methods=['POST'])
 def submit_test_answers():
@@ -1018,6 +1017,660 @@ def get_keterangan():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# Timeline Profiling Questions
+TIMELINE_PROFILING_QUESTIONS = [
+    {
+        "type": "target",
+        "question": "Dalam berapa bulan organisasi Anda ingin mencapai peningkatan kapabilitas DFR?",
+        "choices": [
+            {"label": "3-6 bulan (Fast Track)"},
+            {"label": "6-12 bulan (Standard)"},
+            {"label": "12-18 bulan (Comprehensive)"},
+            {"label": "18-24 bulan (Strategic)"}
+        ]
+    },
+    {
+        "type": "priority",
+        "question": "Apa prioritas utama organisasi dalam pengembangan DFR?",
+        "choices": [
+            {"label": "Compliance dan regulasi"},
+            {"label": "Incident response capability"},
+            {"label": "Evidence collection & preservation"},
+            {"label": "Forensic analysis capability"},
+            {"label": "Semua aspek secara seimbang"}
+        ]
+    },
+    {
+        "type": "resource",
+        "question": "Berapa budget yang dapat dialokasikan untuk pengembangan DFR per tahun?",
+        "choices": [
+            {"label": "< 100 juta"},
+            {"label": "100-500 juta"},
+            {"label": "500 juta - 1 miliar"},
+            {"label": "1-5 miliar"},
+            {"label": "> 5 miliar"}
+        ]
+    },
+    {
+        "type": "resource",
+        "question": "Apakah organisasi memiliki tim IT Security/Cybersecurity yang dedicated?",
+        "choices": [
+            {"label": "Tidak ada sama sekali"},
+            {"label": "Ada, kurang dari 3 orang"},
+            {"label": "Ada, 3-10 orang"},
+            {"label": "Ada, lebih dari 10 orang"},
+            {"label": "Ada departemen tersendiri"}
+        ]
+    },
+    {
+        "type": "capability",
+        "question": "Apakah organisasi sudah memiliki tools/software untuk forensik digital?",
+        "choices": [
+            {"label": "Belum ada sama sekali"},
+            {"label": "Ada tools basic (free/open source)"},
+            {"label": "Ada beberapa commercial tools"},
+            {"label": "Ada suite lengkap forensic tools"},
+            {"label": "Ada platform forensik enterprise"}
+        ]
+    },
+    {
+        "type": "capability",
+        "question": "Apakah organisasi sudah memiliki prosedur/SOP untuk incident response?",
+        "choices": [
+            {"label": "Belum ada"},
+            {"label": "Ada draft/belum formal"},
+            {"label": "Ada dan sudah formal"},
+            {"label": "Ada dan rutin diupdate"},
+            {"label": "Ada dan sudah terintegrasi dengan business continuity"}
+        ]
+    },
+    {
+        "type": "training",
+        "question": "Berapa orang yang bisa dialokasikan untuk training/sertifikasi DFR?",
+        "choices": [
+            {"label": "Tidak ada"},
+            {"label": "1-2 orang"},
+            {"label": "3-5 orang"},
+            {"label": "6-10 orang"},
+            {"label": "> 10 orang"}
+        ]
+    },
+    {
+        "type": "urgency",
+        "question": "Seberapa urgent kebutuhan DFR untuk organisasi Anda?",
+        "choices": [
+            {"label": "Nice to have - untuk persiapan masa depan"},
+            {"label": "Important - ada rencana implementasi"},
+            {"label": "Urgent - ada requirement compliance"},
+            {"label": "Critical - sudah pernah ada incident"},
+            {"label": "Emergency - sedang ada incident/investigasi"}
+        ]
+    },
+    {
+        "type": "infrastructure",
+        "question": "Bagaimana kondisi infrastruktur IT organisasi saat ini?",
+        "choices": [
+            {"label": "Basic - minimal infrastructure"},
+            {"label": "Standard - ada server dan network management"},
+            {"label": "Advanced - ada monitoring dan logging"},
+            {"label": "Enterprise - ada SIEM dan security tools"},
+            {"label": "Mature - fully integrated security infrastructure"}
+        ]
+    },
+    {
+        "type": "commitment",
+        "question": "Apakah top management mendukung penuh initiative DFR ini?",
+        "choices": [
+            {"label": "Belum aware tentang DFR"},
+            {"label": "Aware tapi belum prioritas"},
+            {"label": "Supportive tapi budget terbatas"},
+            {"label": "Fully supportive dengan budget adequate"},
+            {"label": "Champion - DFR adalah strategic priority"}
+        ]
+    }
+]
+
+TIMELINE_QUESTION_KEYS = [
+    "timeline_duration", "priority_focus", "budget_allocation", 
+    "security_team", "forensic_tools", "incident_procedures",
+    "training_capacity", "urgency_level", "infrastructure_maturity", 
+    "management_support"
+]
+
+@app.route('/start_profiling_timeline', methods=['GET'])
+def start_profiling_timeline():
+    """Start timeline profiling - return questions for roadmap generation"""
+    try:
+        manager = get_or_create_session()
+        
+        # Check if assessment is completed
+        if manager.context.get("current_phase") != "completed":
+            return jsonify({
+                "error": "Please complete the assessment first before generating timeline"
+            }), 400
+        
+        # Initialize timeline profiling context
+        manager.context["timeline_profiling_progress"] = 0
+        manager.context["timeline_profiling_data"] = {}
+        manager.context["current_phase"] = "timeline_profiling"
+        
+        return jsonify({
+            "session_id": manager.session_id,
+            "message": "Timeline profiling started",
+            "questions": TIMELINE_PROFILING_QUESTIONS,
+            "total_questions": len(TIMELINE_PROFILING_QUESTIONS),
+            "current_phase": manager.context["current_phase"],
+            "instruction": "Please answer all questions to generate your customized roadmap"
+        })
+        
+    except Exception as e:
+        print(f"Error in start_profiling_timeline: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+def parse_timeline_answers(data: Dict) -> Dict[str, Any]:
+    """Parse timeline profiling answers from request"""
+    timeline_answers = {}
+    
+    if 'answers' in data and isinstance(data['answers'], list):
+        answers = data.get('answers', [])
+        if len(answers) != len(TIMELINE_PROFILING_QUESTIONS):
+            raise ValueError(f"Please provide exactly {len(TIMELINE_PROFILING_QUESTIONS)} answers.")
+        
+        for idx, answer in enumerate(answers):
+            timeline_answers[TIMELINE_QUESTION_KEYS[idx]] = answer
+    
+    elif any(key in TIMELINE_QUESTION_KEYS for key in data.keys()):
+        for key in TIMELINE_QUESTION_KEYS:
+            if key in data:
+                timeline_answers[key] = data[key]
+        
+        if len(timeline_answers) != len(TIMELINE_PROFILING_QUESTIONS):
+            raise ValueError(f"Please provide all {len(TIMELINE_PROFILING_QUESTIONS)} answers.")
+    
+    else:
+        raise ValueError("Invalid format. Provide either 'answers' array or individual answer keys.")
+    
+    return timeline_answers
+
+
+async def generate_timeline_with_profiling(manager: SessionManager, timeline_answers: Dict[str, Any]) -> Dict[str, Any]:
+    """Generate timeline roadmap based on assessment results and timeline profiling"""
+    
+    # Get assessment data
+    final_evaluation = manager.context.get("final_evaluation", {})
+    if isinstance(final_evaluation, str):
+        try:
+            final_evaluation = json.loads(final_evaluation)
+        except (json.JSONDecodeError, ValueError):
+            final_evaluation = {}
+    
+    current_level = final_evaluation.get("current_level", "Level 0")
+    avg_score = manager.context.get("likert_scores", [])
+    avg_score = calculate_likert_average(avg_score) if avg_score else 0.0
+    
+    selected_package = manager.context.get("selected_package", "0")
+    user_profile = manager.context.get("user_profile", {})
+    
+    # Build profile summary
+    profile_info = []
+    if isinstance(user_profile, dict):
+        for key, value in user_profile.items():
+            if key != "email":
+                profile_info.append(f"{key}: {value}")
+    profile_summary = "\n".join(profile_info) if profile_info else "No profile data"
+    
+    # Build timeline profiling summary
+    timeline_profile = []
+    for i, (key, answer) in enumerate(timeline_answers.items()):
+        question = TIMELINE_PROFILING_QUESTIONS[i]["question"]
+        timeline_profile.append(f"{key}: {answer}")
+    timeline_summary = "\n".join(timeline_profile)
+    
+    # Parse duration from answer
+    duration_text = timeline_answers.get("timeline_duration", "")
+    if "3-6" in duration_text:
+        target_months = 6
+    elif "6-12" in duration_text:
+        target_months = 12
+    elif "12-18" in duration_text:
+        target_months = 18
+    elif "18-24" in duration_text:
+        target_months = 24
+    else:
+        target_months = 12  # default
+    
+    # Generate comprehensive prompt
+    timeline_prompt = f"""
+Sebagai expert Digital Forensic Readiness (DFR), buatlah roadmap pengembangan kapabilitas DFR yang komprehensif, realistis, dan customized.
+
+DATA ASSESSMENT HASIL:
+- Current Level: {current_level}
+- Average Score: {avg_score:.2f}/4.0
+- Package Used: {selected_package}
+
+PROFIL ORGANISASI:
+{profile_summary}
+
+HASIL PROFILING ROADMAP:
+{timeline_summary}
+
+TARGET DURATION: {target_months} bulan
+
+TUGAS ANDA:
+Berdasarkan SEMUA data di atas, buatlah roadmap yang:
+1. REALISTIS sesuai budget, resources, dan timeline yang disebutkan
+2. SPESIFIK dengan tasks yang actionable dan measurable
+3. PROGRESSIVE dengan phases yang jelas
+4. COMPREHENSIVE mencakup people, process, technology
+5. ALIGNED dengan prioritas dan urgency yang disebutkan
+
+Format JSON yang HARUS diikuti (STRICT):
+
+{{
+  "current_assessment": {{
+    "current_level": "{current_level}",
+    "level_description": "deskripsi detail kondisi saat ini berdasarkan assessment",
+    "score": {avg_score:.2f},
+    "maturity_areas": {{
+      "policy_procedures": "status dan deskripsi",
+      "technical_capability": "status dan deskripsi",
+      "people_skills": "status dan deskripsi",
+      "tools_infrastructure": "status dan deskripsi"
+    }},
+    "strengths": ["kekuatan spesifik 1", "kekuatan spesifik 2", "kekuatan spesifik 3"],
+    "weaknesses": ["kelemahan spesifik 1", "kelemahan spesifik 2", "kelemahan spesifik 3"]
+  }},
+  
+  "target_roadmap": {{
+    "target_level": "Level yang realistis untuk dicapai",
+    "target_level_description": "deskripsi detail target capability",
+    "estimated_duration_months": {target_months},
+    "justification": "penjelasan detail kenapa target ini realistis berdasarkan kondisi organisasi (budget, resources, urgency)",
+    "key_improvements": ["improvement area 1", "improvement area 2", "improvement area 3"]
+  }},
+  
+  "timeline": [
+    {{
+      "phase": 1,
+      "phase_name": "Foundation & Quick Wins",
+      "duration_months": 3,
+      "start_month": 1,
+      "end_month": 3,
+      "objectives": [
+        "objektif strategis 1",
+        "objektif strategis 2",
+        "objektif strategis 3"
+      ],
+      "focus_areas": ["focus area 1", "focus area 2"],
+      "milestones": [
+        {{
+          "month": 1,
+          "month_name": "Januari 2025",
+          "title": "Initial Setup & Assessment",
+          "description": "Deskripsi singkat milestone ini",
+          "tasks": [
+            "Task spesifik dan actionable 1",
+            "Task spesifik dan actionable 2",
+            "Task spesifik dan actionable 3",
+            "Task spesifik dan actionable 4"
+          ],
+          "deliverables": [
+            "Deliverable konkret 1",
+            "Deliverable konkret 2"
+          ],
+          "kpis": [
+            "KPI measurable 1 (dengan target angka)",
+            "KPI measurable 2 (dengan target angka)"
+          ],
+          "responsible_roles": ["role 1", "role 2"],
+          "dependencies": ["dependency jika ada"]
+        }},
+        {{
+          "month": 2,
+          "month_name": "Februari 2025",
+          "title": "Foundation Implementation",
+          "description": "Deskripsi singkat",
+          "tasks": ["task 1", "task 2", "task 3", "task 4"],
+          "deliverables": ["deliverable 1", "deliverable 2"],
+          "kpis": ["KPI 1", "KPI 2"],
+          "responsible_roles": ["role 1"],
+          "dependencies": ["Completion of Month 1 milestones"]
+        }},
+        {{
+          "month": 3,
+          "month_name": "Maret 2025",
+          "title": "Phase 1 Consolidation",
+          "description": "Deskripsi singkat",
+          "tasks": ["task 1", "task 2", "task 3"],
+          "deliverables": ["deliverable 1", "deliverable 2"],
+          "kpis": ["KPI 1", "KPI 2"],
+          "responsible_roles": ["role 1"],
+          "dependencies": ["dependencies"]
+        }}
+      ],
+      "phase_deliverables": ["major deliverable 1", "major deliverable 2"],
+      "success_criteria": ["criteria 1", "criteria 2"]
+    }},
+    {{
+      "phase": 2,
+      "phase_name": "Implementation & Capability Building",
+      "duration_months": (sesuaikan dengan target_months),
+      "start_month": 4,
+      "end_month": (sesuaikan),
+      "objectives": ["objektif 1", "objektif 2"],
+      "focus_areas": ["focus 1", "focus 2"],
+      "milestones": [
+        {{
+          "month": 4,
+          "month_name": "April 2025",
+          "title": "...",
+          "description": "...",
+          "tasks": ["..."],
+          "deliverables": ["..."],
+          "kpis": ["..."],
+          "responsible_roles": ["..."],
+          "dependencies": ["..."]
+        }}
+        // Continue for all months in phase 2
+      ],
+      "phase_deliverables": ["..."],
+      "success_criteria": ["..."]
+    }},
+    {{
+      "phase": 3,
+      "phase_name": "Optimization & Sustainability",
+      "duration_months": (sesuaikan),
+      "start_month": (sesuaikan),
+      "end_month": {target_months},
+      "objectives": ["objektif 1", "objektif 2"],
+      "focus_areas": ["focus 1", "focus 2"],
+      "milestones": [
+        // milestones untuk phase terakhir sampai bulan ke-{target_months}
+      ],
+      "phase_deliverables": ["..."],
+      "success_criteria": ["..."]
+    }}
+  ],
+  
+  "resource_requirements": {{
+    "budget_estimate": {{
+      "total_idr": "Rp XXX juta - berdasarkan budget allocation yang disebutkan",
+      "total_idr_numeric": 000000000,
+      "breakdown": {{
+        "technology_tools": {{
+          "amount": "Rp XXX juta",
+          "percentage": "XX%",
+          "items": ["item 1", "item 2"]
+        }},
+        "training_certification": {{
+          "amount": "Rp XXX juta",
+          "percentage": "XX%",
+          "items": ["item 1", "item 2"]
+        }},
+        "personnel_recruitment": {{
+          "amount": "Rp XXX juta",
+          "percentage": "XX%",
+          "items": ["item 1"]
+        }},
+        "consulting_services": {{
+          "amount": "Rp XXX juta",
+          "percentage": "XX%",
+          "items": ["item 1"]
+        }},
+        "infrastructure": {{
+          "amount": "Rp XXX juta",
+          "percentage": "XX%",
+          "items": ["item 1", "item 2"]
+        }}
+      }},
+      "notes": "Catatan tentang budget (misalnya jika budget terbatas, fokus di area mana)"
+    }},
+    
+    "human_resources": [
+      {{
+        "role": "DFR Program Manager",
+        "count": 1,
+        "commitment": "Full-time/Part-time",
+        "required_skills": ["skill 1", "skill 2", "skill 3"],
+        "responsibilities": ["tanggung jawab detail 1", "tanggung jawab detail 2"],
+        "can_be_existing_staff": true/false,
+        "training_needed": ["training 1 jika ada"]
+      }},
+      {{
+        "role": "Digital Forensic Analyst",
+        "count": (sesuaikan dengan training_capacity),
+        "commitment": "...",
+        "required_skills": ["..."],
+        "responsibilities": ["..."],
+        "can_be_existing_staff": true/false,
+        "training_needed": ["..."]
+      }}
+      // tambahkan roles lain sesuai kebutuhan
+    ],
+    
+    "technology_stack": [
+      {{
+        "category": "Forensic Investigation Tools",
+        "priority": "High/Medium/Low",
+        "items": [
+          {{
+            "name": "Tool Name (disesuaikan dengan forensic_tools status)",
+            "purpose": "purpose spesifik",
+            "estimated_cost": "Rp XXX juta atau Free/Open Source",
+            "implementation_timeline": "Month X-Y"
+          }}
+        ]
+      }},
+      {{
+        "category": "Infrastructure & Storage",
+        "priority": "High",
+        "items": [
+          {{
+            "name": "...",
+            "purpose": "...",
+            "estimated_cost": "...",
+            "implementation_timeline": "..."
+          }}
+        ]
+      }},
+      {{
+        "category": "Security & Monitoring",
+        "priority": "Medium/High",
+        "items": ["..."]
+      }}
+    ],
+    
+    "training_plan": {{
+      "internal_training": [
+        {{
+          "topic": "DFR Fundamentals",
+          "target_audience": "All IT staff",
+          "duration": "X days",
+          "schedule": "Month Y",
+          "estimated_cost": "Rp XXX"
+        }}
+      ],
+      "external_certification": [
+        {{
+          "certification": "Cert Name",
+          "target_roles": ["role 1"],
+          "provider": "provider name",
+          "duration": "X days",
+          "schedule": "Month Y",
+          "estimated_cost_per_person": "Rp XXX"
+        }}
+      ],
+      "total_training_budget": "Rp XXX juta"
+    }}
+  }},
+  
+  "risk_mitigation": [
+    {{
+      "risk_id": "R001",
+      "risk": "Deskripsi risiko spesifik berdasarkan profiling",
+      "category": "Technical/Resource/Organizational",
+      "impact": "High/Medium/Low",
+      "probability": "High/Medium/Low",
+      "risk_score": "Impact x Probability score",
+      "mitigation_strategy": "Strategi detail dan actionable",
+      "contingency_plan": "Rencana jika risiko terjadi",
+      "owner": "Role yang responsible"
+    }}
+    // minimal 5-7 risks yang relevan
+  ],
+  
+  "success_criteria": [
+    {{
+      "criteria": "Kriteria sukses spesifik dan measurable",
+      "measurement": "Cara pengukuran",
+      "target": "Target value/status",
+      "timeline": "Month X"
+    }}
+  ],
+  
+  "governance": {{
+    "steering_committee": {{
+      "members": ["role 1", "role 2"],
+      "meeting_frequency": "Monthly/Quarterly",
+      "responsibilities": ["tanggung jawab 1", "tanggung jawab 2"]
+    }},
+    "reporting_structure": {{
+      "regular_reports": "Frequency dan format",
+      "stakeholder_updates": "Frequency dan audience",
+      "escalation_process": "Process untuk issues"
+    }},
+    "quality_assurance": {{
+      "review_points": ["checkpoint 1", "checkpoint 2"],
+      "audit_schedule": "Schedule untuk audit"
+    }}
+  }},
+  
+  "quick_wins": [
+    {{
+      "title": "Quick win yang bisa immediate impact",
+      "description": "Deskripsi detail",
+      "timeline": "Week 1-2",
+      "effort": "Low/Medium",
+      "impact": "High/Medium",
+      "resources_needed": ["resource 1"]
+    }}
+    // 3-5 quick wins
+  ],
+  
+  "dependencies_external": [
+    {{
+      "dependency": "External dependency yang perlu diperhatikan",
+      "type": "Vendor/Regulatory/Partner",
+      "impact_if_delayed": "Impact description",
+      "mitigation": "Cara handle jika terlambat"
+    }}
+  ]
+}}
+
+CRITICAL INSTRUCTIONS:
+1. Response HANYA JSON - no markdown, no backticks, no additional text
+2. SEMUA bulan dari 1 sampai {target_months} HARUS ada milestones
+3. Tasks HARUS spesifik, actionable, dan measurable - NO GENERIC TASKS
+4. Budget HARUS realistis sesuai dengan budget_allocation yang disebutkan
+5. Number of people HARUS sesuai dengan training_capacity dan security_team
+6. Tools/technology HARUS sesuai dengan forensic_tools status (don't suggest expensive tools if budget low)
+7. Urgency level HARUS reflected dalam timeline dan priority
+8. Management support level HARUS reflected dalam governance structure
+9. Infrastructure maturity HARUS considered dalam technology recommendations
+10. Priority focus HARUS jelas terlihat di semua phases
+
+Generate complete, realistic, dan immediately actionable roadmap!
+"""
+
+    try:
+        print("Generating timeline with LLM based on profiling...")
+        timeline_response = await llm_service.generate_response(timeline_prompt, [])
+        
+        # Clean and parse response
+        timeline_response = timeline_response.strip()
+        if timeline_response.startswith("```"):
+            lines = timeline_response.split("\n")
+            timeline_response = "\n".join([l for l in lines if not l.startswith("```")])
+        
+        # Assuming timeline_response is the raw response string
+        try:
+            # Step 1: Parse the outer JSON
+            outer_data = json.loads(timeline_response)
+            
+            # Step 2: Parse the inner 'timeline' JSON string
+            inner_timeline = json.loads(outer_data['timeline'])
+
+            # Now you have both the outer data and the parsed timeline
+            print("Parsed timeline:", inner_timeline)
+        except json.JSONDecodeError as e:
+            print(f"Error parsing JSON response: {str(e)}")
+            print(f"Problematic response: {timeline_response}")
+            return {"error": "Unable to parse timeline response"}
+        return timeline_response
+        
+    except Exception as e:
+        print(f"Error generating timeline: {str(e)}")
+        raise e
+
+
+@app.route('/get_timeline', methods=['POST'])
+@async_route
+async def get_timeline():
+    """Generate timeline roadmap based on profiling answers"""
+    try:
+        manager = get_or_create_session()
+        
+        # Validate phase
+        if manager.context.get("current_phase") != "timeline_profiling":
+            return jsonify({
+                "error": "Please start timeline profiling first using /start_profiling_timeline"
+            }), 400
+        
+        # Validate request
+        if not request.is_json:
+            return jsonify({"error": "Request must be JSON"}), 400
+        
+        data = request.get_json()
+        
+        # Parse timeline profiling answers
+        try:
+            timeline_answers = parse_timeline_answers(data)
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+        
+        # Store timeline profiling data
+        manager.context["timeline_profiling_data"] = timeline_answers
+        manager.context["timeline_profiling_progress"] = len(timeline_answers)
+        
+        # Generate timeline with LLM
+        print("Generating comprehensive timeline roadmap...")
+        timeline_data = await generate_timeline_with_profiling(manager, timeline_answers)
+        
+        # Store timeline data
+        manager.context["timeline_data"] = timeline_data
+        manager.context["current_phase"] = "timeline_generated"
+        
+        # Return complete response
+        return jsonify({
+            "session_id": manager.session_id,
+            "timeline_generated": True,
+            "current_phase": manager.context["current_phase"],
+            "profiling_data": timeline_answers,
+            "timeline": timeline_data,
+            "metadata": {
+                "generated_at": datetime.now().isoformat(),
+                "assessment_date": manager.created_at.isoformat(),
+                "package_used": manager.context.get("selected_package", "0"),
+                "timeline": timeline_data
+            }
+        })
+        
+    except Exception as e:
+        print(f"Error in get_timeline: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     # Initialize database connection

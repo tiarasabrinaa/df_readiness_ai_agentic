@@ -24,13 +24,14 @@ class Settings:
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     # LLM Configuration
-    LLM_URL: str = os.getenv("URL_CUSTOM_LLM_APILOGY", "")
-    LLM_TOKEN: str = os.getenv("TOKEN_CUSTOM_LLM_APILOGY", "")
-    
+    LLM_URL: str = os.getenv("LLM_URL", "")
+    LLM_TOKEN: str = os.getenv("LLM_TOKEN", "")
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "")
+
     # Validate LLM configuration
     if not LLM_URL or not LLM_TOKEN:
-        print("⚠️ Warning: LLM configuration not complete. Check environment variables:")
-        print("   - URL_CUSTOM_LLM_APILOGY")
+        print("Warning: LLM configuration not complete. Check environment variables:")
+        print("   - LLM_URL")
         print("   - TOKEN_CUSTOM_LLM_APILOGY")
     
     # Database Configuration
