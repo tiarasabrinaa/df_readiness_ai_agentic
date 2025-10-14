@@ -695,7 +695,6 @@ def get_test_questions():
         
         print(f"Fetching questions for package: {selected_package}")
         
-        # Gunakan MongoClient biasa
         client = MongoClient('mongodb://admin:securepassword123@mongodb:27017/cybersecurity_assessment?authSource=admin')
         db = client.cybersecurity_assessment
         
@@ -968,20 +967,6 @@ def method_not_allowed(error):
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
-
-@app.route('/check_db', methods=['GET'])
-def check_db():
-    try:
-        client = MongoClient('mongodb://admin:securepassword123@mongodb:27017/cybersecurity_assessment?authSource=admin')
-        db = client.cybersecurity_assessment
-        keterangan_count = db.keterangan.count_documents({})
-        questions_count = db.questions.count_documents({})
-        return jsonify({
-            "keterangan_count": keterangan_count,
-            "questions_count": questions_count
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
     
 from bson import ObjectId
 
@@ -995,27 +980,6 @@ def json_serialize(doc):
             if isinstance(value, ObjectId):
                 doc[key] = str(value)  # Convert ObjectId to string
     return doc
-
-@app.route('/get_keterangan', methods=['GET'])
-def get_keterangan():
-    try:
-        # Connect to MongoDB
-        client = MongoClient('mongodb://admin:securepassword123@mongodb:27017/cybersecurity_assessment?authSource=admin')
-        db = client.cybersecurity_assessment
-        
-        # Find documents with package == "0"
-        keterangan = db.questions.find({"package": "0"})
-        
-        # Convert the cursor to a list
-        keterangan_list = list(keterangan)
-        
-        if keterangan_list:
-            # Convert ObjectId to string for JSON serialization
-            return jsonify([json_serialize(doc) for doc in keterangan_list])
-        else:
-            return jsonify({"message": "No keterangan found"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
 # Timeline Profiling Questions
 TIMELINE_PROFILING_QUESTIONS = [
@@ -1193,431 +1157,10 @@ def parse_timeline_answers(data: Dict) -> Dict[str, Any]:
     
     return timeline_answers
 
-
-async def generate_timeline_with_profiling(manager: SessionManager, timeline_answers: Dict[str, Any]) -> Dict[str, Any]:
-    """Generate timeline roadmap based on assessment results and timeline profiling"""
-    
-    # Get assessment data
-    final_evaluation = manager.context.get("final_evaluation", {})
-    if isinstance(final_evaluation, str):
-        try:
-            final_evaluation = json.loads(final_evaluation)
-        except (json.JSONDecodeError, ValueError):
-            final_evaluation = {}
-    
-    current_level = final_evaluation.get("current_level", "Level 0")
-    avg_score = manager.context.get("likert_scores", [])
-    avg_score = calculate_likert_average(avg_score) if avg_score else 0.0
-    
-    selected_package = manager.context.get("selected_package", "0")
-    user_profile = manager.context.get("user_profile", {})
-    
-    # Build profile summary
-    profile_info = []
-    if isinstance(user_profile, dict):
-        for key, value in user_profile.items():
-            if key != "email":
-                profile_info.append(f"{key}: {value}")
-    profile_summary = "\n".join(profile_info) if profile_info else "No profile data"
-    
-    # Build timeline profiling summary
-    timeline_profile = []
-    for i, (key, answer) in enumerate(timeline_answers.items()):
-        question = TIMELINE_PROFILING_QUESTIONS[i]["question"]
-        timeline_profile.append(f"{key}: {answer}")
-    timeline_summary = "\n".join(timeline_profile)
-    
-    # Parse duration from answer
-    duration_text = timeline_answers.get("timeline_duration", "")
-    if "3-6" in duration_text:
-        target_months = 6
-    elif "6-12" in duration_text:
-        target_months = 12
-    elif "12-18" in duration_text:
-        target_months = 18
-    elif "18-24" in duration_text:
-        target_months = 24
-    else:
-        target_months = 12  # default
-    
-    # Generate comprehensive prompt
-    timeline_prompt = f"""
-Sebagai expert Digital Forensic Readiness (DFR), buatlah roadmap pengembangan kapabilitas DFR yang komprehensif, realistis, dan customized.
-
-DATA ASSESSMENT HASIL:
-- Current Level: {current_level}
-- Average Score: {avg_score:.2f}/4.0
-- Package Used: {selected_package}
-
-PROFIL ORGANISASI:
-{profile_summary}
-
-HASIL PROFILING ROADMAP:
-{timeline_summary}
-
-TARGET DURATION: {target_months} bulan
-
-TUGAS ANDA:
-Berdasarkan SEMUA data di atas, buatlah roadmap yang:
-1. REALISTIS sesuai budget, resources, dan timeline yang disebutkan
-2. SPESIFIK dengan tasks yang actionable dan measurable
-3. PROGRESSIVE dengan phases yang jelas
-4. COMPREHENSIVE mencakup people, process, technology
-5. ALIGNED dengan prioritas dan urgency yang disebutkan
-
-Format JSON yang HARUS diikuti (STRICT):
-
-{{
-  "current_assessment": {{
-    "current_level": "{current_level}",
-    "level_description": "deskripsi detail kondisi saat ini berdasarkan assessment",
-    "score": {avg_score:.2f},
-    "maturity_areas": {{
-      "policy_procedures": "status dan deskripsi",
-      "technical_capability": "status dan deskripsi",
-      "people_skills": "status dan deskripsi",
-      "tools_infrastructure": "status dan deskripsi"
-    }},
-    "strengths": ["kekuatan spesifik 1", "kekuatan spesifik 2", "kekuatan spesifik 3"],
-    "weaknesses": ["kelemahan spesifik 1", "kelemahan spesifik 2", "kelemahan spesifik 3"]
-  }},
-  
-  "target_roadmap": {{
-    "target_level": "Level yang realistis untuk dicapai",
-    "target_level_description": "deskripsi detail target capability",
-    "estimated_duration_months": {target_months},
-    "justification": "penjelasan detail kenapa target ini realistis berdasarkan kondisi organisasi (budget, resources, urgency)",
-    "key_improvements": ["improvement area 1", "improvement area 2", "improvement area 3"]
-  }},
-  
-  "timeline": [
-    {{
-      "phase": 1,
-      "phase_name": "Foundation & Quick Wins",
-      "duration_months": 3,
-      "start_month": 1,
-      "end_month": 3,
-      "objectives": [
-        "objektif strategis 1",
-        "objektif strategis 2",
-        "objektif strategis 3"
-      ],
-      "focus_areas": ["focus area 1", "focus area 2"],
-      "milestones": [
-        {{
-          "month": 1,
-          "month_name": "Januari 2025",
-          "title": "Initial Setup & Assessment",
-          "description": "Deskripsi singkat milestone ini",
-          "tasks": [
-            "Task spesifik dan actionable 1",
-            "Task spesifik dan actionable 2",
-            "Task spesifik dan actionable 3",
-            "Task spesifik dan actionable 4"
-          ],
-          "deliverables": [
-            "Deliverable konkret 1",
-            "Deliverable konkret 2"
-          ],
-          "kpis": [
-            "KPI measurable 1 (dengan target angka)",
-            "KPI measurable 2 (dengan target angka)"
-          ],
-          "responsible_roles": ["role 1", "role 2"],
-          "dependencies": ["dependency jika ada"]
-        }},
-        {{
-          "month": 2,
-          "month_name": "Februari 2025",
-          "title": "Foundation Implementation",
-          "description": "Deskripsi singkat",
-          "tasks": ["task 1", "task 2", "task 3", "task 4"],
-          "deliverables": ["deliverable 1", "deliverable 2"],
-          "kpis": ["KPI 1", "KPI 2"],
-          "responsible_roles": ["role 1"],
-          "dependencies": ["Completion of Month 1 milestones"]
-        }},
-        {{
-          "month": 3,
-          "month_name": "Maret 2025",
-          "title": "Phase 1 Consolidation",
-          "description": "Deskripsi singkat",
-          "tasks": ["task 1", "task 2", "task 3"],
-          "deliverables": ["deliverable 1", "deliverable 2"],
-          "kpis": ["KPI 1", "KPI 2"],
-          "responsible_roles": ["role 1"],
-          "dependencies": ["dependencies"]
-        }}
-      ],
-      "phase_deliverables": ["major deliverable 1", "major deliverable 2"],
-      "success_criteria": ["criteria 1", "criteria 2"]
-    }},
-    {{
-      "phase": 2,
-      "phase_name": "Implementation & Capability Building",
-      "duration_months": (sesuaikan dengan target_months),
-      "start_month": 4,
-      "end_month": (sesuaikan),
-      "objectives": ["objektif 1", "objektif 2"],
-      "focus_areas": ["focus 1", "focus 2"],
-      "milestones": [
-        {{
-          "month": 4,
-          "month_name": "April 2025",
-          "title": "...",
-          "description": "...",
-          "tasks": ["..."],
-          "deliverables": ["..."],
-          "kpis": ["..."],
-          "responsible_roles": ["..."],
-          "dependencies": ["..."]
-        }}
-        // Continue for all months in phase 2
-      ],
-      "phase_deliverables": ["..."],
-      "success_criteria": ["..."]
-    }},
-    {{
-      "phase": 3,
-      "phase_name": "Optimization & Sustainability",
-      "duration_months": (sesuaikan),
-      "start_month": (sesuaikan),
-      "end_month": {target_months},
-      "objectives": ["objektif 1", "objektif 2"],
-      "focus_areas": ["focus 1", "focus 2"],
-      "milestones": [
-        // milestones untuk phase terakhir sampai bulan ke-{target_months}
-      ],
-      "phase_deliverables": ["..."],
-      "success_criteria": ["..."]
-    }}
-  ],
-  
-  "resource_requirements": {{
-    "budget_estimate": {{
-      "total_idr": "Rp XXX juta - berdasarkan budget allocation yang disebutkan",
-      "total_idr_numeric": 000000000,
-      "breakdown": {{
-        "technology_tools": {{
-          "amount": "Rp XXX juta",
-          "percentage": "XX%",
-          "items": ["item 1", "item 2"]
-        }},
-        "training_certification": {{
-          "amount": "Rp XXX juta",
-          "percentage": "XX%",
-          "items": ["item 1", "item 2"]
-        }},
-        "personnel_recruitment": {{
-          "amount": "Rp XXX juta",
-          "percentage": "XX%",
-          "items": ["item 1"]
-        }},
-        "consulting_services": {{
-          "amount": "Rp XXX juta",
-          "percentage": "XX%",
-          "items": ["item 1"]
-        }},
-        "infrastructure": {{
-          "amount": "Rp XXX juta",
-          "percentage": "XX%",
-          "items": ["item 1", "item 2"]
-        }}
-      }},
-      "notes": "Catatan tentang budget (misalnya jika budget terbatas, fokus di area mana)"
-    }},
-    
-    "human_resources": [
-      {{
-        "role": "DFR Program Manager",
-        "count": 1,
-        "commitment": "Full-time/Part-time",
-        "required_skills": ["skill 1", "skill 2", "skill 3"],
-        "responsibilities": ["tanggung jawab detail 1", "tanggung jawab detail 2"],
-        "can_be_existing_staff": true/false,
-        "training_needed": ["training 1 jika ada"]
-      }},
-      {{
-        "role": "Digital Forensic Analyst",
-        "count": (sesuaikan dengan training_capacity),
-        "commitment": "...",
-        "required_skills": ["..."],
-        "responsibilities": ["..."],
-        "can_be_existing_staff": true/false,
-        "training_needed": ["..."]
-      }}
-      // tambahkan roles lain sesuai kebutuhan
-    ],
-    
-    "technology_stack": [
-      {{
-        "category": "Forensic Investigation Tools",
-        "priority": "High/Medium/Low",
-        "items": [
-          {{
-            "name": "Tool Name (disesuaikan dengan forensic_tools status)",
-            "purpose": "purpose spesifik",
-            "estimated_cost": "Rp XXX juta atau Free/Open Source",
-            "implementation_timeline": "Month X-Y"
-          }}
-        ]
-      }},
-      {{
-        "category": "Infrastructure & Storage",
-        "priority": "High",
-        "items": [
-          {{
-            "name": "...",
-            "purpose": "...",
-            "estimated_cost": "...",
-            "implementation_timeline": "..."
-          }}
-        ]
-      }},
-      {{
-        "category": "Security & Monitoring",
-        "priority": "Medium/High",
-        "items": ["..."]
-      }}
-    ],
-    
-    "training_plan": {{
-      "internal_training": [
-        {{
-          "topic": "DFR Fundamentals",
-          "target_audience": "All IT staff",
-          "duration": "X days",
-          "schedule": "Month Y",
-          "estimated_cost": "Rp XXX"
-        }}
-      ],
-      "external_certification": [
-        {{
-          "certification": "Cert Name",
-          "target_roles": ["role 1"],
-          "provider": "provider name",
-          "duration": "X days",
-          "schedule": "Month Y",
-          "estimated_cost_per_person": "Rp XXX"
-        }}
-      ],
-      "total_training_budget": "Rp XXX juta"
-    }}
-  }},
-  
-  "risk_mitigation": [
-    {{
-      "risk_id": "R001",
-      "risk": "Deskripsi risiko spesifik berdasarkan profiling",
-      "category": "Technical/Resource/Organizational",
-      "impact": "High/Medium/Low",
-      "probability": "High/Medium/Low",
-      "risk_score": "Impact x Probability score",
-      "mitigation_strategy": "Strategi detail dan actionable",
-      "contingency_plan": "Rencana jika risiko terjadi",
-      "owner": "Role yang responsible"
-    }}
-    // minimal 5-7 risks yang relevan
-  ],
-  
-  "success_criteria": [
-    {{
-      "criteria": "Kriteria sukses spesifik dan measurable",
-      "measurement": "Cara pengukuran",
-      "target": "Target value/status",
-      "timeline": "Month X"
-    }}
-  ],
-  
-  "governance": {{
-    "steering_committee": {{
-      "members": ["role 1", "role 2"],
-      "meeting_frequency": "Monthly/Quarterly",
-      "responsibilities": ["tanggung jawab 1", "tanggung jawab 2"]
-    }},
-    "reporting_structure": {{
-      "regular_reports": "Frequency dan format",
-      "stakeholder_updates": "Frequency dan audience",
-      "escalation_process": "Process untuk issues"
-    }},
-    "quality_assurance": {{
-      "review_points": ["checkpoint 1", "checkpoint 2"],
-      "audit_schedule": "Schedule untuk audit"
-    }}
-  }},
-  
-  "quick_wins": [
-    {{
-      "title": "Quick win yang bisa immediate impact",
-      "description": "Deskripsi detail",
-      "timeline": "Week 1-2",
-      "effort": "Low/Medium",
-      "impact": "High/Medium",
-      "resources_needed": ["resource 1"]
-    }}
-    // 3-5 quick wins
-  ],
-  
-  "dependencies_external": [
-    {{
-      "dependency": "External dependency yang perlu diperhatikan",
-      "type": "Vendor/Regulatory/Partner",
-      "impact_if_delayed": "Impact description",
-      "mitigation": "Cara handle jika terlambat"
-    }}
-  ]
-}}
-
-CRITICAL INSTRUCTIONS:
-1. Response HANYA JSON - no markdown, no backticks, no additional text
-2. SEMUA bulan dari 1 sampai {target_months} HARUS ada milestones
-3. Tasks HARUS spesifik, actionable, dan measurable - NO GENERIC TASKS
-4. Budget HARUS realistis sesuai dengan budget_allocation yang disebutkan
-5. Number of people HARUS sesuai dengan training_capacity dan security_team
-6. Tools/technology HARUS sesuai dengan forensic_tools status (don't suggest expensive tools if budget low)
-7. Urgency level HARUS reflected dalam timeline dan priority
-8. Management support level HARUS reflected dalam governance structure
-9. Infrastructure maturity HARUS considered dalam technology recommendations
-10. Priority focus HARUS jelas terlihat di semua phases
-
-Generate complete, realistic, dan immediately actionable roadmap!
-"""
-
-    try:
-        print("Generating timeline with LLM based on profiling...")
-        timeline_response = await llm_service.generate_response(timeline_prompt, [])
-        
-        # Clean and parse response
-        timeline_response = timeline_response.strip()
-        if timeline_response.startswith("```"):
-            lines = timeline_response.split("\n")
-            timeline_response = "\n".join([l for l in lines if not l.startswith("```")])
-        
-        # Assuming timeline_response is the raw response string
-        try:
-            # Step 1: Parse the outer JSON
-            outer_data = json.loads(timeline_response)
-            
-            # Step 2: Parse the inner 'timeline' JSON string
-            inner_timeline = json.loads(outer_data['timeline'])
-
-            # Now you have both the outer data and the parsed timeline
-            print("Parsed timeline:", inner_timeline)
-        except json.JSONDecodeError as e:
-            print(f"Error parsing JSON response: {str(e)}")
-            print(f"Problematic response: {timeline_response}")
-            return {"error": "Unable to parse timeline response"}
-        return timeline_response
-        
-    except Exception as e:
-        print(f"Error generating timeline: {str(e)}")
-        raise e
-
-
 @app.route('/get_timeline', methods=['POST'])
 @async_route
 async def get_timeline():
-    """Generate timeline roadmap based on profiling answers"""
+    """Generate simple timeline roadmap based on profiling answers"""
     try:
         manager = get_or_create_session()
         
@@ -1632,40 +1175,151 @@ async def get_timeline():
             return jsonify({"error": "Request must be JSON"}), 400
         
         data = request.get_json()
+        timeline_answers = data.get('answers', [])
         
-        # Parse timeline profiling answers
-        try:
-            timeline_answers = parse_timeline_answers(data)
-        except ValueError as e:
-            return jsonify({"error": str(e)}), 400
+        if len(timeline_answers) != len(TIMELINE_PROFILING_QUESTIONS):
+            return jsonify({
+                "error": f"Please provide exactly {len(TIMELINE_PROFILING_QUESTIONS)} answers"
+            }), 400
         
         # Store timeline profiling data
         manager.context["timeline_profiling_data"] = timeline_answers
-        manager.context["timeline_profiling_progress"] = len(timeline_answers)
         
-        # Generate timeline with LLM
-        print("Generating comprehensive timeline roadmap...")
-        timeline_data = await generate_timeline_with_profiling(manager, timeline_answers)
+        # Get assessment data
+        final_evaluation = manager.context.get("final_evaluation", {})
+        if isinstance(final_evaluation, str):
+            try:
+                final_evaluation = json.loads(final_evaluation)
+            except (json.JSONDecodeError, ValueError):
+                final_evaluation = {}
         
-        # Store timeline data
-        manager.context["timeline_data"] = timeline_data
-        manager.context["current_phase"] = "timeline_generated"
+        # Get current level from assessment
+        current_level_str = final_evaluation.get("current_level", "Level 0")
+        # Extract number from "Level X"
+        try:
+            current_level = int(current_level_str.split()[-1])
+        except:
+            current_level = 0
         
-        # Return complete response
-        return jsonify({
-            "session_id": manager.session_id,
-            "timeline_generated": True,
-            "current_phase": manager.context["current_phase"],
-            "profiling_data": timeline_answers,
-            "timeline": timeline_data,
-            "metadata": {
-                "generated_at": datetime.now().isoformat(),
-                "assessment_date": manager.created_at.isoformat(),
-                "package_used": manager.context.get("selected_package", "0"),
-                "timeline": timeline_data
-            }
-        })
+        avg_score = manager.context.get("likert_scores", [])
+        avg_score = calculate_likert_average(avg_score) if avg_score else 0.0
         
+        # Parse target level and duration from answers
+        duration_answer = timeline_answers[0]  # First question is about duration
+        if "3-6" in duration_answer:
+            target_months = 6
+        elif "6-12" in duration_answer:
+            target_months = 12
+        elif "12-18" in duration_answer:
+            target_months = 18
+        elif "18-24" in duration_answer:
+            target_months = 24
+        else:
+            target_months = 12
+        
+        if target_months <= 6:
+            target_level = min(current_level + 1, 5)
+        elif target_months <= 12:
+            target_level = min(current_level + 2, 5)
+        elif target_months <= 18:
+            target_level = min(current_level + 3, 5)
+        else:
+            target_level = min(current_level + 4, 5)
+        
+        # Build context for LLM
+        priority = timeline_answers[1] if len(timeline_answers) > 1 else "Semua aspek"
+        budget = timeline_answers[2] if len(timeline_answers) > 2 else "100-500 juta"
+        team_size = timeline_answers[3] if len(timeline_answers) > 3 else "Ada, 3-10 orang"
+        
+        # Calculate start date (today)
+        from datetime import datetime, timedelta
+        start_date = datetime.now()
+        
+        # Simple prompt for timeline generation
+        timeline_prompt = f"""
+Buatkan roadmap Digital Forensic Readiness (DFR) yang SANGAT SIMPEL.
+
+KONDISI:
+- Level sekarang: Level {current_level}
+- Target level: Level {target_level}
+- Durasi: {target_months} bulan
+- Prioritas: {priority}
+
+INSTRUKSI:
+Buat {target_months * 2} action items (2 per bulan) dengan format STRICT berikut.
+Mulai dari tanggal {start_date.strftime('%Y-%m-%d')}.
+
+RETURN HANYA JSON INI (NO MARKDOWN, NO BACKTICKS):
+{{
+  "current_level": {current_level},
+  "target_level": {target_level},
+  "timeline": [
+    {{"date": "2025-10-14", "action": "Lakukan assessment DFR capability saat ini", "priority": "High"}},
+    {{"date": "2025-10-21", "action": "Identifikasi gap antara current dan target level", "priority": "High"}},
+    {{"date": "2025-10-28", "action": "Buat draft policy DFR", "priority": "Medium"}}
+  ]
+}}
+
+Action harus:
+- Spesifik dan jelas
+- Realistis untuk team size {team_size}
+- Sesuai prioritas {priority}
+- Progress bertahap dari Level {current_level} ke {target_level}
+
+RETURN ONLY JSON, NOTHING ELSE!
+"""
+
+        try:
+            print("Generating simple timeline roadmap...")
+            timeline_response = await llm_service.generate_response(timeline_prompt, [])
+            
+            # Clean response
+            timeline_response = timeline_response.strip()
+            
+            # Remove markdown code blocks if present
+            if timeline_response.startswith("```"):
+                lines = timeline_response.split("\n")
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                timeline_response = "\n".join(lines).strip()
+            
+            # Parse JSON
+            timeline_data = json.loads(timeline_response)
+            
+            # Validate structure
+            if "timeline" not in timeline_data or not isinstance(timeline_data["timeline"], list):
+                raise ValueError("Invalid timeline structure")
+            
+            # Store timeline data
+            manager.context["timeline_data"] = timeline_data
+            manager.context["current_phase"] = "timeline_generated"
+            
+            print(f"Successfully generated timeline with {len(timeline_data.get('timeline', []))} action items")
+            
+            return jsonify({
+                "session_id": manager.session_id,
+                "timeline_generated": True,
+                "current_phase": manager.context["current_phase"],
+                "current_level": current_level,
+                "target_level": target_level,
+                "duration_months": target_months,
+                "actions": timeline_data.get('timeline', []),
+                "total_actions": len(timeline_data.get('timeline', [])),
+                "generated_at": datetime.now().isoformat()
+            })
+            
+        except json.JSONDecodeError as e:
+            print(f"JSON parsing error: {str(e)}")
+            print(f"Response preview: {timeline_response[:300]}")
+            
+            return jsonify({
+                "error": "Failed to parse timeline response",
+                "error_details": str(e),
+                "raw_preview": timeline_response[:300]
+            }), 500
+            
     except Exception as e:
         print(f"Error in get_timeline: {str(e)}")
         import traceback
