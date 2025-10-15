@@ -525,7 +525,7 @@ def calculate_likert_average(scores: List[int]) -> float:
     if not scores:
         return 0.0
     
-    valid_scores = [score for score in scores if isinstance(score, int) and 1 <= score <= 4]
+    valid_scores = [score for score in scores if isinstance(score, int) and 1 <= score <= 5]
     if not valid_scores:
         return 0.0
     
@@ -732,7 +732,7 @@ def get_test_questions():
 
 @app.route('/submit_test_answers', methods=['POST'])
 def submit_test_answers():
-    """Submit Likert scale test answers (1-4 scale)"""
+    """Submit Likert scale test answers (1-5 scale)"""
     try:
         manager = get_or_create_session()
         
@@ -754,11 +754,11 @@ def submit_test_answers():
         for i, answer in enumerate(answers):
             try:
                 score = int(answer)
-                if score not in [1, 2, 3, 4]:
-                    return jsonify({"error": f"Answer {i+1} must be 1, 2, 3, or 4"}), 400
+                if score not in [1, 2, 3, 4, 5]:
+                    return jsonify({"error": f"Answer {i+1} must be 1, 2, 3, 4 or 5"}), 400
                 likert_scores.append(score)
             except (ValueError, TypeError):
-                return jsonify({"error": f"Answer {i+1} must be a number (1-4)"}), 400
+                return jsonify({"error": f"Answer {i+1} must be a number (1-5)"}), 400
         
         # Store answers and scores
         manager.context["test_answers"] = answers
@@ -777,7 +777,8 @@ def submit_test_answers():
                 "1": likert_scores.count(1),
                 "2": likert_scores.count(2), 
                 "3": likert_scores.count(3),
-                "4": likert_scores.count(4)
+                "4": likert_scores.count(4),
+                "5": likert_scores.count(5)
             }
         })
         
@@ -858,11 +859,6 @@ async def get_results():
                     print("Email sent successfully")
                 except Exception as e:
                     print(f"Failed to send email: {str(e)}")
-            else:
-                print("Email not provided.")
-                return jsonify({
-                    "error": "Email not provided. Please submit your email to receive results."
-                })
             
             # Parse evaluation if it's a JSON string
             evaluation = manager.context["final_evaluation"]
@@ -1108,10 +1104,10 @@ def start_profiling_timeline():
         manager = get_or_create_session()
         
         # Check if assessment is completed
-        if manager.context.get("current_phase") != "completed":
-            return jsonify({
-                "error": "Please complete the assessment first before generating timeline"
-            }), 400
+        # if manager.context.get("current_phase") != "completed":
+        #     return jsonify({
+        #         "error": "Please complete the assessment first before generating timeline"
+        #     }), 400
         
         # Initialize timeline profiling context
         manager.context["timeline_profiling_progress"] = 0
@@ -1165,10 +1161,10 @@ async def get_timeline():
         manager = get_or_create_session()
         
         # Validate phase
-        if manager.context.get("current_phase") != "timeline_profiling":
-            return jsonify({
-                "error": "Please start timeline profiling first using /start_profiling_timeline"
-            }), 400
+        # if manager.context.get("current_phase") != "timeline_profiling":
+        #     return jsonify({
+        #         "error": "Please start timeline profiling first using /start_profiling_timeline"
+        #     }), 400
         
         # Validate request
         if not request.is_json:
