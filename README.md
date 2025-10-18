@@ -175,3 +175,62 @@ Respons:
     }
 }
 ```
+
+## How to Run vLLM in Ubuntu
+
+### Run directly
+
+1. Go to vLLM directory
+2. Activate venv
+```
+source .venv/bin/activate
+```
+3. Run this vllm command
+```
+vllm serve "Qwen/Qwen2.5-7B-Instruct-AWQ" --port 8040 --api-key 8q27r8ADo8yaqaINYaty4w8tyai
+```
+
+### Run as a service
+
+1. Create (or edit) the file:
+```
+sudo nano /etc/systemd/system/vllm.service
+```
+
+2. Paste this:
+```
+[Unit]
+Description=vLLM API Server (Qwen2.5-7B-Instruct-AWQ)
+After=network.target
+
+[Service]
+Type=simple
+User=rokade
+Group=rokade
+
+WorkingDirectory=/home/rokade/rokade/rokade_llm
+ExecStart=/bin/bash -c 'source /home/rokade/rokade/rokade_llm/.venv/bin/activate && vllm serve "Qwen/Qwen2.5-7B-Instruct-AWQ" --port 8040 --api-key 8q27r8ADo8yaqaINYaty4w8tyai'
+Restart=always
+RestartSec=10
+Environment="PATH=/home/rokade/rokade/rokade_llm/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+[Install]
+WantedBy=multi-user.target
+```
+
+3. Then run
+```
+sudo systemctl daemon-reload
+sudo systemctl enable vllm.service
+sudo systemctl start vllm.service
+```
+
+4. Check status
+```
+sudo systemctl status vllm.service
+```
+
+5. Check logs
+```
+journalctl -u vllm.service -f
+```
