@@ -169,6 +169,200 @@ def check_db():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+def parse_timeline_answers(data: Dict) -> Dict[str, Any]:
+    """Parse timeline profiling answers from request"""
+    timeline_answers = {}
+    
+    if 'answers' in data and isinstance(data['answers'], list):
+        answers = data.get('answers', [])
+        if len(answers) != len(TIMELINE_PROFILING_QUESTIONS):
+            raise ValueError(f"Please provide exactly {len(TIMELINE_PROFILING_QUESTIONS)} answers.")
+        
+        for idx, answer in enumerate(answers):
+            timeline_answers[TIMELINE_QUESTION_KEYS[idx]] = answer
+    
+    elif any(key in TIMELINE_QUESTION_KEYS for key in data.keys()):
+        for key in TIMELINE_QUESTION_KEYS:
+            if key in data:
+                timeline_answers[key] = data[key]
+        
+        if len(timeline_answers) != len(TIMELINE_PROFILING_QUESTIONS):
+            raise ValueError(f"Please provide all {len(TIMELINE_PROFILING_QUESTIONS)} answers.")
+    
+    else:
+        raise ValueError("Invalid format. Provide either 'answers' array or individual answer keys.")
+    
+    return timeline_answers
+
+@app.route('/get_timeline', methods=['POST'])
+@async_route
+async def get_timeline():
+    """Generate simple timeline roadmap based on profiling answers"""
+    try:
+        manager = get_or_create_session()
+        
+        # Validate phase
+        # if manager.context.get("current_phase") != "timeline_profiling":
+        #     return jsonify({
+        #         "error": "Please start timeline profiling first using /start_profiling_timeline"
+        #     }), 400
+        
+        # Validate request
+        if not request.is_json:
+            return jsonify({"error": "Request must be JSON"}), 400
+        
+        data = request.get_json()
+        timeline_answers = data.get('answers', [])
+        
+        if len(timeline_answers) != len(TIMELINE_PROFILING_QUESTIONS):
+            return jsonify({
+                "error": f"Please provide exactly {len(TIMELINE_PROFILING_QUESTIONS)} answers"
+            }), 400
+        
+        # Store timeline profiling data
+        manager.context["timeline_profiling_data"] = timeline_answers
+        
+        # Get assessment data
+        final_evaluation = manager.context.get("final_evaluation", {})
+        if isinstance(final_evaluation, str):
+            try:
+                final_evaluation = json.loads(final_evaluation)
+            except (json.JSONDecodeError, ValueError):
+                final_evaluation = {}
+        
+        # Get current level from assessment
+        current_level_str = final_evaluation.get("current_level", "Level 0")
+        # Extract number from "Level X"
+        try:
+            current_level = int(current_level_str.split()[-1])
+        except:
+            current_level = 0
+        
+        avg_score = manager.context.get("likert_scores", [])
+        avg_score = calculate_likert_average(avg_score) if avg_score else 0.0
+        
+        # Parse target level and duration from answers
+        duration_answer = timeline_answers[0]  # First question is about duration
+        if "3-6" in duration_answer:
+            target_months = 6
+        elif "6-12" in duration_answer:
+            target_months = 12
+        elif "12-18" in duration_answer:
+            target_months = 18
+        elif "18-24" in duration_answer:
+            target_months = 24
+        else:
+            target_months = 12
+        
+        if target_months <= 6:
+            target_level = min(current_level + 1, 5)
+        elif target_months <= 12:
+            target_level = min(current_level + 2, 5)
+        elif target_months <= 18:
+            target_level = min(current_level + 3, 5)
+        else:
+            target_level = min(current_level + 4, 5)
+        
+        # Build context for LLM
+        priority = timeline_answers[1] if len(timeline_answers) > 1 else "Semua aspek"
+        budget = timeline_answers[2] if len(timeline_answers) > 2 else "100-500 juta"
+        team_size = timeline_answers[3] if len(timeline_answers) > 3 else "Ada, 3-10 orang"
+        
+        # Calculate start date (today)
+        from datetime import datetime, timedelta
+        start_date = datetime.now()
+        
+        # Simple prompt for timeline generation
+        timeline_prompt = f"""
+Buatkan roadmap Digital Forensic Readiness (DFR) yang SANGAT SIMPEL.
+
+KONDISI:
+- Level sekarang: Level {current_level}
+- Target level: Level {target_level}
+- Durasi: {target_months} bulan
+- Prioritas: {priority}
+
+INSTRUKSI:
+Buat {target_months * 2} action items (2 per bulan) dengan format STRICT berikut.
+Mulai dari tanggal {start_date.strftime('%Y-%m-%d')}.
+
+RETURN HANYA JSON INI (NO MARKDOWN, NO BACKTICKS):
+{{
+  "current_level": {current_level},
+  "target_level": {target_level},
+  "timeline": [
+    {{"date": "2025-10-14", "action": "Lakukan assessment DFR capability saat ini", "priority": "High"}},
+    {{"date": "2025-10-21", "action": "Identifikasi gap antara current dan target level", "priority": "High"}},
+    {{"date": "2025-10-28", "action": "Buat draft policy DFR", "priority": "Medium"}}
+  ]
+}}
+
+Action harus:
+- Spesifik dan jelas
+- Realistis untuk team size {team_size}
+- Sesuai prioritas {priority}
+- Progress bertahap dari Level {current_level} ke {target_level}
+
+RETURN ONLY JSON, NOTHING ELSE!
+"""
+
+        try:
+            print("Generating simple timeline roadmap...")
+            timeline_response = await llm_service.generate_response(timeline_prompt, [])
+            
+            # Clean response
+            timeline_response = timeline_response.strip()
+            
+            # Remove markdown code blocks if present
+            if timeline_response.startswith("```"):
+                lines = timeline_response.split("\n")
+                if lines[0].startswith("```"):
+                    lines = lines[1:]
+                if lines and lines[-1].startswith("```"):
+                    lines = lines[:-1]
+                timeline_response = "\n".join(lines).strip()
+            
+            # Parse JSON
+            timeline_data = json.loads(timeline_response)
+            
+            # Validate structure
+            if "timeline" not in timeline_data or not isinstance(timeline_data["timeline"], list):
+                raise ValueError("Invalid timeline structure")
+            
+            # Store timeline data
+            manager.context["timeline_data"] = timeline_data
+            manager.context["current_phase"] = "timeline_generated"
+            
+            print(f"Successfully generated timeline with {len(timeline_data.get('timeline', []))} action items")
+            
+            return jsonify({
+                "session_id": manager.session_id,
+                "timeline_generated": True,
+                "current_phase": manager.context["current_phase"],
+                "current_level": current_level,
+                "target_level": target_level,
+                "duration_months": target_months,
+                "actions": timeline_data.get('timeline', []),
+                "total_actions": len(timeline_data.get('timeline', [])),
+                "generated_at": datetime.now().isoformat()
+            })
+            
+        except json.JSONDecodeError as e:
+            print(f"JSON parsing error: {str(e)}")
+            print(f"Response preview: {timeline_response[:300]}")
+            
+            return jsonify({
+                "error": "Failed to parse timeline response",
+                "error_details": str(e),
+                "raw_preview": timeline_response[:300]
+            }), 500
+            
+    except Exception as e:
+        print(f"Error in get_timeline: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     # Initialize database connection
     try:

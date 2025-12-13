@@ -36,8 +36,8 @@ class LLMService:
         """Call primary LLM API"""
         payload = {
             "model": self.model,
+            "model": self.model,
             "messages": messages,
-            "max_tokens": max_tokens,
             "temperature": temperature,
             "top_p": 0.8,
             "top_k": 20,
@@ -47,6 +47,7 @@ class LLMService:
         
         headers = {
             "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.token}"
             "Authorization": f"Bearer {self.token}"
         }
         

@@ -33,8 +33,8 @@ class Settings:
     
     # Validate LLM configuration
     if not LLM_URL or not LLM_TOKEN:
-        print("⚠️ Warning: LLM configuration not complete. Check environment variables:")
-        print("   - URL_CUSTOM_LLM_APILOGY")
+        print("Warning: LLM configuration not complete. Check environment variables:")
+        print("   - LLM_URL")
         print("   - TOKEN_CUSTOM_LLM_APILOGY")
         print("   - LLM_MODEL")
     
