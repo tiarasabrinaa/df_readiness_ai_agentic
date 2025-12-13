@@ -1,91 +1,127 @@
+# Constants
 PROFILING_QUESTIONS = [
   {
-    "question": "Apa jenis industri atau bidang usaha yang Anda geluti?",
+    "id": "question1",
+    "type": "organization",
+    "question": "Apakah organisasi Anda tergolong dalam kategori Usaha Mikro, Kecil, dan Menengah (UMKM)?",
     "choices": [
-      { "label": "Teknologi" },
-      { "label": "Keuangan" },
-      { "label": "Pendidikan" },
-      { "label": "Kesehatan" },
-      { "label": "Lainnya", "is_field": True }
+      { "label": "Ya, organisasi saya termasuk UMKM" },
+      { "label": "Tidak, organisasi saya bukan UMKM" }
     ]
   },
   {
-    "question": "Berapa jumlah total karyawan di organisasi Anda?",
+    "id": "question2",
+    "type": "organization",
+    "question": "Apakah organisasi Anda merupakan Badan Usaha Milik Negara (BUMN)?",
     "choices": [
-      { "label": "1-10" },
-      { "label": "11-50" },
+      { "label": "Ya, organisasi saya adalah BUMN" },
+      { "label": "Tidak, organisasi saya bukan BUMN" }
+    ]
+  },
+  {
+    "id": "question3",
+    "type": "organization",
+    "question": "Berapa jumlah karyawan di organisasi Anda?",
+    "choices": [
+      { "label": "<10" },
+      { "label": "10-50" },
       { "label": "51-200" },
-      { "label": "201+" }
+      { "label": "200+"}
     ]
   },
   {
-    "question": "Apa posisi atau jabatan Anda dalam organisasi?",
+    "id": "question4",
+    "type": "organization",
+    "question": "Berapa omzet tahunan organisasi Anda?",
     "choices": [
-      { "label": "Manager" },
-      { "label": "Staff" },
-      { "label": "Direktur" },
+      { "label": "< 1 Miliar" },
+      { "label": "1-5 Miliar" },
+      { "label": "6-20 Miliar" },
+      { "label": "20+ Miliar" }
+    ]
+  },
+  {
+    "id": "question5",
+    "type": "organization",
+    "question": "Bagaimana status permodalan organisasi Anda?",
+    "choices": [
+      { "label": "Mandiri" },
+      { "label": "Dibiayai oleh investor"},
+      { "label": "Dibiayai oleh bank atau lembaga keuangan lainnya" }
+    ]
+  },
+  {
+    "id": "question6",
+    "type": "organization",
+    "question": "Seperti apa struktur organisasi Anda?",
+    "choices": [
+      { "label": "Piramidal" },
+      { "label": "Flat" },
+      { "label": "Matriks" },
       { "label": "Lainnya", "is_field": True }
     ]
   },
   {
-    "question": "Berapa tahun pengalaman Anda dalam bidang keamanan siber?",
+    "id": "question7",
+    "type": "organization",
+    "question": "Berapa total asset yang dimiliki oleh organisasi Anda?",
     "choices": [
-      { "label": "0-2" },
-      { "label": "3-5" },
-      { "label": "6-10" },
-      { "label": "10+" }
+      { "label": "< 1 Miliar" },
+      { "label": "1 - 10 Miliar" },
+      { "label": "11 - 50 Miliar"},
+      { "label": "50+ Miliar"}
     ]
   },
   {
-    "question": "Apakah organisasi Anda pernah mengalami insiden keamanan? Jika ya, jelaskan.",
+    "id": "question8",
+    "type": "organization",
+    "question": "Berapa besar pajak yang dibayarkan oleh organisasi Anda dalam setahun?",
     "choices": [
-      { "label": "Ya", "is_field": True },
-      { "label": "Tidak" }
+      { "label": "<500 Juta" },
+      { "label": "500 Juta - 5 Miliar" },
+      { "label": "5 - 50 Miliar" },
+      { "label": "50+ Miliar" }
     ]
   },
   {
-    "question": "Apakah Anda memiliki tim internal khusus untuk keamanan TI?",
+    "id": "question9",
+    "type": "personal",
+    "question": "Berapa lama Anda telah menjabat posisi ini?",
     "choices": [
-      { "label": "Ya" },
-      { "label": "Tidak" }
+      { "label": "< 1 tahun" },
+      { "label": "1-3 tahun" },
+      { "label": "4-5 tahun" },
+      { "label": "> 5 tahun"}
     ]
   },
   {
-    "question": "Apakah organisasi Anda telah menjalani audit keamanan dalam 12 bulan terakhir?",
+    "id": "question10",
+    "type": "personal",
+    "question": "Apa tingkat pendidikan Anda?",
     "choices": [
-      { "label": "Ya" },
-      { "label": "Tidak" }
-    ]
-  },
-  {
-    "question": "Jenis data sensitif apa yang Anda kelola (misalnya data pelanggan, keuangan, kesehatan)?",
-    "choices": [
-      { "label": "Data Pelanggan" },
-      { "label": "Data Keuangan" },
-      { "label": "Data Kesehatan" },
+      { "label": "SMA/SMK" },
+      { "label": "D3" },
+      { "label": "S1" },
+      { "label": "S2" },
+      { "label": "S3" },
       { "label": "Lainnya", "is_field": True }
     ]
   },
   {
-    "question": "Apakah Anda menggunakan solusi keamanan berbasis cloud atau on-premise?",
+    "id": "question11",
+    "type": "personal",
+    "question": "Apa pengalaman kerja Anda dalam bidang ini?",
     "choices": [
-      { "label": "Cloud" },
-      { "label": "On-premise" },
-      { "label": "Keduanya" }
-    ]
-  },
-  {
-    "question": "Seberapa sering dilakukan pelatihan atau sosialisasi keamanan kepada staf?",
-    "choices": [
-      { "label": "Setiap bulan" },
-      { "label": "Setiap kuartal" },
-      { "label": "Setiap tahun" },
-      { "label": "Tidak ada" }
+      { "label": "< 1 tahun" },
+      { "label": "1-3 tahun" },
+      { "label": "4-5 tahun" },
+      { "label": "> 5 tahun" },
+      { "label": "Lainnya", "is_field": True }
     ]
   }
 ]
 
 QUESTION_KEYS = [
-    "industry", "company_size", "position", "experience", "security_incidents",
-    "has_security_team", "recent_audit", "sensitive_data", "security_solution", "training_frequency"
+    "umkm", "bumn", "company_size", "omzet", "funding", "structure", "total_assets", "tax", "tenure",
+    "education", "experience"
 ]

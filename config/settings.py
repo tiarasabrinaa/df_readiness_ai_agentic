@@ -26,16 +26,22 @@ class Settings:
     # LLM Configuration
     LLM_URL: str = os.getenv("URL_CUSTOM_LLM_APILOGY", "")
     LLM_TOKEN: str = os.getenv("TOKEN_CUSTOM_LLM_APILOGY", "")
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "")
+
+    ## LLM Fallback Key
+    FALLBACK_LLM_KEY: str = os.getenv("FALLBACK_LLM_KEY", "")
     
     # Validate LLM configuration
     if not LLM_URL or not LLM_TOKEN:
         print("⚠️ Warning: LLM configuration not complete. Check environment variables:")
         print("   - URL_CUSTOM_LLM_APILOGY")
         print("   - TOKEN_CUSTOM_LLM_APILOGY")
+        print("   - LLM_MODEL")
     
     # Database Configuration
     MONGODB_URI: str = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
     DATABASE_NAME: str = os.getenv("DATABASE_NAME", "df_readiness")
+    
     # PostgreSQL (Auth DB)
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "rokade_db")
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "rokade")
@@ -121,7 +127,7 @@ class Settings:
    MongoDB: {self.MONGODB_URI.split('@')[-1] if '@' in self.MONGODB_URI else self.MONGODB_URI}
         Postgres: {self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}
    
-   LLM: {'✅ Configured' if self.LLM_URL and self.LLM_TOKEN else '❌ Not configured'}
+   LLM: {'✅ Configured' if self.LLM_URL and self.LLM_TOKEN else 'Not configured'}
    
    Assessment:
    - Profiling questions: {self.DEFAULT_PROFILING_QUESTIONS}

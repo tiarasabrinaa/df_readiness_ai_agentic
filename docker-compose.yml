@@ -5,6 +5,7 @@ services:
     image: mongo:7.0
     container_name: cybersec-mongodb
     restart: unless-stopped
+    command: ["mongod", "--quiet", "--logpath", "/dev/null"]
     ports:
       - "27017:27017"
     environment:
@@ -19,9 +20,9 @@ services:
     healthcheck:
       test: |
         mongosh --host localhost --username admin --password securepassword123 --authenticationDatabase admin --eval "db.adminCommand('ping')" --quiet || exit 1
-      interval: 30s
+      interval: 1000s
       timeout: 10s
-      retries: 5
+      retries: 1
       start_period: 40s
 
   data-importer:
@@ -61,6 +62,9 @@ services:
       - FLASK_ENV=development
       - SECRET_KEY=dq2g7HMDfaeFafWYadfuiaXIAEFaehi
       - PYTHONPATH=/app
+      - LLM_URL=https://llm.rokade.id/v1/chat/completions
+      - LLM_TOKEN=8q27r8ADo8yaqaINYaty4w8styai
+      - LLM_MODEL=Qwen/Qwen2.5-7B-Instruct-AWQ
     depends_on:
       - mongodb
       - data-importer

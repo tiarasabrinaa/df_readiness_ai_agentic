@@ -1,390 +1,540 @@
 # services/database_service.py
 from motor.motor_asyncio import AsyncIOMotorClient
-from typing import Dict, List, Optional, Any
+from pymongo import MongoClient
+from typing import Dict, List, Optional
+from bson import ObjectId
 import logging
+import asyncio
 from config.settings import settings
 
 logger = logging.getLogger(__name__)
 
-class DatabaseService:
+class DataBaseServiceVersion1:
+    """MongoDB Database Service with both async and sync methods"""
+    
     def __init__(self):
-        self.client = None
-        self.db = None
+        # Async client (Motor)
+        self.async_client: Optional[AsyncIOMotorClient] = None
+        self.async_db = None
+        
+        # Sync client (PyMongo)
+        self.sync_client: Optional[MongoClient] = None
+        self.sync_db = None
+        
         self.questions_collection = None
         self.keterangan_collection = None
+        self._async_connected = False
+        self._sync_connected = False
         
-    async def connect(self):
-        """Connect to MongoDB"""
-        try:
-            # Create connection string
-            if hasattr(settings, 'MONGODB_URL'):
-                connection_string = settings.MONGODB_URL
-            else:
-                # Fallback to individual settings
-                username = getattr(settings, 'MONGODB_USERNAME', 'admin')
-                password = getattr(settings, 'MONGODB_PASSWORD', 'securepassword123')
-                host = getattr(settings, 'MONGODB_HOST', 'mongodb')
-                port = getattr(settings, 'MONGODB_PORT', 27017)
-                database = getattr(settings, 'MONGODB_DATABASE', 'cybersecurity_assessment')
-                
-                connection_string = f"mongodb://{username}:{password}@{host}:{port}/{database}?authSource=admin"
+    def _get_connection_string(self):
+        """Build MongoDB connection string"""
+        username = getattr(settings, 'MONGODB_USERNAME', 'admin')
+        password = getattr(settings, 'MONGODB_PASSWORD', 'securepassword123')
+        host = getattr(settings, 'MONGODB_HOST', 'mongodb')
+        port = getattr(settings, 'MONGODB_PORT', 27017)
+        database = getattr(settings, 'MONGODB_DATABASE', 'cybersecurity_assessment')
+        
+        return f"mongodb://{username}:{password}@{host}:{port}/{database}?authSource=admin", database
+    
+    def connect_sync(self):
+        """Connect to MongoDB using sync client (PyMongo)"""
+        if self._sync_connected:
+            logger.info("Already connected to MongoDB (sync)")
+            return
             
-            self.client = AsyncIOMotorClient(connection_string)
+        try:
+            connection_string, database = self._get_connection_string()
+            
+            # Create sync MongoDB client
+            self.sync_client = MongoClient(connection_string)
             
             # Test connection
-            await self.client.admin.command('ping')
-            logger.info("MongoDB connection successful")
+            self.sync_client.admin.command('ping')
             
-            # Get database and collections
-            self.db = self.client[getattr(settings, 'MONGODB_DATABASE', 'cybersecurity_assessment')]
-            self.questions_collection = self.db.questions
-            self.keterangan_collection = self.db.keterangan
+            # Initialize database and collections
+            self.sync_db = self.sync_client[database]
+            self.questions_collection = self.sync_db.question_before_v1
+            self.keterangan_collection = self.sync_db.keterangan
             
-            logger.info("Database and collections initialized")
-            
-        except Exception as e:
-            logger.error(f"MongoDB connection failed: {e}")
-            raise e
-    
-    async def disconnect(self):
-        """Disconnect from MongoDB"""
-        if self.client is not None:
-            self.client.close()
-            logger.info("MongoDB disconnected")
-    
-    async def count_questions(self) -> int:
-        """Count total questions in database"""
-        try:
-            if self.questions_collection is None:
-                await self.connect()
-            
-            if self.questions_collection is not None:
-                count = await self.questions_collection.count_documents({})
-                return count
-            else:
-                return 0
-        except Exception as e:
-            logger.error(f"Error counting questions: {e}")
-            return 0
-    
-    async def count_keterangan(self) -> int:
-        """Count total keterangan documents in database"""
-        try:
-            if self.keterangan_collection is None:
-                await self.connect()
-            
-            if self.keterangan_collection is not None:
-                count = await self.keterangan_collection.count_documents({})
-                return count
-            else:
-                return 0
-        except Exception as e:
-            logger.error(f"Error counting keterangan: {e}")
-            return 0
-    
-    async def get_all_questions_from_database(self) -> List[Dict]:
-        """Get all questions from database"""
-        try:
-            if self.questions_collection is None:
-                await self.connect()
-            
-            if self.questions_collection is not None:
-                cursor = self.questions_collection.find({})
-                questions = []
-                
-                async for doc in cursor:
-                    # Convert MongoDB document to dict and clean up
-                    question_dict = {
-                        "id": str(doc.get("_id", "")),
-                        "question": doc.get("question", doc.get("pertanyaan", "")),
-                        "package": doc.get("package", doc.get("paket", "basic")),
-                        "level": doc.get("level", "basic"),
-                        "category": doc.get("category", doc.get("kategori", "general")),
-                        "indikator": doc.get("indikator", ""),
-                        "created_at": doc.get("created_at"),
-                        "updated_at": doc.get("updated_at")
-                    }
-                    
-                    # Only add if question text exists
-                    if question_dict["question"]:
-                        questions.append(question_dict)
-                
-                logger.info(f"Retrieved {len(questions)} questions from database")
-                return questions
-            else:
-                logger.warning("Questions collection is not available")
-                return []
+            self._sync_connected = True
+            logger.info(f"MongoDB connected (sync) to database '{database}'")
             
         except Exception as e:
-            logger.error(f"Error getting all questions: {e}")
-            return []
+            logger.error(f"MongoDB sync connection failed: {e}")
+            self._sync_connected = False
+            raise
     
-    async def get_all_keterangan(self) -> List[Dict]:
-        """Get all keterangan documents from database"""
-        try:
-            if self.keterangan_collection is None:
-                await self.connect()
-            
-            if self.keterangan_collection is not None:
-                cursor = self.keterangan_collection.find({})
-                keterangan_docs = []
-                
-                async for doc in cursor:
-                    # Convert MongoDB document to dict and clean up
-                    keterangan_dict = {
-                        "id": str(doc.get("_id", "")),
-                        # Handle different field names from CSV
-                        "package": doc.get("package", doc.get("Package", "0")),  
-                        "description": doc.get("keterangan", doc.get("Keterangan", doc.get("description", ""))),
-                        "embedded": doc.get("embedded", doc.get("embedding", "")),
-                        "created_at": doc.get("created_at"),
-                        "updated_at": doc.get("updated_at")
-                    }
-                    
-                    # Only add if description exists (embedding can be optional)
-                    if keterangan_dict["description"]:
-                        keterangan_docs.append(keterangan_dict)
-                
-                logger.info(f"Retrieved {len(keterangan_docs)} keterangan documents from database")
-                return keterangan_docs
-            else:
-                logger.warning("Keterangan collection is not available")
-                return []
-            
-        except Exception as e:
-            logger.error(f"Error getting all keterangan: {e}")
-            return []
+    def ensure_sync_connected(self):
+        """Ensure sync database is connected before operations"""
+        if not self._sync_connected:
+            self.connect_sync()
     
-    async def get_questions_by_package(self, package: str, limit: int = 15) -> List[Dict]:
-        """Get questions filtered by package with limit"""
+    
+    def get_questions_by_package_sync(self, package: str, limit: int = 15) -> List[Dict]:
+        """Get questions filtered by package with limit (SYNC)"""
         try:
-            if self.questions_collection is None:
-                await self.connect()
+            self.ensure_sync_connected()
             
-            if self.questions_collection is not None:
-                # Create query for package (check both 'package' and 'paket' fields)
-                query = {
-                    "$or": [
-                        {"package": package},
-                        {"paket": package}
-                    ]
+            query = {"id_package": package}
+            cursor = self.questions_collection.find(query).limit(limit)
+            questions = []
+            
+            for doc in cursor:
+                question_dict = {
+                    "id": str(doc["_id"]),
+                    "question": doc.get("question", ""),
+                    "package": doc.get("id_package", ""),
+                    "level": doc.get("level", "basic"),
+                    "category": doc.get("category", "general"),
+                    "indicator": doc.get("indicator", ""),
+                    "created_at": doc.get("created_at"),
+                    "updated_at": doc.get("updated_at")
                 }
                 
-                cursor = self.questions_collection.find(query).limit(limit)
-                questions = []
-                
-                async for doc in cursor:
-                    # Convert MongoDB document to dict and clean up
-                    question_dict = {
-                        "id": str(doc.get("_id", "")),
-                        "question": doc.get("question", doc.get("pertanyaan", "")),
-                        "package": doc.get("package", doc.get("paket", package)),
-                        "level": doc.get("level", "basic"),
-                        "category": doc.get("category", doc.get("kategori", "general")),
-                        "indikator": doc.get("indikator", ""),
-                        "created_at": doc.get("created_at"),
-                        "updated_at": doc.get("updated_at")
-                    }
-                    
-                    # Only add if question text exists
-                    if question_dict["question"]:
-                        questions.append(question_dict)
-                
-                logger.info(f"Retrieved {len(questions)} questions for package '{package}'")
-                return questions
-            else:
-                logger.warning("Questions collection is not available")
-                return []
+                if question_dict["question"]:
+                    questions.append(question_dict)
+            
+            logger.info(f"Retrieved {len(questions)} questions for package '{package}'")
+            return questions
             
         except Exception as e:
             logger.error(f"Error getting questions by package '{package}': {e}")
             return []
     
-    async def get_questions_by_level(self, level: str, limit: int = 10) -> List[Dict]:
-        """Get questions filtered by level (keeping for backward compatibility)"""
+    def count_questions_sync(self) -> int:
+        """Count total questions in database (SYNC)"""
         try:
-            if self.questions_collection is None:
-                await self.connect()
-            
-            if self.questions_collection is not None:
-                query = {"level": level}
-                cursor = self.questions_collection.find(query).limit(limit)
-                questions = []
-                
-                async for doc in cursor:
-                    question_dict = {
-                        "id": str(doc.get("_id", "")),
-                        "question": doc.get("question", doc.get("pertanyaan", "")),
-                        "level": doc.get("level", level),
-                        "package": doc.get("package", doc.get("paket", "basic")),
-                        "category": doc.get("category", doc.get("kategori", "general")),
-                        "indikator": doc.get("indikator", ""),
-                        "created_at": doc.get("created_at"),
-                        "updated_at": doc.get("updated_at")
-                    }
-                    
-                    if question_dict["question"]:
-                        questions.append(question_dict)
-                
-                logger.info(f"Retrieved {len(questions)} questions for level '{level}'")
-                return questions
-            else:
-                logger.warning("Questions collection is not available")
-                return []
-            
+            self.ensure_sync_connected()
+            count = self.questions_collection.count_documents({})
+            return count
         except Exception as e:
-            logger.error(f"Error getting questions by level '{level}': {e}")
-            return []
+            logger.error(f"Error counting questions: {e}")
+            return 0
     
-    async def get_keterangan_by_package(self, package: str) -> Optional[Dict]:
-        """Get keterangan document by package"""
+    def get_all_questions_sync(self) -> List[Dict]:
+        """Get all questions from database (SYNC)"""
         try:
-            if self.keterangan_collection is None:
-                await self.connect()
+            self.ensure_sync_connected()
             
-            if self.keterangan_collection is not None:
-                # Create query for package (check both 'package' and 'paket' fields)
-                query = {
-                    "$or": [
-                        {"package": package},
-                        {"paket": package}
-                    ]
+            cursor = self.questions_collection.find({})
+            questions = []
+            
+            for doc in cursor:
+                question_dict = {
+                    "id": str(doc.get("_id", "")),
+                    "question": doc.get("question", doc.get("pertanyaan", "")),
+                    "package": doc.get("package", doc.get("paket", "basic")),
+                    "level": doc.get("level", "basic"),
+                    "category": doc.get("category", doc.get("kategori", "general")),
+                    "indikator": doc.get("indikator", ""),
+                    "created_at": doc.get("created_at"),
+                    "updated_at": doc.get("updated_at")
                 }
                 
-                doc = await self.keterangan_collection.find_one(query)
-                
-                if doc:
-                    keterangan_dict = {
-                        "id": str(doc.get("_id", "")),
-                        "description": doc.get("description", doc.get("deskripsi", "")),
-                        "package": doc.get("package", doc.get("paket", package)),
-                        "level": doc.get("level", "basic"),
-                        "created_at": doc.get("created_at"),
-                        "updated_at": doc.get("updated_at")
-                    }
-                    
-                    logger.info(f"Retrieved keterangan for package '{package}'")
-                    return keterangan_dict
-                else:
-                    logger.warning(f"No keterangan found for package '{package}'")
-                    return None
-            else:
-                logger.warning("Keterangan collection is not available")
-                return None
-                
-        except Exception as e:
-            logger.error(f"Error getting keterangan by package '{package}': {e}")
-            return None
-    
-    async def insert_question(self, question_data: Dict) -> str:
-        """Insert new question into database"""
-        try:
-            if self.questions_collection is None:
-                await self.connect()
+                if question_dict["question"]:
+                    questions.append(question_dict)
             
-            if self.questions_collection is not None:
-                result = await self.questions_collection.insert_one(question_data)
-                logger.info(f"Inserted question with ID: {result.inserted_id}")
-                return str(result.inserted_id)
-            else:
-                raise Exception("Questions collection is not available")
+            logger.info(f"Retrieved {len(questions)} questions from database")
+            return questions
             
         except Exception as e:
-            logger.error(f"Error inserting question: {e}")
-            raise e
+            logger.error(f"Error getting all questions: {e}")
+            return []
     
-    async def insert_keterangan(self, keterangan_data: Dict) -> str:
-        """Insert new keterangan into database"""
+    def get_packages_list_sync(self) -> List[str]:
+        """Get list of unique packages (SYNC)"""
         try:
-            if self.keterangan_collection is None:
-                await self.connect()
+            self.ensure_sync_connected()
             
-            if self.keterangan_collection is not None:
-                result = await self.keterangan_collection.insert_one(keterangan_data)
-                logger.info(f"Inserted keterangan with ID: {result.inserted_id}")
-                return str(result.inserted_id)
-            else:
-                raise Exception("Keterangan collection is not available")
-            
-        except Exception as e:
-            logger.error(f"Error inserting keterangan: {e}")
-            raise e
-    
-    async def update_question(self, question_id: str, update_data: Dict) -> bool:
-        """Update existing question"""
-        try:
-            if self.questions_collection is None:
-                await self.connect()
-            
-            if self.questions_collection is not None:
-                from bson import ObjectId
-                result = await self.questions_collection.update_one(
-                    {"_id": ObjectId(question_id)}, 
-                    {"$set": update_data}
-                )
-                
-                logger.info(f"Updated question {question_id}: {result.modified_count} document(s) modified")
-                return result.modified_count > 0
-            else:
-                logger.warning("Questions collection is not available")
-                return False
-            
-        except Exception as e:
-            logger.error(f"Error updating question {question_id}: {e}")
-            return False
-    
-    async def delete_question(self, question_id: str) -> bool:
-        """Delete question from database"""
-        try:
-            if self.questions_collection is None:
-                await self.connect()
-            
-            if self.questions_collection is not None:
-                from bson import ObjectId
-                result = await self.questions_collection.delete_one({"_id": ObjectId(question_id)})
-                
-                logger.info(f"Deleted question {question_id}: {result.deleted_count} document(s) deleted")
-                return result.deleted_count > 0
-            else:
-                logger.warning("Questions collection is not available")
-                return False
-            
-        except Exception as e:
-            logger.error(f"Error deleting question {question_id}: {e}")
-            return False
-    
-    async def get_packages_list(self) -> List[str]:
-        """Get list of unique packages from both collections"""
-        try:
             packages = set()
             
             # Get packages from questions collection
-            if self.questions_collection is not None:
-                questions_packages = await self.questions_collection.distinct("package")
-                packages.update(questions_packages)
-                
-                # Also check 'paket' field for Indonesian naming
-                paket_packages = await self.questions_collection.distinct("paket")
-                packages.update(paket_packages)
+            questions_packages = self.questions_collection.distinct("id_package")
+            packages.update(questions_packages)
+            
+            paket_packages = self.questions_collection.distinct("paket")
+            packages.update(paket_packages)
             
             # Get packages from keterangan collection
-            if self.keterangan_collection is not None:
-                keterangan_packages = await self.keterangan_collection.distinct("package")
-                packages.update(keterangan_packages)
-                
-                # Also check 'paket' field
-                keterangan_paket = await self.keterangan_collection.distinct("paket")
-                packages.update(keterangan_paket)
+            keterangan_packages = self.keterangan_collection.distinct("package")
+            packages.update(keterangan_packages)
+            
+            keterangan_paket = self.keterangan_collection.distinct("paket")
+            packages.update(keterangan_paket)
             
             # Filter out None and empty values
             packages = {pkg for pkg in packages if pkg}
             
-            logger.info(f"Found {len(packages)} unique packages: {list(packages)}")
-            return list(packages)
+            logger.info(f"Found {len(packages)} unique packages: {sorted(packages)}")
+            return sorted(list(packages))
             
         except Exception as e:
             logger.error(f"Error getting packages list: {e}")
-            return ["basic"]  # Return default package as fallback
+            return ["basic"]
+    
+    # === ASYNC METHODS (keep existing for compatibility) ===
+    
+    async def connect(self):
+        """Connect to MongoDB (async)"""
+        if self._async_connected:
+            logger.info("Already connected to MongoDB (async)")
+            return
+            
+        try:
+            connection_string, database = self._get_connection_string()
+            
+            self.async_client = AsyncIOMotorClient(connection_string)
+            await self.async_client.admin.command('ping')
+            
+            self.async_db = self.async_client[database]
+            
+            self._async_connected = True
+            logger.info(f"MongoDB connected (async) to database '{database}'")
+            
+        except Exception as e:
+            logger.error(f"MongoDB async connection failed: {e}")
+            self._async_connected = False
+            raise
+    
+    async def disconnect(self):
+        """Disconnect from MongoDB"""
+        if self.async_client and self._async_connected:
+            self.async_client.close()
+            self._async_connected = False
+        if self.sync_client and self._sync_connected:
+            self.sync_client.close()
+            self._sync_connected = False
+        logger.info("MongoDB disconnected")
+    
+    async def ensure_connected(self):
+        """Ensure async database is connected"""
+        if not self._async_connected:
+            await self.connect()
+    
+    async def get_questions_by_package(self, package: str, limit: int = 15) -> List[Dict]:
+        """Get questions filtered by package (ASYNC - keep for compatibility)"""
+        try:
+            await self.ensure_connected()
+            
+            questions_collection = self.async_db.question_before_v1
+            query = {"id_package": package}
+            cursor = questions_collection.find(query).limit(limit)
+            questions = []
+            
+            async for doc in cursor:
+                question_dict = {
+                    "id": str(doc["_id"]),
+                    "question": doc.get("question", ""),
+                    "package": doc.get("id_package", ""),
+                    "level": doc.get("level", "basic"),
+                    "category": doc.get("category", "general"),
+                    "indicator": doc.get("indicator", ""),
+                    "created_at": doc.get("created_at"),
+                    "updated_at": doc.get("updated_at")
+                }
+                
+                if question_dict["question"]:
+                    questions.append(question_dict)
+            
+            logger.info(f"Retrieved {len(questions)} questions for package '{package}'")
+            return questions
+            
+        except Exception as e:
+            logger.error(f"Error getting questions by package '{package}': {e}")
+            return []
+    
+    async def count_questions(self) -> int:
+        """Count total questions (async)"""
+        try:
+            await self.ensure_connected()
+            count = await self.async_db.question_before_v1.count_documents({})
+            return count
+        except Exception as e:
+            logger.error(f"Error counting questions: {e}")
+            return 0
 
-# Create global instance
-db_service = DatabaseService()
+class DataBaseServiceVersion2:
+    """MongoDB Database Service for question_before_v2 collection"""
+    
+    def __init__(self):
+        # Async client (Motor)
+        self.async_client: Optional[AsyncIOMotorClient] = None
+        self.async_db = None
+        
+        # Sync client (PyMongo)
+        self.sync_client: Optional[MongoClient] = None
+        self.sync_db = None
+        
+        self.questions_collection = None
+        self.keterangan_collection = None
+        self._async_connected = False
+        self._sync_connected = False
+        
+    def _get_connection_string(self):
+        """Build MongoDB connection string"""
+        username = getattr(settings, 'MONGODB_USERNAME', 'admin')
+        password = getattr(settings, 'MONGODB_PASSWORD', 'securepassword123')
+        host = getattr(settings, 'MONGODB_HOST', 'mongodb')
+        port = getattr(settings, 'MONGODB_PORT', 27017)
+        database = getattr(settings, 'MONGODB_DATABASE', 'cybersecurity_assessment')
+        
+        return f"mongodb://{username}:{password}@{host}:{port}/{database}?authSource=admin", database
+    
+    def connect_sync(self):
+        """Connect to MongoDB using sync client (PyMongo)"""
+        if self._sync_connected:
+            logger.info("Already connected to MongoDB v2 (sync)")
+            return
+            
+        try:
+            connection_string, database = self._get_connection_string()
+            
+            self.sync_client = MongoClient(connection_string)
+            self.sync_client.admin.command('ping')
+            
+            # Initialize database and collections - V2
+            self.sync_db = self.sync_client[database]
+            self.questions_collection = self.sync_db.question_before_v2  # ✅ v2
+            self.keterangan_collection = self.sync_db.keterangan
+            
+            self._sync_connected = True
+            logger.info(f"MongoDB v2 connected (sync) to database '{database}'")
+            
+        except Exception as e:
+            logger.error(f"MongoDB v2 sync connection failed: {e}")
+            self._sync_connected = False
+            raise
+    
+    def ensure_sync_connected(self):
+        """Ensure sync database is connected before operations"""
+        if not self._sync_connected:
+            self.connect_sync()
+    
+    def count_questions_sync(self) -> int:
+        """Count total questions in database (SYNC) - V2"""
+        try:
+            self.ensure_sync_connected()
+            count = self.questions_collection.count_documents({})
+            return count
+        except Exception as e:
+            logger.error(f"Error counting v2 questions: {e}")
+            return 0
+        
+    def get_questions_by_package_sync(self, package: str, limit: int = 15) -> List[Dict]:
+        """Get questions filtered by package with limit (SYNC) - V2"""
+        try:
+            self.ensure_sync_connected()
+            
+            query = {"id_package": package}
+            cursor = self.questions_collection.find(query).limit(limit)
+            questions = []
+            
+            for doc in cursor:
+                question_dict = {
+                    "id": str(doc["_id"]),
+                    "question": doc.get("question", ""),
+                    "package": doc.get("id_package", ""),
+                    "enabler": doc.get("enabler", ""),
+                    "indicator": doc.get("indicator", ""),
+                    "contribution_max": doc.get("contribution_max", 0),
+                    "sum_contribution_max": doc.get("sum_contribution_max", 0),
+                    "generated_at": doc.get("generated_at", ""),
+                    "created_at": doc.get("created_at"),
+                    "updated_at": doc.get("updated_at")
+                }
+                
+                if question_dict["question"]:
+                    questions.append(question_dict)
+            
+            logger.info(f"Retrieved {len(questions)} v2 questions for package '{package}'")
+            return questions
+            
+        except Exception as e:
+            logger.error(f"Error getting v2 questions by package '{package}': {e}")
+            return []
+    
+    def get_all_questions_sync(self) -> List[Dict]:
+        """Get all questions from database (SYNC) - V2"""
+        try:
+            self.ensure_sync_connected()
+            
+            cursor = self.questions_collection.find({})
+            questions = []
+            
+            for doc in cursor:
+                question_dict = {
+                    "id": str(doc.get("_id", "")),
+                    "question": doc.get("question", ""),
+                    "package": doc.get("id_package", ""),
+                    "enabler": doc.get("enabler", ""),
+                    "indicator": doc.get("indicator", ""),
+                    "generated_at": doc.get("generated_at", ""),
+                    "created_at": doc.get("created_at"),
+                    "updated_at": doc.get("updated_at")
+                }
+                
+                if question_dict["question"]:
+                    questions.append(question_dict)
+            
+            logger.info(f"Retrieved {len(questions)} v2 questions from database")
+            return questions
+            
+        except Exception as e:
+            logger.error(f"Error getting all v2 questions: {e}")
+            return []
+    
+    def get_packages_list_sync(self) -> List[str]:
+        """Get list of unique packages (SYNC) - V2"""
+        try:
+            self.ensure_sync_connected()
+            
+            packages = set()
+            
+            # Get packages from v2 questions collection
+            questions_packages = self.questions_collection.distinct("id_package")
+            packages.update(questions_packages)
+            
+            # Filter out None and empty values
+            packages = {pkg for pkg in packages if pkg}
+            
+            logger.info(f"Found {len(packages)} unique v2 packages: {sorted(packages)}")
+            return sorted(list(packages))
+            
+        except Exception as e:
+            logger.error(f"Error getting v2 packages list: {e}")
+            return []
+    
+    def get_questions_by_enabler_sync(self, enabler: str, limit: int = 20) -> List[Dict]:
+        """Get questions filtered by enabler (SYNC) - V2 specific"""
+        try:
+            self.ensure_sync_connected()
+            
+            query = {"enabler": enabler}
+            cursor = self.questions_collection.find(query).limit(limit)
+            questions = []
+            
+            for doc in cursor:
+                question_dict = {
+                    "id": str(doc["_id"]),
+                    "question": doc.get("question", ""),
+                    "package": doc.get("id_package", ""),
+                    "enabler": doc.get("enabler", ""),
+                    "indicator": doc.get("indicator", ""),
+                    "generated_at": doc.get("generated_at", ""),
+                    "created_at": doc.get("created_at"),
+                    "updated_at": doc.get("updated_at")
+                }
+                
+                if question_dict["question"]:
+                    questions.append(question_dict)
+            
+            logger.info(f"Retrieved {len(questions)} v2 questions for enabler '{enabler}'")
+            return questions
+            
+        except Exception as e:
+            logger.error(f"Error getting v2 questions by enabler '{enabler}': {e}")
+            return []
+    
+    def get_enablers_list_sync(self) -> List[str]:
+        """Get list of unique enablers (SYNC) - V2 specific"""
+        try:
+            self.ensure_sync_connected()
+            
+            enablers = self.questions_collection.distinct("enabler")
+            enablers = [e for e in enablers if e]  # Filter None/empty
+            
+            logger.info(f"Found {len(enablers)} unique enablers")
+            return sorted(enablers)
+            
+        except Exception as e:
+            logger.error(f"Error getting enablers list: {e}")
+            return []
+    
+    # === ASYNC METHODS ===
+    
+    async def connect(self):
+        """Connect to MongoDB (async) - V2"""
+        if self._async_connected:
+            logger.info("Already connected to MongoDB v2 (async)")
+            return
+            
+        try:
+            connection_string, database = self._get_connection_string()
+            
+            self.async_client = AsyncIOMotorClient(connection_string)
+            await self.async_client.admin.command('ping')
+            
+            self.async_db = self.async_client[database]
+            
+            self._async_connected = True
+            logger.info(f"MongoDB v2 connected (async) to database '{database}'")
+            
+        except Exception as e:
+            logger.error(f"MongoDB v2 async connection failed: {e}")
+            self._async_connected = False
+            raise
+    
+    async def disconnect(self):
+        """Disconnect from MongoDB"""
+        if self.async_client and self._async_connected:
+            self.async_client.close()
+            self._async_connected = False
+        if self.sync_client and self._sync_connected:
+            self.sync_client.close()
+            self._sync_connected = False
+        logger.info("MongoDB v2 disconnected")
+    
+    async def ensure_connected(self):
+        """Ensure async database is connected"""
+        if not self._async_connected:
+            await self.connect()
+    
+    async def get_questions_by_package(self, package: str, limit: int = 15) -> List[Dict]:
+        """Get questions filtered by package (ASYNC) - V2"""
+        try:
+            await self.ensure_connected()
+            
+            questions_collection = self.async_db.question_before_v2
+            query = {"id_package": package}
+            cursor = questions_collection.find(query).limit(limit)
+            questions = []
+            
+            async for doc in cursor:
+                question_dict = {
+                    "id": str(doc["_id"]),
+                    "question": doc.get("question", ""),
+                    "package": doc.get("id_package", ""),
+                    "enabler": doc.get("enabler", ""),
+                    "indicator": doc.get("indicator", ""),
+                    "generated_at": doc.get("generated_at", ""),
+                    "created_at": doc.get("created_at"),
+                    "updated_at": doc.get("updated_at")
+                }
+                
+                if question_dict["question"]:
+                    questions.append(question_dict)
+            
+            logger.info(f"Retrieved {len(questions)} v2 questions for package '{package}'")
+            return questions
+            
+        except Exception as e:
+            logger.error(f"Error getting v2 questions by package '{package}': {e}")
+            return []
+    
+    async def count_questions(self) -> int:
+        """Count total questions (async) - V2"""
+        try:
+            await self.ensure_connected()
+            count = await self.async_db.question_before_v2.count_documents({})
+            return count
+        except Exception as e:
+            logger.error(f"Error counting v2 questions: {e}")
+            return 0
+
+
+# Global singleton instances
+db_service_v1 = DataBaseServiceVersion1()
+db_service_v2 = DataBaseServiceVersion2()
+
+# Default to v1 for backward compatibility
+db_service = db_service_v1

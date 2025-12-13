@@ -43,3 +43,9 @@ transformers
 torch
 sentence_transformers
 faiss-cpu
+flask[async]
+asgiref
+pydantic
+nest_asyncio
+google-genai
+google-generativeai

@@ -1,0 +1,216 @@
+{
+  "INPUT_DATA": {
+    "Pertanyaan (Bahasa Indonesia)": [
+      {
+        "id": 1,
+        "indikator": "Program Kesiapan Forensik Digital",
+        "pertanyaan": [
+          {
+            "key": "recognize",
+            "question": "Apakah ada pemahaman bahwa kesiapan forensik digital dapat meminimalkan dampak insiden siber?"
+          },
+          {
+            "key": "define",
+            "question": "Apakah organisasi telah memiliki Program terkait Kesiapan Forensik Digital?"
+          },
+          {
+            "key": "measure",
+            "question": "Apakah organisasi memiliki metrik atau indikator kinerja untuk mengukur kemajuan dan efektivitas program kesiapan forensik digital?"
+          },
+          {
+            "key": "analyze",
+            "question": "Apakah ada analisis terhadap kesenjangan antara tingkat kesiapan yang diinginkan dengan tingkat kesiapan yang dicapai saat ini?"
+          },
+          {
+            "key": "improve",
+            "question": "Apakah ada program untuk memperbarui program kesiapan forensik digital berdasarkan hasil analisis dan umpan balik?"
+          },
+          {
+            "key": "sustain",
+            "question": "Apakah program ini menjadi bagian dari perencanaan strategis organisasi dalam jangka panjang?"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "indikator": "Aturan, regulasi dan kewajiban menyimpan dokumen, file dan rekaman (CCTV, Log, dokumen)",
+        "pertanyaan": [
+          {
+            "key": "recognize",
+            "question": "Apakah ada pemahaman dasar mengenai pentingnya retensi data yang tepat untuk tujuan hukum dan investigasi?"
+          },
+          {
+            "key": "define",
+            "question": "Apakah organisasi Anda memiliki pedoman tertulis terkait penyimpanan dokumen, file, dan rekaman digital maupun fisik (misal CCTV, Log, dokumen)?"
+          },
+          {
+            "key": "measure",
+            "question": "Apakah organisasi secara rutin melakukan audit untuk memverifikasi bahwa kebijakan penyimpanan data diterapkan secara konsisten di seluruh departemen?"
+          },
+          {
+            "key": "analyze",
+            "question": "Apakah ada analisis terhadap risiko yang mungkin timbul dari kebijakan retensi yang tidak memadai (misalnya, risiko hukum atau kehilangan bukti)?"
+          },
+          {
+            "key": "improve",
+            "question": "Apakah ada kontrol yang diterapkan untuk memastikan bahwa data disimpan dengan aman dan dapat diakses saat dibutuhkan?"
+          },
+          {
+            "key": "sustain",
+            "question": "Apakah kebijakan penyimpanan data diintegrasikan ke dalam program tata kelola informasi organisasi secara berkelanjutan?"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "indikator": "Ketentuan ketika terjadi peristiwa yang membutuhkan barang bukti digital",
+        "pertanyaan": [
+          {
+            "key": "recognize",
+            "question": "Apakah ada pemahaman bahwa tindakan awal yang salah dapat merusak atau menghilangkan bukti penting?"
+          },
+          {
+            "key": "define",
+            "question": "Apakah organisasi Anda memiliki ketentuan tertulis ketika terjadi peristiwa yang membutuhkan barang bukti digital "
+          },
+          {
+            "key": "measure",
+            "question": "Apakah organisasi mencatat setiap peristiwa yang terjadi dan memverifikasi apakah ketentuan yang ditetapkan sudah diikuti?"
+          },
+          {
+            "key": "analyze",
+            "question": "Apakah organisasi menganalisis hasil dari penanganan peristiwa untuk mengidentifikasi kelemahan dalam ketentuan yang ada?"
+          },
+          {
+            "key": "improve",
+            "question": "Apakah ada program untuk memperbarui ketentuan ini berdasarkan umpan balik dari tim respons insiden dan perkembangan teknologi?"
+          },
+          {
+            "key": "sustain",
+            "question": "Apakah organisasi secara konsisten mengalokasikan sumber daya untuk memelihara dan menyebarkan pengetahuan tentang ketentuan ini?"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "indikator": "Fungsi/unit Pejabat Pelindung Data Pribadi sesuai dengan peraturan dan perundang-undangan yang berlaku",
+        "pertanyaan": [
+          {
+            "key": "recognize",
+            "question": "Apakah organisasi menyadari adanya kewajiban untuk memiliki Pejabat Pelindung Data Pribadi (DPO) sesuai dengan peraturan yang berlaku, seperti UU PDP?"
+          },
+          {
+            "key": "define",
+            "question": "Apakah organisasi telah menunjuk fungsi/unit Pejabat Pelindung Data Pribadi sesuai dengan peraturan dan perundang-undangan yang berlaku?"
+          },
+          {
+            "key": "measure",
+            "question": "Seberapa sering DPO melakukan audit internal untuk mengukur tingkat kepatuhan organisasi terhadap UU PDP?"
+          },
+          {
+            "key": "analyze",
+            "question": "Apakah organisasi menganalisis laporan dari DPO untuk mengidentifikasi area yang membutuhkan perbaikan terkait perlindungan data pribadi?"
+          },
+          {
+            "key": "improve",
+            "question": "Apakah ada mekanisme kontrol yang memastikan independensi DPO dalam menjalankan tugasnya?"
+          },
+          {
+            "key": "sustain",
+            "question": "Apakah peran dan wewenang DPO ditinjau secara berkala untuk memastikan relevansinya dengan pertumbuhan organisasi dan perubahan regulasi?"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "indikator": "Identifikasi sumber-sumber dan tipe-tipe yang berbeda dari barang bukti digital organisasi",
+        "pertanyaan": [
+          {
+            "key": "recognize",
+            "question": "Apakah ada pemahaman dasar mengenai pentingnya memetakan sumber bukti digital potensial di seluruh lingkungan organisasi?"
+          },
+          {
+            "key": "define",
+            "question": "Apakah organisasi telah mengidentifikasi berbagai sumber dan tipe-tipe yang berbeda dari barang bukti digital?"
+          },
+          {
+            "key": "measure",
+            "question": "Apakah organisasi secara rutin melakukan audit untuk memverifikasi kelengkapan dan keakuratan daftar sumber dan tipe bukti digital?"
+          },
+          {
+            "key": "analyze",
+            "question": "Apakah organisasi menganalisis data insiden untuk menentukan apakah semua sumber dan tipe bukti yang relevan telah diidentifikasi dan dikumpulkan?"
+          },
+          {
+            "key": "improve",
+            "question": "Apakah ada kontrol yang diterapkan untuk memastikan bahwa data dari semua sumber bukti yang teridentifikasi terlindungi dan dapat diakses untuk investigasi?"
+          },
+          {
+            "key": "sustain",
+            "question": "Apakah proses identifikasi sumber dan tipe bukti digital menjadi bagian dari siklus hidup pengembangan sistem dan perencanaan strategis organisasi?"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "indikator": "Identifikasi teknologi dan Sumber Daya manusia untuk memastikan kesiapan forensik digital",
+        "pertanyaan": [
+          {
+            "key": "recognize",
+            "question": "Apakah organisasi menyadari bahwa kesiapan forensik digital membutuhkan kombinasi yang tepat antara teknologi dan Sumber Daya Manusia (SDM) yang terampil?"
+          },
+          {
+            "key": "define",
+            "question": "Apakah organisasi telah mengidentifikasi teknologi dan sumber daya manusia yang diperlukan untuk memastikan kesiapan forensik digital?"
+          },
+          {
+            "key": "measure",
+            "question": "Apakah organisasi secara rutin mengevaluasi kecukupan dan kapabilitas teknologi forensik digital dan SDM yang dimiliki?"
+          },
+          {
+            "key": "analyze",
+            "question": "Apakah organisasi menganalisis kesenjangan antara teknologi dan keahlian SDM yang dimiliki dengan kebutuhan forensik digital saat ini?"
+          },
+          {
+            "key": "improve",
+            "question": "Apakah ada kontrol yang memastikan bahwa teknologi dan keahlian SDM terus ditingkatkan seiring dengan perkembangan ancaman?"
+          },
+          {
+            "key": "sustain",
+            "question": "Apakah alokasi anggaran untuk pengadaan teknologi dan pengembangan SDM forensik digital menjadi prioritas dalam perencanaan jangka panjang organisasi?"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "indikator": "Jaminan ketersediaan anggaran untuk menjalankan dan merawat program keamanan informasi dan kesiapan forensik digital",
+        "pertanyaan": [
+          {
+            "key": "recognize",
+            "question": "Apakah organisasi menyadari bahwa program keamanan informasi dan kesiapan forensik digital membutuhkan dukungan anggaran yang konsisten?"
+          },
+          {
+            "key": "define",
+            "question": "Apakah anggaran tersedia untuk mengimplementasikan dan memelihara program keamanan informasi dan kesiapan forensik digital"
+          },
+          {
+            "key": "measure",
+            "question": "Apakah organisasi secara rutin memantau dan melacak penggunaan anggaran yang dialokasikan untuk program ini?"
+          },
+          {
+            "key": "analyze",
+            "question": "Apakah organisasi menganalisis alokasi anggaran saat ini untuk mengidentifikasi potensi kekurangan atau pemborosan?"
+          },
+          {
+            "key": "improve",
+            "question": "Apakah ada program untuk mengoptimalkan penggunaan anggaran melalui efisiensi operasional atau negosiasi vendor?"
+          },
+          {
+            "key": "sustain",
+            "question": "Apakah alokasi anggaran untuk program keamanan informasi dan forensik digital menjadi prioritas strategis dalam jangka panjang?"
+          }
+        ]
+      }
+    ]
+  }
+}

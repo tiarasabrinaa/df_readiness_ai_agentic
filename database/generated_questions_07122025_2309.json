@@ -1,0 +1,1087 @@
+{
+  "metadata": {
+    "model": "DFR Capability Maturity Model",
+    "version": "2.0",
+    "generated_at": "2025-12-07 23:09:26",
+    "total_enablers": 7,
+    "total_indicators": 62,
+    "scale": {
+      "1": {
+        "level": "Initial",
+        "description": "Tidak ada struktur atau proses yang diterapkan, semuanya dilakukan secara acak dan tidak terdokumentasi"
+      },
+      "2": {
+        "level": "Managed",
+        "description": "Beberapa proses mulai dilakukan, tetapi masih bersifat informal dan tidak sepenuhnya terdokumentasi"
+      },
+      "3": {
+        "level": "Defined",
+        "description": "Proses telah terdokumentasi, ada standar yang jelas dan beberapa pelatihan dilakukan"
+      },
+      "4": {
+        "level": "Quantitatively Managed",
+        "description": "Proses sudah terkelola secara terstruktur, dengan evaluasi dan perbaikan yang didukung oleh data dan pengukuran yang jelas"
+      },
+      "5": {
+        "level": "Optimized",
+        "description": "Proses telah dioptimalkan dan terus ditingkatkan, terintegrasi dalam budaya organisasi dengan dukungan penuh dari manajemen dan evaluasi berkelanjutan"
+      }
+    }
+  },
+  "enablers": [
+    {
+      "enabler_id": 1,
+      "enabler_name": "Principles, Policies, and Frameworks",
+      "total_indicators": 10,
+      "questions_parsed": 10,
+      "questions": [
+        {
+          "indicator": "\"Initiatives to raise awareness for DF activities are in place\"",
+          "question": "Apakah organisasi Anda memiliki inisiatif untuk meningkatkan kesadaran tentang kegiatan Digital Forensics (DF)? Sejauh mana inisiatif tersebut terorganisir dan terdokumentasi?"
+        },
+        {
+          "indicator": "\"Initiatives to raise awareness for DF activities are in place and continuously monitored\"",
+          "question": "Apakah organisasi Anda memiliki inisiatif untuk meningkatkan kesadaran tentang kegiatan Digital Forensics (DF) yang diteruskan dengan pengawasan? Sejauh mana inisiatif tersebut terorganisir dan terdokumentasi?"
+        },
+        {
+          "indicator": "\"Governance and Management understand DFR initiatives\"",
+          "question": "Bagaimana pemahaman Governance dan Management tentang inisiatif Digital Forensics Readiness (DFR)? Sejauh mana mereka memahami dan mendukung inisiatif ini?"
+        },
+        {
+          "indicator": "\"Governance and Management pursue DFR initiatives\"",
+          "question": "Pemimpin organisasi apakah mengejar inisiatif Digital Forensics Readiness (DFR)? Bagaimana tingkat komitmen mereka dalam mendorong implementasi inisiatif ini?"
+        },
+        {
+          "indicator": "\"Governance and Management are completely involved in planning DFR initiatives\"",
+          "question": "Pemimpin organisasi apakah sepenuhnya terlibat dalam merencanakan inisiatif Digital Forensics Readiness (DFR)? Sejauh mana mereka berperan dalam proses perencanaan ini?"
+        },
+        {
+          "indicator": "\"Governance and Management support DFR related organizational changes\"",
+          "question": "Pemimpin organisasi apakah mendukung perubahan organisasional terkait Digital Forensics Readiness (DFR)? Bagaimana tingkat dukungan mereka dalam mengimplementasikan perubahan ini?"
+        },
+        {
+          "indicator": "\"A change management is in place\"",
+          "question": "Apakah organisasi Anda memiliki sistem manajemen perubahan? Bagaimana efektivitas sistem manajemen perubahan ini dalam mendukung Digital Forensics Readiness (DFR)?"
+        },
+        {
+          "indicator": "\"Principles and policies according to a DF investigation are present\"",
+          "question": "Apakah organisasi Anda memiliki prinsip dan kebijakan yang ditetapkan berdasarkan investigasi Digital Forensics (DF)? Sejauh mana prinsip dan kebijakan ini diterapkan?"
+        },
+        {
+          "indicator": "\"Employees take the principles of DF related actions seriously\"",
+          "question": "Bagaimana sikap karyawan terhadap prinsip-prinsip yang berkaitan dengan tindakan-tindakan Digital Forensics (DF)? Sejauh mana mereka menjalankan prinsip-prinsip ini secara serius?"
+        },
+        {
+          "indicator": "\"Principles are clearly formulated\"",
+          "question": "Apakah prinsip-prinsip yang berkaitan dengan Digital Forensics Readiness (DFR) diatur dengan jelas? Sejauh mana mereka dipahami oleh semua stakeholder?"
+        }
+      ]
+    },
+    {
+      "enabler_id": 2,
+      "enabler_name": "Processes",
+      "total_indicators": 7,
+      "questions_parsed": 62,
+      "questions": [
+        {
+          "indicator": "Initiatives to raise awareness for DF activities are in place",
+          "question": "Apakah organisasi Anda memiliki inisiatif untuk meningkatkan kesadaran tentang kegiatan Digital Forensics (DF)? Sejauh mana inisiatif tersebut terorganisir dan terdokumentasi?"
+        },
+        {
+          "indicator": "Initiatives to raise awareness for DF activities are in place and continuously monitored",
+          "question": "Apakah organisasi Anda memiliki inisiatif untuk meningkatkan kesadaran tentang kegiatan DF yang dikelola secara reguler? Sejauh mana inisiatif tersebut dilaksanakan?"
+        },
+        {
+          "indicator": "Governance and Management understand DFR initiatives",
+          "question": "Bagaimana pemahaman governance dan manajemen tentang inisiatif Digital Forensics (DF) di dalam organisasi Anda? Apakah mereka memahami sepenuhnya?"
+        },
+        {
+          "indicator": "Governance and Management pursue DFR initiatives",
+          "question": "Apakah governance dan manajemen mendukung dan mengejar inisiatif Digital Forensics (DF) di dalam organisasi Anda? Sejauh mana ini dilaksanakan?"
+        },
+        {
+          "indicator": "Governance and Management are completely involved in planning DFR initiatives",
+          "question": "Bagaimana peran governance dan manajemen dalam merencanakan inisiatif Digital Forensics (DF) di dalam organisasi Anda? Apakah mereka sepenuhnya terlibat?"
+        },
+        {
+          "indicator": "Governance and Management support DFR related organizational changes",
+          "question": "Apakah governance dan manajemen mendukung perubahan organisasional terkait Digital Forensics (DF)? Sejauh mana dukungan ini diberikan?"
+        },
+        {
+          "indicator": "A change management is in place",
+          "question": "Apakah organisasi Anda memiliki sistem manajemen perubahan yang terorganisir untuk Digital Forensics (DF)? Sejauh mana sistem ini berfungsi?"
+        },
+        {
+          "indicator": "Principles and policies according to a DF investigation are present",
+          "question": "Apakah organisasi Anda memiliki prinsip dan kebijakan yang ditetapkan untuk penyelidikan Digital Forensics (DF)? Sejauh mana kebijakan ini diterapkan?"
+        },
+        {
+          "indicator": "Employees take the principles of DF related actions seriously",
+          "question": "Bagaimana sikap karyawan terhadap prinsip tindakan terkait Digital Forensics (DF)? Sejauh mana prinsip-prinsip ini dipatuhi?"
+        },
+        {
+          "indicator": "Principles are clearly formulated",
+          "question": "Bagaimana formulasi prinsip Digital Forensics (DF) di dalam organisasi Anda? Sejauh mana formulasi ini jelas dan dapat dimengerti?"
+        },
+        {
+          "indicator": "A basic understanding of the DF investigation process is present",
+          "question": "Apakah organisasi Anda memiliki pemahaman dasar tentang proses penyelidikan Digital Forensics (DF)? Sejauh mana pemahaman ini terdokumentasi?"
+        },
+        {
+          "indicator": "A deep understanding of the DF investigation process is present",
+          "question": "Apakah organisasi Anda memiliki pemahaman mendalam tentang proses penyelidikan Digital Forensics (DF)? Sejauh mana pemahaman ini terdokumentasi?"
+        },
+        {
+          "indicator": "The support for the DF investigation process is continuously improved",
+          "question": "Apakah organisasi Anda memiliki dukungan yang terus ditingkatkan untuk proses penyelidikan Digital Forensics (DF)? Sejauh mana dukungan ini diberikan?"
+        },
+        {
+          "indicator": "Related sub-processes to DF are documented",
+          "question": "Apakah organisasi Anda memiliki dokumen untuk sub-proses terkait Digital Forensics (DF)? Sejauh mana sub-proses ini didefinisikan?"
+        },
+        {
+          "indicator": "Guidelines to prevent business interruption in the case of a DF investigation are defined",
+          "question": "Apakah organisasi Anda memiliki pedoman untuk mencegah gangguan bisnis saat melakukan penyelidikan Digital Forensics (DF)? Sejauh mana pedoman ini diterapkan?"
+        },
+        {
+          "indicator": "Process models of business processes are present",
+          "question": "Apakah organisasi Anda memiliki model proses untuk proses bisnis? Sejauh mana model-model ini didefinisikan?"
+        },
+        {
+          "indicator": "DF related processes are partially automated",
+          "question": "Apakah organisasi Anda memiliki proses terkait Digital Forensics (DF) yang otomatis sebagian? Sejauh mana otomatisasi ini diterapkan?"
+        },
+        {
+          "indicator": "Responsibilities for the case of a DF investigation are known",
+          "question": "Apakah organisasi Anda memiliki tanggung jawab untuk kasus penyelidikan Digital Forensics (DF)? Sejauh mana tanggung jawab ini diketahui?"
+        },
+        {
+          "indicator": "Responsibilities for the case of a DF investigation are defined",
+          "question": "Apakah organisasi Anda memiliki definisi tanggung jawab untuk kasus penyelidikan Digital Forensics (DF)? Sejauh mana definisi ini diterapkan?"
+        },
+        {
+          "indicator": "DF related decision-making guidelines are included in job-descriptions or roles",
+          "question": "Apakah petunjuk pengambilan keputusan terkait Digital Forensics (DF) termasuk dalam deskripsi pekerjaan atau peran? Sejauh mana petunjuk ini diterapkan?"
+        },
+        {
+          "indicator": "Rights within Information Systems are defined",
+          "question": "Apakah hak-hak dalam Sistem Informasi di organisasi Anda telah didefinisikan? Sejauh mana definsi ini diterapkan?"
+        },
+        {
+          "indicator": "Rights within Information Systems are defined and adjusted to prevent potential destroying or tampering of evidences",
+          "question": "Apakah hak-hak dalam Sistem Informasi di organisasi Anda telah didefinisikan dan diperbarui untuk mencegah potensi penghancuran atau perubahan bukti? Sejauh mana definsi dan perbaikan ini diterapkan?"
+        },
+        {
+          "indicator": "An Identity Management System is in place",
+          "question": "Apakah organisasi Anda memiliki sistem manajemen identitas yang terorganisir? Sejauh mana sistem ini digunakan?"
+        },
+        {
+          "indicator": "Escalation rules are defined",
+          "question": "Apakah organisasi Anda memiliki aturan eskalasi yang terorganisir? Sejauh mana aturan ini diterapkan?"
+        },
+        {
+          "indicator": "Escalation rules are defined, reviewed and monitored",
+          "question": "Apakah organisasi Anda memiliki aturan eskalasi yang terorganisir, direview, dan diamati? Sejauh mana aturan ini diterapkan dan dikontrol?"
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences in general are present",
+          "question": "Apakah organisasi Anda memiliki dokumentasi tentang cara yang tepat mengelola bukti digital secara umum? Sejauh mana dokumentasi ini diterapkan?"
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences of all devices and systems within the organization are present",
+          "question": "Apakah organisasi Anda memiliki dokumentasi tentang cara yang tepat mengelola bukti digital dari semua perangkat dan sistem dalam organisasi? Sejauh mana dokumentasi ini diterapkan?"
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences of all devices and systems within the organization are present and frequently reviewed",
+          "question": "Apakah organisasi Anda memiliki dokumentasi tentang cara yang tepat mengelola bukti digital dari semua perangkat dan sistem dalam organisasi yang sering direview? Sejauh mana dokumentasi ini diterapkan dan diperbarui?"
+        },
+        {
+          "indicator": "Information about DF investigations are available and accessible",
+          "question": "Apakah informasi tentang penyelidikan Digital Forensics (DF) tersedia dan mudah diakses di organisasi Anda? Sejauh mana informasi ini diterapkan?"
+        },
+        {
+          "indicator": "Employee can contribute findings and knowledge regarding DF",
+          "question": "Apakah karyawan bisa memberikan temuan dan pengetahuan terkait Digital Forensics (DF) di organisasi Anda? Sejauh mana kontribusi ini diterapkan?"
+        },
+        {
+          "indicator": "The usage of tools for DF is documented",
+          "question": "Apakah penggunaan alat untuk Digital Forensics (DF) telah didokumentasikan di organisasi Anda? Sejauh mana dokumentasi ini diterapkan?"
+        },
+        {
+          "indicator": "The usage of tools for DF is documented and continuously reviewed",
+          "question": "Apakah penggunaan alat untuk Digital Forensics (DF) telah didokumentasikan dan direreview secara berkala di organisasi Anda? Sejauh mana dokumentasi dan review ini diterapkan?"
+        },
+        {
+          "indicator": "Information about the usage of digital evidences in a law court is present",
+          "question": "Apakah organisasi Anda memiliki informasi tentang penggunaan bukti digital dalam pengadilan? Sejauh mana informasi ini diterapkan?"
+        },
+        {
+          "indicator": "Information about the usage of digital evidences in a law court is present and frequently updated",
+          "question": "Apakah organisasi Anda memiliki informasi tentang penggunaan bukti digital dalam pengadilan yang sering diperbarui? Sejauh mana informasi ini diterapkan dan diperbarui?"
+        },
+        {
+          "indicator": "Employees get frequent updates according DF related topics (e.g.: e-Mail, letter)",
+          "question": "Apakah karyawan organisasi Anda mendapatkan update sering tentang topik terkait Digital Forensics (DF) seperti melalui email atau surat? Sejauh mana update ini diterapkan?"
+        },
+        {
+          "indicator": "Employees get timely updates according DF related topics (e.g.: e-Mail, letter)",
+          "question": "Apakah karyawan organisasi Anda mendapatkan update cepat tentang topik terkait Digital Forensics (DF) seperti melalui email atau surat? Sejauh mana update ini diterapkan?"
+        },
+        {
+          "indicator": "A fraud intolerant culture is present",
+          "question": "Apakah organisasi Anda memiliki budaya toleransi terhadap korupsi? Sejauh mana budaya ini diterapkan?"
+        },
+        {
+          "indicator": "A fraud intolerant culture is pursued",
+          "question": "Apakah organisasi Anda mencari-cari budaya toleransi terhadap korupsi? Sejauh mana pencarian ini diterapkan?"
+        },
+        {
+          "indicator": "Open handling of mistakes and issues is present",
+          "question": "Apakah organisasi Anda memiliki metode terbuka untuk menangani kesalahan dan masalah? Sejauh mana metode ini diterapkan?"
+        },
+        {
+          "indicator": "Open handling of mistakes and issues is present",
+          "question": "Apakah organisasi Anda memiliki metode terbuka untuk menangani kesalahan dan masalah? Sejauh mana metode ini diterapkan?"
+        },
+        {
+          "indicator": "Anti-fraud ethics are established",
+          "question": "Apakah etika anti-korupsi telah dibentuk di organisasi Anda? Sejauh mana etika ini diterapkan?"
+        },
+        {
+          "indicator": "A willingness to unveil fraud/crime is present",
+          "question": "Apakah ada kemauan untuk membongkar korupsi/kejahatan di organisasi Anda? Sejauh mana kemauan ini diterapkan?"
+        },
+        {
+          "indicator": "DF related activities are accepted within employees",
+          "question": "Apakah aktivitas terkait Digital Forensics (DF) diterima oleh karyawan di organisasi Anda? Sejauh mana aktivitas ini diterapkan?"
+        },
+        {
+          "indicator": "Specific guidelines for potential fraud related situations are present",
+          "question": "Apakah organisasi Anda memiliki panduan spesifik untuk situasi potensial korupsi? Sejauh mana panduan ini diterapkan?"
+        },
+        {
+          "indicator": "Specific guidelines for potential fraud related situations are present and reviewed",
+          "question": "Apakah organisasi Anda memiliki panduan spesifik untuk situasi potensial korupsi yang sering direview? Sejauh mana panduan ini diterapkan dan diperbarui?"
+        },
+        {
+          "indicator": "Employees do not hinder a DF investigation",
+          "question": "Apakah karyawan organisasi Anda tidak menghalangi penyelidikan Digital Forensics (DF)? Sejauh mana halangan ini tidak diterapkan?"
+        },
+        {
+          "indicator": "Employees understand the importance of digital evidences",
+          "question": "Apakah karyawan organisasi Anda memahami pentingnya bukti digital? Sejauh mana pemahaman ini diterapkan?"
+        },
+        {
+          "indicator": "Employees get informal DFR related training",
+          "question": "Apakah karyawan organisasi Anda mendapatkan pelatihan informal terkait Digital Forensics (DF)? Sejauh mana pelatihan ini diterapkan?"
+        },
+        {
+          "indicator": "Employees get formal DFR related training",
+          "question": "Apakah karyawan organisasi Anda mendapatkan pelatihan formal terkait Digital Forensics (DF)? Sejauh mana pelatihan ini diterapkan?"
+        },
+        {
+          "indicator": "The proper application of the knowledge is assessed regularly",
+          "question": "Apakah aplikasi pengetahuan terkait Digital Forensics (DF) di organisasi Anda ditekankan secara regular? Sejauh mana penilaian ini diterapkan?"
+        },
+        {
+          "indicator": "Human resource division ensures the right amount of DF skilled employees",
+          "question": "Apakah divisi sumber daya manusia di organisasi Anda memastikan jumlah anggota yang memiliki keterampilan Digital Forensics (DF) yang tepat? Sejauh mana persyaratan ini diterapkan?"
+        },
+        {
+          "indicator": "Services, infrastructure and applications are documented",
+          "question": "Apakah layanan, infrastruktur, dan aplikasi di organisasi Anda telah didokumentasikan? Sejauh mana dokumentasi ini diterapkan?"
+        },
+        {
+          "indicator": "Services, infrastructure and applications are documented and continuously updated",
+          "question": "Apakah layanan, infrastruktur, dan aplikasi di organisasi Anda telah didokumentasikan dan diperbarui secara berkala? Sejauh mana dokumentasi dan update ini diterapkan?"
+        },
+        {
+          "indicator": "Possibilities to retrieve log-files are known",
+          "question": "Apakah organisasi Anda menyadari kemungkinan untuk mengambil catatan-file? Sejauh mana kemampuan ini diterapkan?"
+        },
+        {
+          "indicator": "Possibilities to retrieve log-files are known and the configuration is reviewed",
+          "question": "Apakah organisasi Anda menyadari kemungkinan untuk mengambil catatan-file dan konfigurasinya direview? Sejauh mana kemampuan dan review ini diterapkan?"
+        },
+        {
+          "indicator": "Possibilities to retrieve log-files are known and the configuration is reviewed",
+          "question": "Apakah organisasi Anda menyadari kemungkinan untuk mengambil catatan-file dan konfigurasinya direview? Sejauh mana kemampuan dan review ini diterapkan?"
+        },
+        {
+          "indicator": "An internal laboratory is present",
+          "question": "Apakah organisasi Anda memiliki laboratorium intern? Sejauh mana laboratorium ini diterapkan?"
+        },
+        {
+          "indicator": "A possibility to store and protect digital evidences is present",
+          "question": "Apakah organisasi Anda memiliki kemampuan untuk menyimpan dan melindungi bukti digital? Sejauh mana kemampuan ini diterapkan?"
+        },
+        {
+          "indicator": "Tools and methods to produce forensically sound copies of hard drives and memory are present",
+          "question": "Apakah organisasi Anda memiliki alat dan metode untuk membuat salinan forensik dari hard drive dan memori? Sejauh mana alat dan metode ini diterapkan?"
+        },
+        {
+          "indicator": "Tools and methods to produce forensically sound copies of hard drives and memory are present and reviewed frequently",
+          "question": "Apakah organisasi Anda memiliki alat dan metode untuk membuat salinan forensik dari hard drive dan memori yang sering direview? Sejauh mana alat dan metode serta review ini diterapkan?"
+        },
+        {
+          "indicator": "Own tools for DF related tasks are developed in a forensically sound manner",
+          "question": "Apakah organisasi Anda memiliki alat sendiri untuk tugas terkait Digital Forensics (DF) yang dikembangkan dengan cara forensik yang benar? Sejauh mana alat ini diterapkan?"
+        },
+        {
+          "indicator": "Methods to adjust infrastructure and applications are present",
+          "question": "Apakah organisasi Anda memiliki metode untuk menyesuaikan infrastruktur dan aplikasi? Sejauh mana metode ini diterapkan?"
+        }
+      ]
+    },
+    {
+      "enabler_id": 3,
+      "enabler_name": "Organizational Structures",
+      "total_indicators": 8,
+      "questions_parsed": 63,
+      "questions": [
+        {
+          "indicator": "Initiatives to raise awareness for DF activities are in place",
+          "question": "Apakah organisasi Anda memiliki inisiatif untuk meningkatkan kesadaran tentang kegiatan Digital Forensics (DF)? Sejauh mana inisiatif tersebut terorganisir dan terdokumentasi?"
+        },
+        {
+          "indicator": "Initiatives to raise awareness for DF activities are in place and continuously monitored",
+          "question": "Apakah organisasi Anda memiliki inisiatif untuk meningkatkan kesadaran tentang kegiatan Digital Forensics (DF) dan memonitornya secara konsisten? Sejauh mana inisiatif tersebut terorganisir dan terdokumentasi?"
+        },
+        {
+          "indicator": "Governance and Management understand DFR initiatives",
+          "question": "Bagaimana pemahaman governance dan management terhadap inisiatif Digital Forensics Readiness (DFR)? Apakah mereka memahami dan mendukung inisiatif ini?"
+        },
+        {
+          "indicator": "Governance and Management pursue DFR initiatives",
+          "question": "Apakah governance dan management mengejar inisiatif Digital Forensics Readiness (DFR)? Bagaimana dukungan mereka terhadap inisiatif ini?"
+        },
+        {
+          "indicator": "Governance and Management are completely involved in planning DFR initiatives",
+          "question": "Apakah governance dan management terlibat sepenuhnya dalam perencanaan inisiatif Digital Forensics Readiness (DFR)? Bagaimana tingkat partisipasinya?"
+        },
+        {
+          "indicator": "Governance and Management support DFR related organizational changes",
+          "question": "Apakah governance dan management mendukung perubahan organisasional terkait Digital Forensics Readiness (DFR)? Bagaimana dukungan mereka terhadap perubahan ini?"
+        },
+        {
+          "indicator": "A change management is in place",
+          "question": "Apakah organisasi Anda memiliki sistem manajemen perubahan yang teratur? Bagaimana efektivitas sistem ini dalam menerapkan perubahan?"
+        },
+        {
+          "indicator": "Principles and policies according to a DF investigation are present",
+          "question": "Apakah organisasi Anda memiliki prinsip dan kebijakan yang spesifik untuk investigasi Digital Forensics (DF)? Bagaimana implementasinya?"
+        },
+        {
+          "indicator": "Employees take the principles of DF related actions seriously",
+          "question": "Bagaimana seriusnya pekerja mengambil prinsip tindakan-tindakan terkait Digital Forensics (DF)? Bagaimana integritasnya?"
+        },
+        {
+          "indicator": "Principles are clearly formulated",
+          "question": "Apakah prinsip-prinsip Digital Forensics (DF) yang digunakan oleh organisasi Anda dirumuskan dengan jelas? Bagaimana kualitas rumusan ini?"
+        },
+        {
+          "indicator": "A basic understanding of the DF investigation process is present",
+          "question": "Apakah organisasi Anda memiliki pemahaman dasar tentang proses investigasi Digital Forensics (DF)? Bagaimana tingkat pemahamannya?"
+        },
+        {
+          "indicator": "A deep understanding of the DF investigation process is present",
+          "question": "Apakah organisasi Anda memiliki pemahaman mendalam tentang proses investigasi Digital Forensics (DF)? Bagaimana tingkat pemahamannya?"
+        },
+        {
+          "indicator": "The support for the DF investigation process is continuously improved",
+          "question": "Apakah organisasi Anda mendukung peningkatan proses investigasi Digital Forensics (DF) secara konsisten? Bagaimana tingkat pengembangannya?"
+        },
+        {
+          "indicator": "Related sub-processes to DF are documented",
+          "question": "Apakah organisasi Anda memiliki dokumen yang mencakup sub-proses-persen terkait Digital Forensics (DF)? Bagaimana kualitas dokumentasinya?"
+        },
+        {
+          "indicator": "Guidelines to prevent business interruption in the case of a DF investigation are defined",
+          "question": "Apakah organisasi Anda memiliki panduan untuk mencegah gangguan bisnis saat melakukan investigasi Digital Forensics (DF)? Bagaimana kualitas panduan ini?"
+        },
+        {
+          "indicator": "Process models of business processes are present",
+          "question": "Apakah organisasi Anda memiliki model proses yang mencakup proses bisnis? Bagaimana kualitas model ini?"
+        },
+        {
+          "indicator": "DF related processes are partially automated",
+          "question": "Apakah organisasi Anda memiliki proses Digital Forensics (DF) yang otomatis sebagian? Bagaimana tingkat otomatisasinya?"
+        },
+        {
+          "indicator": "Responsibilities for the case of a DF investigation are known",
+          "question": "Apakah organisasi Anda mengetahui tanggung jawab terkait kasus investigasi Digital Forensics (DF)? Bagaimana tingkat ketahuannya?"
+        },
+        {
+          "indicator": "Responsibilities for the case of a DF investigation are defined",
+          "question": "Apakah organisasi Anda memiliki definisi tanggung jawab terkait kasus investigasi Digital Forensics (DF)? Bagaimana kualitas definisi ini?"
+        },
+        {
+          "indicator": "DF related decision-making guidelines are included in job-descriptions or roles",
+          "question": "Apakah organisasi Anda memiliki petunjuk pembuatan keputusan terkait Digital Forensics (DF) yang termasuk dalam deskripsi pekerjaan atau peran? Bagaimana kualitas petunjuk ini?"
+        },
+        {
+          "indicator": "Rights within Information Systems are defined",
+          "question": "Apakah organisasi Anda memiliki definisi hak-hak dalam sistem informasi? Bagaimana kualitas definisi ini?"
+        },
+        {
+          "indicator": "Rights within Information Systems are defined and adjusted to prevent potential destroying or tampering of evidences",
+          "question": "Apakah organisasi Anda memiliki definisi dan penyempurnaan hak-hak dalam sistem informasi untuk mencegah potensi kerusakan atau pencurian bukti? Bagaimana kualitas definisi dan penyempurnaan ini?"
+        },
+        {
+          "indicator": "An Identity Management System is in place",
+          "question": "Apakah organisasi Anda memiliki sistem manajemen identitas yang teratur? Bagaimana kualitas sistem ini?"
+        },
+        {
+          "indicator": "Escalation rules are defined",
+          "question": "Apakah organisasi Anda memiliki aturan eskalasi yang teratur? Bagaimana kualitas aturan ini?"
+        },
+        {
+          "indicator": "Escalation rules are defined, reviewed and monitored",
+          "question": "Apakah organisasi Anda memiliki aturan eskalasi yang teratur, diperiksa, dan dipantau? Bagaimana kualitas aturan ini?"
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences in general are present",
+          "question": "Apakah organisasi Anda memiliki dokumen tentang cara-cara yang benar untuk menyimpan bukti digital secara umum? Bagaimana kualitas dokumen ini?"
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences of all devices and systems within the organization are present",
+          "question": "Apakah organisasi Anda memiliki dokumen tentang cara-cara yang benar untuk menyimpan bukti digital dari semua perangkat dan sistem di dalam organisasi? Bagaimana kualitas dokumen ini?"
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences of all devices and systems within the organization are present and frequently reviewed",
+          "question": "Apakah organisasi Anda memiliki dokumen tentang cara-cara yang benar untuk menyimpan bukti digital dari semua perangkat dan sistem di dalam organisasi dan sering diperiksa? Bagaimana kualitas dokumen dan prosedur ini?"
+        },
+        {
+          "indicator": "Information about DF investigations are available and accessible",
+          "question": "Informasi tentang investigasi Digital Forensics (DF) apa saja yang tersedia dan dapat diakses? Bagaimana kualitas aksesibilitas informasi ini?"
+        },
+        {
+          "indicator": "Employee can contribute findings and knowledge regarding DF",
+          "question": "Pegawai dapat memberikan temuan dan pengetahuan terkait Digital Forensics (DF)? Bagaimana kualitas kontribusi pegawai ini?"
+        },
+        {
+          "indicator": "The usage of tools for DF is documented",
+          "question": "Penggunaan alat-alat untuk Digital Forensics (DF) apa saja yang tercatat? Bagaimana kualitas catatan ini?"
+        },
+        {
+          "indicator": "The usage of tools for DF is documented and continuously reviewed",
+          "question": "Penggunaan alat-alat untuk Digital Forensics (DF) apa saja yang tercatat dan diperiksa secara konsisten? Bagaimana kualitas catatan dan prosedur ini?"
+        },
+        {
+          "indicator": "Information about the usage of digital evidences in a law court is present",
+          "question": "Informasi tentang penggunaan bukti digital di pengadilan apa saja yang tersedia? Bagaimana kualitas informasi ini?"
+        },
+        {
+          "indicator": "Information about the usage of digital evidences in a law court is present and frequently updated",
+          "question": "Informasi tentang penggunaan bukti digital di pengadilan apa saja yang tersedia dan sering diperbarui? Bagaimana kualitas informasi dan prosedur ini?"
+        },
+        {
+          "indicator": "Employees get frequent updates according DF related topics (e.g.: e-Mail, letter)",
+          "question": "Pegawai mendapatkan update sering tentang topik-topik Digital Forensics (DF) (misalnya: email, surat)? Bagaimana kualitas update ini?"
+        },
+        {
+          "indicator": "Employees get timely updates according DF related topics (e.g.: e-Mail, letter)",
+          "question": "Pegawai mendapatkan update tepat waktu tentang topik-topik Digital Forensics (DF) (misalnya: email, surat)? Bagaimana kualitas update ini?"
+        },
+        {
+          "indicator": "A fraud intolerant culture is present",
+          "question": "Apakah organisasi Anda memiliki budaya toleransi terhadap korupsi? Bagaimana tingkat budaya ini?"
+        },
+        {
+          "indicator": "A fraud intolerant culture is pursued",
+          "question": "Apakah organisasi Anda menjalankan budaya toleransi terhadap korupsi? Bagaimana tingkat eksekusinya?"
+        },
+        {
+          "indicator": "Open handling of mistakes and issues is present",
+          "question": "Apakah organisasi Anda memiliki metode terbuka dalam menangani kesalahan dan masalah? Bagaimana tingkat aplikasinya?"
+        },
+        {
+          "indicator": "Open handling of mistakes and issues is present",
+          "question": "Apakah organisasi Anda memiliki metode terbuka dalam menangani kesalahan dan masalah? Bagaimana tingkat aplikasinya?"
+        },
+        {
+          "indicator": "Anti-fraud ethics are established",
+          "question": "Apakah organisasi Anda memiliki etika anti-korupsi yang terestabilisasi? Bagaimana kualitas etika ini?"
+        },
+        {
+          "indicator": "A willingness to unveil fraud/crime is present",
+          "question": "Apakah organisasi Anda memiliki niat untuk membongkar tindakan korupsi/kriminalitas? Bagaimana tingkat niat ini?"
+        },
+        {
+          "indicator": "DF related activities are accepted within employees",
+          "question": "Apakah aktivitas-aktivitas terkait Digital Forensics (DF) diterima oleh pegawai-pegawai? Bagaimana tingkat penerimaannya?"
+        },
+        {
+          "indicator": "Specific guidelines for potential fraud related situations are present",
+          "question": "Apakah organisasi Anda memiliki pedoman khusus untuk situasi-situasi potensial korupsi? Bagaimana kualitas pedoman ini?"
+        },
+        {
+          "indicator": "Specific guidelines for potential fraud related situations are present and reviewed",
+          "question": "Apakah organisasi Anda memiliki pedoman khusus untuk situasi-situasi potensial korupsi dan diperiksa? Bagaimana kualitas pedoman dan prosedur ini?"
+        },
+        {
+          "indicator": "Employees do not hinder a DF investigation",
+          "question": "Apakah pegawai-pegawai tidak menghalangi penyelidikan Digital Forensics (DF)? Bagaimana tingkat sikap ini?"
+        },
+        {
+          "indicator": "Employees understand the importance of digital evidences",
+          "question": "Pegawai-pegawai apakah memahami pentingnya bukti-bukti digital? Bagaimana tingkat pemahamannya?"
+        },
+        {
+          "indicator": "Employees get informal DFR related training",
+          "question": "Pegawai-pegawai apakah mendapatkan pelatihan informal terkait Digital Forensics Readiness (DFR)? Bagaimana kualitas pelatihan ini?"
+        },
+        {
+          "indicator": "Employees get formal DFR related training",
+          "question": "Pegawai-pegawai apakah mendapatkan pelatihan formal terkait Digital Forensics Readiness (DFR)? Bagaimana kualitas pelatihan ini?"
+        },
+        {
+          "indicator": "The proper application of the knowledge is assessed regularly",
+          "question": "Penyertaan pengetahuan apakah dievaluasi secara berkala? Bagaimana kualitas evaluasi ini?"
+        },
+        {
+          "indicator": "Human resource division ensures the right amount of DF skilled employees",
+          "question": "Divisi Sumber Daya Manusia apakah memastikan jumlah pegawai yang berbakat dalam Digital Forensics (DF) yang tepat? Bagaimana kualitas aspek ini?"
+        },
+        {
+          "indicator": "Human resource division ensures the right amount of DF skilled employees",
+          "question": "Divisi Sumber Daya Manusia apakah memastikan jumlah pegawai yang berbakat dalam Digital Forensics (DF) yang tepat? Bagaimana kualitas aspek ini?"
+        },
+        {
+          "indicator": "Services, infrastructure and applications are documented",
+          "question": "Jasa-jasa, infrastruktur, dan aplikasi apa saja yang tercatat? Bagaimana kualitas catatan ini?"
+        },
+        {
+          "indicator": "Services, infrastructure and applications are documented and continuously updated",
+          "question": "Jasa-jasa, infrastruktur, dan aplikasi apa saja yang tercatat dan diperbarui secara konsisten? Bagaimana kualitas catatan dan prosedur ini?"
+        },
+        {
+          "indicator": "Possibilities to retrieve log-files are known",
+          "question": "Apa saja kemungkinan untuk mengambil log-file yang diketahui? Bagaimana kualitas pengetahannya?"
+        },
+        {
+          "indicator": "Possibilities to retrieve log-files are known and the configuration is reviewed",
+          "question": "Apa saja kemungkinan untuk mengambil log-file yang diketahui dan konfigurasinya diperiksa? Bagaimana kualitas pengetahannya dan prosedur reviewnya?"
+        },
+        {
+          "indicator": "Possibilities to retrieve log-files are known and the configuration is reviewed",
+          "question": "Apa saja kemungkinan untuk mengambil log-file yang diketahui dan konfigurasinya diperiksa? Bagaimana kualitas pengetahannya dan prosedur reviewnya?"
+        },
+        {
+          "indicator": "An internal laboratory is present",
+          "question": "Laboratorium dalam apa saja yang ada? Bagaimana kualitas laboratorium ini?"
+        },
+        {
+          "indicator": "A possibility to store and protect digital evidences is present",
+          "question": "Mungkin-mungkin untuk menyimpan dan melindungi bukti digital apa saja yang ada? Bagaimana kualitas mungkin-mungkin ini?"
+        },
+        {
+          "indicator": "Tools and methods to produce forensically sound copies of hard drives and memory are present",
+          "question": "Alat dan metode untuk membuat salinan forensik yang valid dari drive keras dan memori apa saja yang ada? Bagaimana kualitas alat dan metodenya?"
+        },
+        {
+          "indicator": "Tools and methods to produce forensically sound copies of hard drives and memory are present and reviewed frequently",
+          "question": "Alat dan metode untuk membuat salinan forensik yang valid dari drive keras dan memori apa saja yang ada dan diperiksa secara frekuens? Bagaimana kualitas alat dan metodenya dan prosedur reviewnya?"
+        },
+        {
+          "indicator": "Own tools for DF related tasks are developed in a forensically sound manner",
+          "question": "Alat sendiri untuk tugas terkait Digital Forensics (DF) apa saja yang dikembangkan dengan baik secara forensik? Bagaimana kualitas alat dan prosedur pengembangannya?"
+        },
+        {
+          "indicator": "Methods to adjust infrastructure and applications are present",
+          "question": "Metode untuk menyesuaikan infrastruktur dan aplikasi apa saja yang ada? Bagaimana kualitas metodenya?"
+        }
+      ]
+    },
+    {
+      "enabler_id": 4,
+      "enabler_name": "Information",
+      "total_indicators": 11,
+      "questions_parsed": 52,
+      "questions": [
+        {
+          "indicator": "Initiatives to raise awareness for DF activities are in place",
+          "question": "Apakah organisasi Anda memiliki inisiatif untuk meningkatkan kesadaran tentang kegiatan Digital Forensics (DF)? Sejauh mana inisiatif tersebut terorganisir dan terdokumentasi?"
+        },
+        {
+          "indicator": "Initiatives to raise awareness for DF activities are in place and continuously monitored",
+          "question": "Apakah organisasi Anda memiliki inisiatif untuk meningkatkan kesadaran tentang kegiatan Digital Forensics (DF) dan memonitornya secara terus-menerus? Sejauh mana ini dilaksanakan?"
+        },
+        {
+          "indicator": "Governance and Management understand DFR initiatives",
+          "question": "Bagaimana pemahaman Governance dan Manajemen terhadap inisiatif Digital Forensics (DF)?"
+        },
+        {
+          "indicator": "Governance and Management pursue DFR initiatives",
+          "question": "Apakah Governance dan Manajemen mendorong pelaksanaan inisiatif Digital Forensics (DF)? Sejauh mana ini dilaksanakan?"
+        },
+        {
+          "indicator": "Governance and Management are completely involved in planning DFR initiatives",
+          "question": "Bagaimana partisipasi Governance dan Manajemen dalam perencanaan inisiatif Digital Forensics (DF)?"
+        },
+        {
+          "indicator": "Governance and Management support DFR related organizational changes",
+          "question": "Apakah Governance dan Manajemen mendukung perubahan organisasional yang berkaitan dengan Digital Forensics (DF)? Sejauh mana dukungan ini dilaksanakan?"
+        },
+        {
+          "indicator": "A change management is in place",
+          "question": "Apakah organisasi Anda memiliki sistem manajemen perubahan? Bagaimana efektivitasnya?"
+        },
+        {
+          "indicator": "Principles and policies according to a DF investigation are present",
+          "question": "Apakah prinsip-prinsip dan kebijakan menurut penyelidikan Digital Forensics (DF) ada di organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Employees take the principles of DF related actions seriously",
+          "question": "Bagaimana sikap karyawan terhadap prinsip-prinsip tindakan yang berkaitan dengan Digital Forensics (DF)?"
+        },
+        {
+          "indicator": "Principles are clearly formulated",
+          "question": "Prinsip-prinsip apa yang digunakan oleh organisasi Anda dalam praktik Digital Forensics (DF)? Apakah mereka ditetapkan dengan jelas?"
+        },
+        {
+          "indicator": "A basic understanding of the DF investigation process is present",
+          "question": "Apakah organisasi Anda memiliki pemahaman dasar tentang proses penyelidikan Digital Forensics (DF)? Sejauh mana pemahaman ini diterapkan?"
+        },
+        {
+          "indicator": "A deep understanding of the DF investigation process is present",
+          "question": "Apakah organisasi Anda memiliki pemahaman mendalam tentang proses penyelidikan Digital Forensics (DF)? Sejauh mana pemahaman ini diterapkan?"
+        },
+        {
+          "indicator": "The support for the DF investigation process is continuously improved",
+          "question": "Apakah organisasi Anda meneruskan peningkatan dukungan proses penyelidikan Digital Forensics (DF)? Sejauh mana ini dilaksanakan?"
+        },
+        {
+          "indicator": "Related sub-processes to DF are documented",
+          "question": "Apakah organisasi Anda mencatat sub-proses yang terkait dengan Digital Forensics (DF)? Sejauh mana dokumentasi ini diterapkan?"
+        },
+        {
+          "indicator": "Guidelines to prevent business interruption in the case of a DF investigation are defined",
+          "question": "Apakah organisasi Anda memiliki pedoman untuk mencegah gangguan bisnis saat melakukan penyelidikan Digital Forensics (DF)? Sejauh mana pedoman ini diterapkan?"
+        },
+        {
+          "indicator": "Process models of business processes are present",
+          "question": "Apakah organisasi Anda memiliki model proses bisnis yang ada? Sejauh mana model ini diterapkan?"
+        },
+        {
+          "indicator": "DF related processes are partially automated",
+          "question": "Apakah organisasi Anda menganalisis proses-proses yang berkaitan dengan Digital Forensics (DF) dan sejauh mana otomatisasi ini dilaksanakan?"
+        },
+        {
+          "indicator": "Responsibilities for the case of a DF investigation are known",
+          "question": "Apakah organisasi Anda mengetahui tanggung jawab dalam kasus penyelidikan Digital Forensics (DF)? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Responsibilities for the case of a DF investigation are defined",
+          "question": "Apakah organisasi Anda mendefinisikan tanggung jawab dalam kasus penyelidikan Digital Forensics (DF)? Sejauh mana definisi ini diterapkan?"
+        },
+        {
+          "indicator": "DF related decision-making guidelines are included in job-descriptions or roles",
+          "question": "Apakah organisasi Anda menyertakan panduan pengambilan keputusan yang berkaitan dengan Digital Forensics (DF) dalam deskripsi pekerjaan atau peran? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Rights within Information Systems are defined",
+          "question": "Apakah organisasi Anda menentukan hak-hak dalam sistem informasi? Sejauh mana hak-hak ini diterapkan?"
+        },
+        {
+          "indicator": "Rights within Information Systems are defined and adjusted to prevent potential destroying or tampering of evidences",
+          "question": "Apakah organisasi Anda menentukan hak-hak dalam sistem informasi dan mengaturnya untuk mencegah potensi kerusakan atau manipulasi bukti? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "An Identity Management System is in place",
+          "question": "Apakah organisasi Anda memiliki sistem manajemen identitas? Bagaimana efektivitasnya?"
+        },
+        {
+          "indicator": "Escalation rules are defined",
+          "question": "Apakah organisasi Anda memiliki aturan eskalasi? Sejauh mana aturan ini diterapkan?"
+        },
+        {
+          "indicator": "Escalation rules are defined, reviewed and monitored",
+          "question": "Apakah organisasi Anda memiliki aturan eskalasi yang didefinisikan, direview, dan dipantau? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences in general are present",
+          "question": "Apakah organisasi Anda memiliki dokumen tentang cara-cara yang tepat dalam mengelola bukti digital secara umum? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences of all devices and systems within the organization are present",
+          "question": "Apakah organisasi Anda memiliki dokumen tentang cara-cara yang tepat dalam mengelola bukti digital dari semua perangkat dan sistem dalam organisasi? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences of all devices and systems within the organization are present and frequently reviewed",
+          "question": "Apakah organisasi Anda memiliki dokumen tentang cara-cara yang tepat dalam mengelola bukti digital dari semua perangkat dan sistem dalam organisasi dan sering direview? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Information about DF investigations are available and accessible",
+          "question": "Informasi tentang penyelidikan Digital Forensics (DF) apakah tersedia dan dapat diakses? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Employee can contribute findings and knowledge regarding DF",
+          "question": "Apakah karyawan dapat memberikan temuan dan pengetahuan terkait Digital Forensics (DF)? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "The usage of tools for DF is documented",
+          "question": "Apakah penggunaan alat-alat untuk Digital Forensics (DF) dicatat? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "The usage of tools for DF is documented and continuously reviewed",
+          "question": "Apakah penggunaan alat-alat untuk Digital Forensics (DF) dicatat dan terus direview? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Information about the usage of digital evidences in a law court is present",
+          "question": "Apakah informasi tentang penggunaan bukti digital di pengadilan ada? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Information about the usage of digital evidences in a law court is present and frequently updated",
+          "question": "Apakah informasi tentang penggunaan bukti digital di pengadilan ada dan sering diperbarui? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Employees get frequent updates according DF related topics (e.g.: e-Mail, letter)",
+          "question": "Apakah karyawan mendapatkan update frekuensinya mengenai topik-topik terkait Digital Forensics (DF) seperti melalui email atau surat? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Employees get timely updates according DF related topics (e.g.: e-Mail, letter)",
+          "question": "Apakah karyawan mendapatkan update tepat waktu mengenai topik-topik terkait Digital Forensics (DF) seperti melalui email atau surat? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "A fraud intolerant culture is present",
+          "question": "Adakah budaya toleransi terhadap penyelewengan dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "A fraud intolerant culture is pursued",
+          "question": "Apakah organisasi Anda mendorong budaya toleransi terhadap penyelewengan? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Open handling of mistakes and issues is present",
+          "question": "Adakah metode open handling terhadap kesalahan dan masalah dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Open handling of mistakes and issues is present",
+          "question": "Adakah metode open handling terhadap kesalahan dan masalah dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Anti-fraud ethics are established",
+          "question": "Adakah etika anti-fraud yang dirancang dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "A willingness to unveil fraud/crime is present",
+          "question": "Adakah keberanian untuk membuka upaya pencucian uang/dosa dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "DF related activities are accepted within employees",
+          "question": "Apakah aktivitas-aktivitas terkait Digital Forensics (DF) diterima oleh karyawan dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Specific guidelines for potential fraud related situations are present",
+          "question": "Adakah petunjuk spesifik untuk situasi-situasi potensial terkait pencucian uang/penyelewengan dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Specific guidelines for potential fraud related situations are present and reviewed",
+          "question": "Adakah petunjuk spesifik untuk situasi-situasi potensial terkait pencucian uang/penyelewengan dalam organisasi Anda dan direview? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Employees do not hinder a DF investigation",
+          "question": "Apakah karyawan tidak menghalangi penyelidikan Digital Forensics (DF) dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Employees understand the importance of digital evidences",
+          "question": "Apakah karyawan memahami pentingnya bukti digital dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Employees get informal DFR related training",
+          "question": "Apakah karyawan mendapatkan pelatihan informal terkait Digital Forensics (DF) dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Employees get formal DFR related training",
+          "question": "Apakah karyawan mendapatkan pelatihan formal terkait Digital Forensics (DF) dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "The proper application of the knowledge is assessed regularly",
+          "question": "Apakah aplikasi pengetahuan yang benar dinilai secara reguler dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Human resource division ensures the right amount of DF skilled employees",
+          "question": "Apakah bagian sumber daya manusia memastikan jumlah tenaga kerja yang tepat dengan kemampuan Digital Forensics (DF) dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Human resource division ensures the right amount of DF skilled employees",
+          "question": "Apakah bagian sumber daya manusia memastikan jumlah tenaga kerja yang tepat dengan kemampuan Digital Forensics (DF) dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        }
+      ]
+    },
+    {
+      "enabler_id": 5,
+      "enabler_name": "Culture, Ethics, and Behavior",
+      "total_indicators": 10,
+      "questions_parsed": 0,
+      "questions": []
+    },
+    {
+      "enabler_id": 6,
+      "enabler_name": "People, Skills, and Competences",
+      "total_indicators": 6,
+      "questions_parsed": 63,
+      "questions": [
+        {
+          "indicator": "Initiatives to raise awareness for DF activities are in place",
+          "question": "Apakah organisasi Anda memiliki inisiatif untuk meningkatkan kesadaran tentang kegiatan Digital Forensics (DF)? Sejauh mana inisiatif tersebut terorganisir dan terdokumentasi?"
+        },
+        {
+          "indicator": "Initiatives to raise awareness for DF activities are in place and continuously monitored",
+          "question": "Apakah organisasi Anda memiliki inisiatif untuk meningkatkan kesadaran tentang kegiatan DF yang diawasi secara kontinu? Sejauh mana inisiatif tersebut diterapkan?"
+        },
+        {
+          "indicator": "Governance and Management understand DFR initiatives",
+          "question": "Mengertikah Governance dan Management dalam organisasi Anda tentang inisiatif Digital Forensics (DF)? Sejauh mana pemahaman mereka?"
+        },
+        {
+          "indicator": "Governance and Management pursue DFR initiatives",
+          "question": "Bagaimana Governance dan Management dalam organisasi Anda mendukung inisiatif Digital Forensics (DF)? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Governance and Management are completely involved in planning DFR initiatives",
+          "question": "Governance dan Management dalam organisasi Anda sepenuhnya terlibat dalam merencanakan inisiatif Digital Forensics (DF)? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Governance and Management support DFR related organizational changes",
+          "question": "Bagaimana Governance dan Management dalam organisasi Anda mendukung perubahan organisasional terkait Digital Forensics (DF)? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "A change management is in place",
+          "question": "Apakah organisasi Anda memiliki sistem manajemen perubahan yang terdapat? Sejauh mana sistem ini diterapkan?"
+        },
+        {
+          "indicator": "Principles and policies according to a DF investigation are present",
+          "question": "Apakah organisasi Anda memiliki prinsip dan kebijakan berdasarkan penyelidikan Digital Forensics (DF) yang ada? Sejauh mana prinsip-prinsip dan kebijakan ini diterapkan?"
+        },
+        {
+          "indicator": "Employees take the principles of DF related actions seriously",
+          "question": "Apakah karyawan dalam organisasi Anda mengambil serius prinsip-prinsip yang berkaitan dengan tindakan Digital Forensics (DF)? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Principles are clearly formulated",
+          "question": "Prinsip-prinsip apa yang digunakan dalam organisasi Anda terbentuk dengan jelas? Sejauh mana formulasi prinsip-prinsip ini diterapkan?"
+        },
+        {
+          "indicator": "A basic understanding of the DF investigation process is present",
+          "question": "Apakah organisasi Anda memiliki pemahaman dasar tentang proses penyelidikan Digital Forensics (DF)? Sejauh mana pemahaman ini diterapkan?"
+        },
+        {
+          "indicator": "A deep understanding of the DF investigation process is present",
+          "question": "Apakah organisasi Anda memiliki pemahaman mendalam tentang proses penyelidikan Digital Forensics (DF)? Sejauh mana pemahaman ini diterapkan?"
+        },
+        {
+          "indicator": "The support for the DF investigation process is continuously improved",
+          "question": "Bagaimana dukungan proses penyelidikan Digital Forensics (DF) dalam organisasi Anda ditingkatkan secara kontinu? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Related sub-processes to DF are documented",
+          "question": "Apakah organisasi Anda mencatat sub-proses yang terkait dengan Digital Forensics (DF)? Sejauh mana dokumentasi ini diterapkan?"
+        },
+        {
+          "indicator": "Guidelines to prevent business interruption in the case of a DF investigation are defined",
+          "question": "Apakah organisasi Anda menetapkan pedoman untuk mencegah gangguan bisnis saat penyelidikan Digital Forensics (DF)? Sejauh mana pedoman ini diterapkan?"
+        },
+        {
+          "indicator": "Process models of business processes are present",
+          "question": "Apakah organisasi Anda memiliki model proses yang mencakup proses bisnis? Sejauh mana model ini diterapkan?"
+        },
+        {
+          "indicator": "DF related processes are partially automated",
+          "question": "Apakah organisasi Anda memiliki proses Digital Forensics (DF) yang otomatis sebagian? Sejauh mana otomatisasi ini diterapkan?"
+        },
+        {
+          "indicator": "Responsibilities for the case of a DF investigation are known",
+          "question": "Responsibilitas untuk kasus penyelidikan Digital Forensics (DF) apakah diketahui oleh organisasi Anda? Sejauh mana responsibilitas ini diterapkan?"
+        },
+        {
+          "indicator": "Responsibilities for the case of a DF investigation are defined",
+          "question": "Apakah organisasi Anda mendefinisikan responsibilitas untuk kasus penyelidikan Digital Forensics (DF)? Sejauh mana definisi ini diterapkan?"
+        },
+        {
+          "indicator": "DF related decision-making guidelines are included in job-descriptions or roles",
+          "question": "Pedoman pengambilan keputusan yang terkait dengan Digital Forensics (DF) termasuk dalam deskripsi pekerjaan atau peran dalam organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Rights within Information Systems are defined",
+          "question": "Hak-hak dalam Sistem Informasi apakah ditentukan oleh organisasi Anda? Sejauh mana hak-hak ini diterapkan?"
+        },
+        {
+          "indicator": "Rights within Information Systems are defined and adjusted to prevent potential destroying or tampering of evidences",
+          "question": "Hak-hak dalam Sistem Informasi apakah ditentukan dan disesuaikan untuk mencegah potensial kerusakan atau manipulasi bukti oleh organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "An Identity Management System is in place",
+          "question": "Apakah organisasi Anda memiliki sistem Manajemen Identitas yang terdapat? Sejauh mana sistem ini diterapkan?"
+        },
+        {
+          "indicator": "Escalation rules are defined",
+          "question": "Aturan eskalasi apakah ditentukan oleh organisasi Anda? Sejauh mana aturan ini diterapkan?"
+        },
+        {
+          "indicator": "Escalation rules are defined, reviewed and monitored",
+          "question": "Aturan eskalasi apakah ditentukan, diperiksa, dan dipantau oleh organisasi Anda? Sejauh mana ini diterapkan?"
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences in general are present",
+          "question": "Dokumen tentang penanganan digital evidences secara umum apakah ada dalam organisasi Anda? Sejauh mana dokumen ini diterapkan?"
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences of all devices and systems within the organization are present",
+          "question": "Dokumen tentang penanganan digital evidences dari semua perangkat dan sistem dalam organisasi Anda apakah ada? Sejauh mana dokumen ini diterapkan?"
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences of all devices and systems within the organization are present and frequently reviewed",
+          "question": "Dokumen tentang penanganan digital evidences dari semua perangkat dan sistem dalam organisasi Anda apakah ada dan sering direview? Sejauh mana review ini diterapkan?"
+        },
+        {
+          "indicator": "Information about DF investigations are available and accessible",
+          "question": "Informasi tentang penyelidikan Digital Forensics (DF) apakah tersedia dan dapat diakses oleh organisasi Anda? Sejauh mana informasi ini diterapkan?"
+        },
+        {
+          "indicator": "Employee can contribute findings and knowledge regarding DF",
+          "question": "Karyawan dalam organisasi Anda bisa kontribusi temuan dan pengetahuan terkait Digital Forensics (DF)? Sejauh mana kontribusi ini diterapkan?"
+        },
+        {
+          "indicator": "The usage of tools for DF is documented",
+          "question": "Pemakaian alat untuk Digital Forensics (DF) apakah dicatat dalam organisasi Anda? Sejauh mana pencatatan ini diterapkan?"
+        },
+        {
+          "indicator": "The usage of tools for DF is documented and continuously reviewed",
+          "question": "Pemakaian alat untuk Digital Forensics (DF) apakah dicatat dan diperiksa secara kontinu dalam organisasi Anda? Sejauh mana review ini diterapkan?"
+        },
+        {
+          "indicator": "Information about the usage of digital evidences in a law court is present",
+          "question": "Informasi tentang penggunaan digital evidences di pengadilan apakah ada dalam organisasi Anda? Sejauh mana informasi ini diterapkan?"
+        },
+        {
+          "indicator": "Information about the usage of digital evidences in a law court is present and frequently updated",
+          "question": "Informasi tentang penggunaan digital evidences di pengadilan apakah ada dan sering diperbarui dalam organisasi Anda? Sejauh mana update ini diterapkan?"
+        },
+        {
+          "indicator": "Employees get frequent updates according DF related topics (e.g.: e-Mail, letter)",
+          "question": "Karyawan dalam organisasi Anda mendapatkan update sering terkait topik-topik Digital Forensics (DF) (misalnya: e-mail, surat)? Sejauh mana update ini diterapkan?"
+        },
+        {
+          "indicator": "Employees get timely updates according DF related topics (e.g.: e-Mail, letter)",
+          "question": "Karyawan dalam organisasi Anda mendapatkan update tepat waktu terkait topik-topik Digital Forensics (DF) (misalnya: e-mail, surat)? Sejauh mana update ini diterapkan?"
+        },
+        {
+          "indicator": "A fraud intolerant culture is present",
+          "question": "Adakah budaya toleransi atas penyelewengan (fraud) ada dalam organisasi Anda? Sejauh mana budaya ini diterapkan?"
+        },
+        {
+          "indicator": "A fraud intolerant culture is pursued",
+          "question": "Adakah budaya toleransi atas penyelewengan (fraud) dilaksanakan dalam organisasi Anda? Sejauh mana budaya ini diterapkan?"
+        },
+        {
+          "indicator": "Open handling of mistakes and issues is present",
+          "question": "Adakah penanganan terbuka atas kesalahan dan masalah ada dalam organisasi Anda? Sejauh mana penanganan ini diterapkan?"
+        },
+        {
+          "indicator": "Open handling of mistakes and issues is present",
+          "question": "Adakah penanganan terbuka atas kesalahan dan masalah ada dalam organisasi Anda? Sejauh mana penanganan ini diterapkan?"
+        },
+        {
+          "indicator": "Anti-fraud ethics are established",
+          "question": "Etika anti-penyelewengan (anti-fraud) apakah dibentuk dalam organisasi Anda? Sejauh mana etika ini diterapkan?"
+        },
+        {
+          "indicator": "A willingness to unveil fraud/crime is present",
+          "question": "Adakah niat untuk membongkar penyelewengan/kriminalitas ada dalam organisasi Anda? Sejauh mana niat ini diterapkan?"
+        },
+        {
+          "indicator": "DF related activities are accepted within employees",
+          "question": "Aktivitas terkait Digital Forensics (DF) apakah diterima oleh karyawan dalam organisasi Anda? Sejauh mana aktivitas ini diterapkan?"
+        },
+        {
+          "indicator": "Specific guidelines for potential fraud related situations are present",
+          "question": "Petunjuk spesifik untuk situasi potensial penyelewengan (fraud) apakah ada dalam organisasi Anda? Sejauh mana petunjuk ini diterapkan?"
+        },
+        {
+          "indicator": "Specific guidelines for potential fraud related situations are present and reviewed",
+          "question": "Petunjuk spesifik untuk situasi potensial penyelewengan (fraud) apakah ada dan direview dalam organisasi Anda? Sejauh mana review ini diterapkan?"
+        },
+        {
+          "indicator": "Employees do not hinder a DF investigation",
+          "question": "Apakah karyawan dalam organisasi Anda tidak menghalangi penyelidikan Digital Forensics (DF)? Sejauh mana halangan ini diterapkan?"
+        },
+        {
+          "indicator": "Employees understand the importance of digital evidences",
+          "question": "Apakah karyawan dalam organisasi Anda memahami pentingnya bukti digital? Sejauh mana pemahaman ini diterapkan?"
+        },
+        {
+          "indicator": "Employees get informal DFR related training",
+          "question": "Apakah karyawan dalam organisasi Anda mendapatkan pelatihan informal terkait Digital Forensics (DF)? Sejauh mana pelatihan ini diterapkan?"
+        },
+        {
+          "indicator": "Employees get formal DFR related training",
+          "question": "Apakah karyawan dalam organisasi Anda mendapatkan pelatihan resmi terkait Digital Forensics (DF)? Sejauh mana pelatihan ini diterapkan?"
+        },
+        {
+          "indicator": "The proper application of the knowledge is assessed regularly",
+          "question": "Apakah aplikasi pengetahuan yang tepat dinilai secara reguler dalam organisasi Anda? Sejauh mana penilaian ini diterapkan?"
+        },
+        {
+          "indicator": "Human resource division ensures the right amount of DF skilled employees",
+          "question": "Divisi Human Resource dalam organisasi Anda memastikan jumlah karyawan yang memiliki kemampuan Digital Forensics (DF) yang tepat? Sejauh mana aspek ini diterapkan?"
+        },
+        {
+          "indicator": "Human resource division ensures the right amount of DF skilled employees",
+          "question": "Divisi Human Resource dalam organisasi Anda memastikan jumlah karyawan yang memiliki kemampuan Digital Forensics (DF) yang tepat? Sejauh mana aspek ini diterapkan?"
+        },
+        {
+          "indicator": "Services, infrastructure and applications are documented",
+          "question": "Layanan, infrastruktur, dan aplikasi apakah dicatat dalam organisasi Anda? Sejauh mana pencatatan ini diterapkan?"
+        },
+        {
+          "indicator": "Services, infrastructure and applications are documented and continuously updated",
+          "question": "Layanan, infrastruktur, dan aplikasi apakah dicatat dan diperbarui secara kontinu dalam organisasi Anda? Sejauh mana update ini diterapkan?"
+        },
+        {
+          "indicator": "Possibilities to retrieve log-files are known",
+          "question": "Pilihan untuk merekam file log apakah diketahui oleh organisasi Anda? Sejauh mana pilihan ini diterapkan?"
+        },
+        {
+          "indicator": "Possibilities to retrieve log-files are known and the configuration is reviewed",
+          "question": "Pilihan untuk merekam file log apakah diketahui dan konfigurasi apakah direview oleh organisasi Anda? Sejauh mana review ini diterapkan?"
+        },
+        {
+          "indicator": "Possibilities to retrieve log-files are known and the configuration is reviewed",
+          "question": "Pilihan untuk merekam file log apakah diketahui dan konfigurasi apakah direview oleh organisasi Anda? Sejauh mana review ini diterapkan?"
+        },
+        {
+          "indicator": "An internal laboratory is present",
+          "question": "Laboratorium dalam organisasi Anda apakah terdapat? Sejauh mana laboratorium ini diterapkan?"
+        },
+        {
+          "indicator": "A possibility to store and protect digital evidences is present",
+          "question": "Opsi untuk menyimpan dan melindungi bukti digital apakah ada dalam organisasi Anda? Sejauh mana opsi ini diterapkan?"
+        },
+        {
+          "indicator": "Tools and methods to produce forensically sound copies of hard drives and memory are present",
+          "question": "Alat dan metode untuk membuat salinan forensik dari drive keras dan memori apakah ada dalam organisasi Anda? Sejauh mana alat dan metode ini diterapkan?"
+        },
+        {
+          "indicator": "Tools and methods to produce forensically sound copies of hard drives and memory are present and reviewed frequently",
+          "question": "Alat dan metode untuk membuat salinan forensik dari drive keras dan memori apakah ada dan direview secara rutin dalam organisasi Anda? Sejauh mana review ini diterapkan?"
+        },
+        {
+          "indicator": "Own tools for DF related tasks are developed in a forensically sound manner",
+          "question": "Alat sendiri untuk tugas terkait Digital Forensics (DF) apakah dikembangkan dengan cara yang aman forensik dalam organisasi Anda? Sejauh mana pembangunan ini diterapkan?"
+        },
+        {
+          "indicator": "Methods to adjust infrastructure and applications are present",
+          "question": "Metode untuk menyesuaikan infrastruktur dan aplikasi apakah ada dalam organisasi Anda? Sejauh mana metode ini diterapkan?"
+        }
+      ]
+    },
+    {
+      "enabler_id": 7,
+      "enabler_name": "Services, Infrastructure, and Applications",
+      "total_indicators": 10,
+      "questions_parsed": 0,
+      "questions": []
+    }
+  ]
+}

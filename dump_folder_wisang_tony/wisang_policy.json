@@ -1,0 +1,246 @@
+{
+  "INPUT_DATA": {
+    "Pertanyaan": [
+      {
+        "id": 1,
+        "indikator": "Kebijakan dan prosedur sebagai pedoman untuk aktivitas dan operasi anggota organisasi yang menggunakan Teknologi Informasi dan Komunikasi (TIK)",
+        "pertanyaan": [
+          {
+            "maturity_key": "recognize",
+            "question": "Apakah organisasi menyadari pentingnya memiliki kebijakan dan prosedur untuk mengatur penggunaan TIK oleh para anggota?"
+          },
+          {
+            "maturity_key": "define",
+            "question": "Apakah terdapat kebijakan dan prosedur sebagai pedoman untuk aktivitas dan operasi anggota organisasi yang menggunakan Teknologi Informasi dan Komunikasi (TIK)?"
+          },
+          {
+            "maturity_key": "measure",
+            "question": "Apakah kebijakan dan prosedur sebagai pedoman untuk aktivitas dan operasi anggota organisasi yang menggunakan Teknologi Informasi dan Komunikasi (TIK) telah dimonitor secara berkala?"
+          },
+          {
+            "maturity_key": "analyze",
+            "question": "Apakah ada analisis terhadap kesenjangan atau kelemahan dalam kebijakan yang ada, berdasarkan hasil pemantauan?"
+          },
+          {
+            "maturity_key": "improve",
+            "question": "Apakah ada rencana untuk memperbarui kebijakan dan prosedur TIK agar tetap relevan dengan perkembangan teknologi?"
+          },
+          {
+            "maturity_key": "sustain",
+            "question": "Apakah kebijakan dan prosedur TIK ditinjau dan diperbarui secara rutin untuk memastikan relevansinya?"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "indikator": "Kebijakan terkait perlindungan data pribadi yang disusun sesuai dengan peraturan perundang-undangan yang berlaku (UU No.27 Tahun 2022 tentang Pelindungan Data Pribadi).",
+        "pertanyaan": [
+          {
+            "maturity_key": "recognize",
+            "question": "Apakah ada pemahaman awal mengenai tanggung jawab organisasi dalam melindungi data pribadi?"
+          },
+          {
+            "maturity_key": "define",
+            "question": "Apakah organisasi sudah memiliki kebijakan terkait perlindungan data pribadi sesuai dengan peraturan perundang-undangan yang berlaku (UU PDP)?"
+          },
+          {
+            "maturity_key": "measure",
+            "question": "Apakah organisasi secara rutin melakukan audit untuk mengukur kepatuhan terhadap kebijakan perlindungan data pribadi yang telah dibuat?"
+          },
+          {
+            "maturity_key": "analyze",
+            "question": "Apakah organisasi menganalisis hasil audit dan laporan insiden untuk mengidentifikasi kelemahan dalam kebijakan atau prosedur yang ada?"
+          },
+          {
+            "maturity_key": "improve",
+            "question": "Apakah ada program untuk memperbarui kebijakan perlindungan data pribadi agar tetap relevan dengan perubahan regulasi dan teknologi?"
+          },
+          {
+            "maturity_key": "sustain",
+            "question": "Apakah kebijakan perlindungan data pribadi menjadi bagian integral dari budaya kerja organisasi?"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "indikator": "Sanksi bagi pelanggar kebijakan dan prosedur perlindungan data dan kesiapan forensik digital",
+        "pertanyaan": [
+          {
+            "maturity_key": "recognize",
+            "question": "Apakah organisasi menyadari pentingnya menetapkan sanksi yang jelas untuk pelanggaran kebijakan perlindungan data dan kesiapan forensik digital?"
+          },
+          {
+            "maturity_key": "define",
+            "question": "Apakah sanksi untuk pelanggar kebijakan dan prosedur perlindungan data dan kesiapan forensik digital telah ditetapkan?"
+          },
+          {
+            "maturity_key": "measure",
+            "question": "Apakah ada pengukuran yang dilakukan untuk menilai seberapa sering pelanggaran terjadi setelah sanksi ditetapkan?"
+          },
+          {
+            "maturity_key": "analyze",
+            "question": "Apakah ada analisis untuk mengevaluasi efektivitas sanksi yang diterapkan dalam mencegah pelanggaran di masa depan?"
+          },
+          {
+            "maturity_key": "improve",
+            "question": "Apakah ada program untuk meninjau dan memperbarui kebijakan sanksi agar lebih efektif dan adil?"
+          },
+          {
+            "maturity_key": "sustain",
+            "question": "Apakah sistem sanksi ini menjadi bagian dari sistem manajemen kinerja dan kedisiplinan yang berkelanjutan?"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "indikator": "Kebijakan bahwa semua sumber daya informasi dan data merupakan milik organisasi",
+        "pertanyaan": [
+          {
+            "maturity_key": "recognize",
+            "question": "Apakah ada pemahaman dasar organisasi bahwa data yang dihasilkan atau disimpan di sistem organisasi adalah aset berharga yang harus dilindungi?"
+          },
+          {
+            "maturity_key": "define",
+            "question": "Apakah terdapat kebijakan yang menyatakan bahwa semua sumber daya informasi dan data merupakan milik organisasi?"
+          },
+          {
+            "maturity_key": "measure",
+            "question": "Apakah organisasi melakukan audit untuk memverifikasi bahwa anggota organisasi mematuhi kebijakan kepemilikan data?"
+          },
+          {
+            "maturity_key": "analyze",
+            "question": "Apakah organisasi menganalisis insiden kebocoran data untuk menentukan apakah pelanggaran kebijakan kepemilikan data adalah penyebabnya?"
+          },
+          {
+            "maturity_key": "improve",
+            "question": "Apakah organisasi menerapkan kontrol teknis (seperti manajemen hak akses) untuk menegakkan kebijakan kepemilikan data?"
+          },
+          {
+            "maturity_key": "sustain",
+            "question": "Apakah organisasi secara konsisten meninjau dan memperkuat kebijakan ini untuk memastikan keberlanjutannya sebagai aset hukum dan operasional?"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "indikator": "Kebijakan dalam keadaan bagaimanakah barang bukti digital dapat diamankan",
+        "pertanyaan": [
+          {
+            "maturity_key": "recognize",
+            "question": "Apakah ada pemahaman bahwa pengamanan bukti yang tidak tepat waktu atau tidak teratur dapat merusak integritasnya?"
+          },
+          {
+            "maturity_key": "define",
+            "question": "Apakah Organisasi memiliki kebijakan yang jelas mengenai kondisi atau situasi di mana barang bukti digital dapat diamankan?"
+          },
+          {
+            "maturity_key": "measure",
+            "question": "Apakah organisasi mencatat setiap kejadian di mana bukti digital diamankan, termasuk waktu, alasan, dan personel yang terlibat?"
+          },
+          {
+            "maturity_key": "analyze",
+            "question": "Apakah organisasi menganalisis data insiden untuk menentukan apakah kebijakan pengamanan bukti sudah diterapkan secara konsisten?"
+          },
+          {
+            "maturity_key": "improve",
+            "question": "Apakah ada program untuk memperbarui kebijakan ini agar relevan dengan jenis-jenis insiden baru?"
+          },
+          {
+            "maturity_key": "sustain",
+            "question": "Apakah kebijakan ini diintegrasikan ke dalam program pelatihan tim respons insiden secara berkelanjutan?"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "indikator": "Kebijakan barang bukti digital apa saja yang harus diamankan",
+        "pertanyaan": [
+          {
+            "maturity_key": "recognize",
+            "question": "Apakah ada pemahaman dasar mengenai pentingnya mengidentifikasi jenis data yang relevan dalam suatu insiden?"
+          },
+          {
+            "maturity_key": "define",
+            "question": "Apakah terdapat kebijakan yang mengidentifikasi bukti digital mana yang harus diamankan (e.g., system logs, emails, databases, access records)?"
+          },
+          {
+            "maturity_key": "measure",
+            "question": "Apakah ada mekanisme untuk memverifikasi bahwa bukti yang diamankan sesuai dengan daftar yang disebutkan dalam kebijakan?"
+          },
+          {
+            "maturity_key": "analyze",
+            "question": "Apakah organisasi menganalisis kesenjangan antara jenis bukti yang diidentifikasi dalam kebijakan dengan bukti yang benar-benar relevan dalam investigasi aktual?"
+          },
+          {
+            "maturity_key": "improve",
+            "question": "Apakah ada kontrol yang memastikan bahwa daftar jenis bukti ini dikomunikasikan dengan baik kepada semua pihak yang terlibat dalam respons insiden?"
+          },
+          {
+            "maturity_key": "sustain",
+            "question": "Apakah kebijakan ini secara rutin ditinjau dan disesuaikan berdasarkan pengalaman dari investigasi sebelumnya?"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "indikator": "Kebijakan yang menyatakan cara dan situasi ketika bukti-bukti yang telah diamankan oleh organisasi dapat dilepaskan kepada pihak di luar organisasi, termasuk ketika harus dirujuk ke penegak hukum",
+        "pertanyaan": [
+          {
+            "maturity_key": "recognize",
+            "question": "Apakah ada pemahaman dasar mengenai pentingnya prosedur formal untuk pelepasan bukti, terutama kepada penegak hukum?"
+          },
+          {
+            "maturity_key": "define",
+            "question": "Apakah terdapat kebijakan yang mengatur metode dan keadaan di mana bukti yang diamankan dapat diserahkan kepada pihak eksternal, termasuk ketika harus dirujuk ke penegak hukum?"
+          },
+          {
+            "maturity_key": "measure",
+            "question": "Apakah organisasi mencatat setiap pelepasan bukti, termasuk kepada siapa, kapan, dan bagaimana bukti tersebut diserahkan?"
+          },
+          {
+            "maturity_key": "analyze",
+            "question": "Apakah organisasi menganalisis proses pelepasan bukti untuk mengidentifikasi potensi kelemahan atau keterlambatan?"
+          },
+          {
+            "maturity_key": "improve",
+            "question": "Apakah ada kontrol yang diterapkan untuk memastikan bahwa bukti yang dilepaskan telah diverifikasi keutuhannya dan didokumentasikan dengan benar?"
+          },
+          {
+            "maturity_key": "sustain",
+            "question": "Apakah kebijakan ini secara rutin ditinjau dan disesuaikan untuk memastikan kepatuhan terhadap hukum yang berkembang?"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "indikator": "Kebijakan pembagian wewenang, tugas dan tanggungjawab terkait pengumpulan barang bukti digital, pemeliharaan dan pemeriksaannya",
+        "pertanyaan": [
+          {
+            "maturity_key": "recognize",
+            "question": "Apakah organisasi menyadari pentingnya pembagian wewenang yang jelas dalam proses forensik digital?"
+          },
+          {
+            "maturity_key": "define",
+            "question": "Apakah terdapat kebijakan mengenai pembagian wewenang, tugas, dan tanggung jawab terkait pengumpulan, pemeliharaan, dan pemeriksaan bukti digital?"
+          },
+          {
+            "maturity_key": "measure",
+            "question": "Apakah organisasi mencatat dan memverifikasi bahwa setiap langkah dalam proses forensik digital (pengumpulan, pemeliharaan, pemeriksaan) dilakukan oleh personel yang berwenang?"
+          },
+          {
+            "maturity_key": "analyze",
+            "question": "Apakah organisasi menganalisis alur kerja forensik digital untuk mengidentifikasi tumpang tindih atau kesenjangan dalam wewenang dan tanggung jawab?"
+          },
+          {
+            "maturity_key": "improve",
+            "question": "Apakah ada kontrol yang diterapkan untuk memastikan bahwa personel yang terlibat dalam setiap tahap memiliki kualifikasi yang sesuai?"
+          },
+          {
+            "maturity_key": "sustain",
+            "question": "Apakah kebijakan pembagian wewenang ini diintegrasikan ke dalam deskripsi pekerjaan dan pelatihan rutin tim forensik digital?"
+          }
+        ]
+      }
+    ]
+  }
+}

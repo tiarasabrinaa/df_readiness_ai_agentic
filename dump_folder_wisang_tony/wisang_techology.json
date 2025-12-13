@@ -1,0 +1,499 @@
+{
+  "INPUT_DATA": {
+    "Pertanyaan": [
+      {
+        "id": 1,
+        "indikator": "Kesadaran & Pentingnya",
+        "pertanyaan": [
+          "Apakah organisasi menyadari pentingnya jaminan manajemen log dari masing-masing sistem, pemeliharaan, dan pengelolaan?",
+          "Apakah anggota organisasi mengetahui bagaimana pentingnya log untuk jejak audit dan forensik?",
+          "Apakah manajemen organisasi mengakui pentingnya analisa berkala terhadap log?"
+        ]
+      },
+      {
+        "id": 2,
+        "indikator": "Eksistensi & Dokumentasi",
+        "pertanyaan": [
+          "Adakah dokumen log tersedia yang mencakup semua sistem?",
+          "Apakah log tersebut mencakup aktivitas insiden personal data breach?",
+          "Apakah ada prosedur dokumentasi tentang manajemen log?"
+        ]
+      },
+      {
+        "id": 3,
+        "indikator": "Monitoring & Pengukuran Keteraturan",
+        "pertanyaan": [
+          "Apakah seluruh perubahan dalam sistem informasi secara otomatis tercatat dalam log?",
+          "Apakah upaya akses tidak sah secara otomatis tercatat dalam log?",
+          "Adakah mekanisme monitoring dan pengukuran kualitas log yang dilaksanakan?"
+        ]
+      },
+      {
+        "id": 4,
+        "indikator": "Evaluasi & Analisis Kesenjangan",
+        "pertanyaan": [
+          "Apakah organisasi melakukan analisa berkala untuk memastikan akurasi, validitas, dan kelengkapan isinya (guna kepentingan jejak audit dan forensik)?",
+          "Adakah laporan yang dikeluarkan atas hasil analisa log?",
+          "Apakah organisasi memiliki metrik untuk mengevaluasi efektivitas manajemen log?"
+        ]
+      },
+      {
+        "id": 5,
+        "indikator": "Perencanaan Pembaruan & Inisiatif",
+        "pertanyaan": [
+          "Adakah rencana pembaharuan atau peningkatan log yang ditetapkan?",
+          "Apakah ada inisiatif baru untuk meningkatkan manajemen log?",
+          "Adakah tinjauan rutin terhadap kebijakan manajemen log?"
+        ]
+      },
+      {
+        "id": 6,
+        "indikator": "Keterlanjutan & Integrasi Rutin",
+        "pertanyaan": [
+          "Apakah ada integrasi regular antara log dengan sistem lain untuk tujuan audit?",
+          "Adakah pelatihan yang diberikan kepada staf tentang pentingnya manajemen log?",
+          "Apakah ada dukungan dari manajemen tinggi untuk kegiatan manajemen log?"
+        ]
+      }
+    ]
+  }
+}
+
+
+
+{
+  "INPUT_DATA": {
+    "Pertanyaan": [
+      {
+        "id": 2,
+        "indikator": "Manajemen media penyimpanan",
+        "pertanyaan": [
+          "Apakah anggota organisasi menyadari pentingnya mengelola media penyimpanan (seperti CD, hard disk, SSD, flash disk) dari setiap komputer dan server?",
+          "Apakah organisasi memiliki prosedur manajemen media penyimpanan?",
+          "Apakah organisasi melakukan inventarisasi media penyimpanan secara reguler?"
+        ]
+      },
+      {
+        "id": 3,
+        "indikator": "Monitoring & Pengukuran Keteraturan",
+        "pertanyaan": [
+          "Adakah alat yang digunakan untuk melacak kondisi media penyimpanan?",
+          "Apakah organisasi memiliki prosedur untuk menganalisis dampak potensial dari kegagalan media penyimpanan?",
+          "Adakah kontrol yang diterapkan untuk menjaga kualitas media penyimpanan?"
+        ]
+      },
+      {
+        "id": 4,
+        "indikator": "Evaluasi & Analisis Kesenjangan",
+        "pertanyaan": [
+          "Adakah analisis yang dilakukan untuk menilai efektivitas manajemen media penyimpanan?",
+          "Adakah laporan yang dikeluarkan atas hasil analisa media penyimpanan?",
+          "Adakah tinjauan rutin terhadap kebijakan manajemen media penyimpanan?"
+        ]
+      },
+      {
+        "id": 5,
+        "indikator": "Perencanaan Pembaruan & Inisiatif",
+        "pertanyaan": [
+          "Adakah rencana pembaharuan atau peningkatan manajemen media penyimpanan yang ditetapkan?",
+          "Apakah ada inisiatif baru untuk meningkatkan manajemen media penyimpanan?",
+          "Adakah tinjauan rutin terhadap kebijakan manajemen media penyimpanan?"
+        ]
+      },
+      {
+        "id": 6,
+        "indikator": "Keterlanjutan & Integrasi Rutin",
+        "pertanyaan": [
+          "Adakah integrasi regular antara manajemen media penyimpanan dengan sistem lain?",
+          "Adakah pelatihan yang diberikan kepada staf tentang manajemen media penyimpanan?",
+          "Adakah dukungan dari manajemen tinggi untuk kegiatan manajemen media penyimpanan?"
+        ]
+      }
+    ]
+  }
+}
+
+
+
+{
+  "INPUT_DATA": {
+    "Pertanyaan": [
+      {
+        "id": 3,
+        "indikator": "Alat Akuisisi dan Analisis",
+        "pertanyaan": [
+          "Apakah organisasi menyadari pentingnya memiliki alat akuisisi dan analisis untuk investigasi forensik digital?",
+          "Adakah alat akuisisi dan analisis yang tersedia?",
+          "Seberapa sering alat tersebut diinventory dan diverifikasi fungsionalnya?"
+        ]
+      },
+      {
+        "id": 4,
+        "indikator": "Monitoring & Pengukuran Keteraturan",
+        "pertanyaan": [
+          "Adakah alat yang digunakan untuk melacak fungsi alat akuisisi dan analisis?",
+          "Apakah organisasi memiliki prosedur untuk menganalisis efektivitas alat tersebut?",
+          "Adakah kontrol yang diterapkan untuk menjaga integritas alat tersebut?"
+        ]
+      },
+      {
+        "id": 5,
+        "indikator": "Evaluasi & Analisis Kesenjangan",
+        "pertanyaan": [
+          "Adakah analisis yang dilakukan untuk menilai efektivitas alat akuisisi dan analisis?",
+          "Adakah laporan yang dikeluarkan atas hasil analisa?",
+          "Adakah tinjauan rutin terhadap kebijakan manajemen alat akuisisi dan analisis?"
+        ]
+      },
+      {
+        "id": 6,
+        "indikator": "Perencanaan Pembaruan & Inisiatif",
+        "pertanyaan": [
+          "Adakah rencana pembaharuan atau peningkatan alat akuisisi dan analisis yang ditetapkan?",
+          "Apakah ada inisiatif baru untuk meningkatkan alat akuisisi dan analisis?",
+          "Adakah tinjauan rutin terhadap kebijakan manajemen alat akuisisi dan analisis?"
+        ]
+      },
+      {
+        "id": 7,
+        "indikator": "Keterlanjutan & Integrasi Rutin",
+        "pertanyaan": [
+          "Adakah integrasi regular antara alat akuisisi dan analisis dengan sistem lain?",
+          "Adakah pelatihan yang diberikan kepada staf tentang manajemen alat akuisisi dan analisis?",
+          "Adakah dukungan dari manajemen tinggi untuk kegiatan manajemen alat akuisisi dan analisis?"
+        ]
+      }
+    ]
+  }
+}
+
+
+
+{
+  "INPUT_DATA": {
+    "Pertanyaan": [
+      {
+        "id": 4,
+        "indikator": "Jaminan Keamanan Barang Bukti",
+        "pertanyaan": [
+          "Apakah organisasi menyadari pentingnya mengamankan barang bukti digital dari perubahan atau kerusakan?",
+          "Apakah organisasi memiliki prosedur untuk mengamankan barang bukti digital?",
+          "Adakah catatan yang dibuat setiap kali langkah aman dilakukan pada barang bukti?"
+        ]
+      },
+      {
+        "id": 5,
+        "indikator": "Monitoring & Pengukuran Keteraturan",
+        "pertanyaan": [
+          "Adakah alat yang digunakan untuk melacak status barang bukti?",
+          "Apakah organisasi memiliki prosedur untuk menganalisis efektivitas metode keamanan bukti?",
+          "Adakah kontrol yang diterapkan untuk menjaga integritas barang bukti?"
+        ]
+      },
+      {
+        "id": 6,
+        "indikator": "Evaluasi & Analisis Kesenjangan",
+        "pertanyaan": [
+          "Adakah analisis yang dilakukan untuk menilai efektivitas metode keamanan bukti?",
+          "Adakah laporan yang dikeluarkan atas hasil analisa?",
+          "Adakah tinjauan rutin terhadap kebijakan keamanan bukti?"
+        ]
+      },
+      {
+        "id": 7,
+        "indikator": "Perencanaan Pembaruan & Inisiatif",
+        "pertanyaan": [
+          "Adakah rencana pembaharuan atau peningkatan metode keamanan bukti yang ditetapkan?",
+          "Apakah ada inisiatif baru untuk meningkatkan metode keamanan bukti?",
+          "Adakah tinjauan rutin terhadap kebijakan keamanan bukti?"
+        ]
+      },
+      {
+        "id": 8,
+        "indikator": "Keterlanjutan & Integrasi Rutin",
+        "pertanyaan": [
+          "Adakah integrasi regular antara metode keamanan bukti dengan sistem lain?",
+          "Adakah pelatihan yang diberikan kepada staf tentang manajemen metode keamanan bukti?",
+          "Adakah dukungan dari manajemen tinggi untuk kegiatan manajemen metode keamanan bukti?"
+        ]
+      }
+    ]
+  }
+}
+
+
+
+{
+  "INPUT_DATA": {
+    "Pertanyaan": [
+      {
+        "id": 5,
+        "indikator": "Perangkat Pendukung Forensik Digital",
+        "pertanyaan": [
+          "Apakah organisasi menyadari pentingnya perangkat pendukung forensik digital seperti CCTV, fingerprint, dan autentikasi sistem?",
+          "Adakah perangkat pendukung forensik digital yang tersedia?",
+          "Adakah inventarisasi dan pemantauan regular terhadap perangkat tersebut?"
+        ]
+      },
+      {
+        "id": 6,
+        "indikator": "Monitoring & Pengukuran Keteraturan",
+        "pertanyaan": [
+          "Adakah alat yang digunakan untuk melacak fungsi perangkat pendukung forensik digital?",
+          "Apakah organisasi memiliki prosedur untuk menganalisis efektivitas perangkat tersebut?",
+          "Adakah kontrol yang diterapkan untuk menjaga integritas perangkat tersebut?"
+        ]
+      },
+      {
+        "id": 7,
+        "indikator": "Evaluasi & Analisis Kesenjangan",
+        "pertanyaan": [
+          "Adakah analisis yang dilakukan untuk menilai efektivitas perangkat pendukung forensik digital?",
+          "Adakah laporan yang dikeluarkan atas hasil analisa?",
+          "Adakah tinjauan rutin terhadap kebijakan perangkat pendukung forensik digital?"
+        ]
+      },
+      {
+        "id": 8,
+        "indikator": "Perencanaan Pembaruan & Inisiatif",
+        "pertanyaan": [
+          "Adakah rencana pembaharuan atau peningkatan perangkat pendukung forensik digital yang ditetapkan?",
+          "Apakah ada inisiatif baru untuk meningkatkan perangkat pendukung forensik digital?",
+          "Adakah tinjauan rutin terhadap kebijakan perangkat pendukung forensik digital?"
+        ]
+      },
+      {
+        "id": 9,
+        "indikator": "Keterlanjutan & Integrasi Rutin",
+        "pertanyaan": [
+          "Adakah integrasi regular antara perangkat pendukung forensik digital dengan sistem lain?",
+          "Adakah pelatihan yang diberikan kepada staf tentang manajemen perangkat pendukung forensik digital?",
+          "Adakah dukungan dari manajemen tinggi untuk kegiatan manajemen perangkat pendukung forensik digital?"
+        ]
+      }
+    ]
+  }
+}
+
+
+
+{
+  "INPUT_DATA": {
+    "Pertanyaan": [
+      {
+        "id": 6,
+        "indikator": "Perangkat Pengamanan Sistem",
+        "pertanyaan": [
+          "Apakah anggota organisasi menyadari pentingnya memiliki perangkat pengamanan sistem seperti antivirus, IDS, IPS, filter web, firewall, pencegahan kebocoran data?",
+          "Adakah perangkat pengamanan sistem yang tersedia?",
+          "Adakah pengukuran yang dilakukan untuk menilai tingkat efektivitas perangkat-perangkat tersebut?"
+        ]
+      },
+      {
+        "id": 7,
+        "indikator": "Monitoring & Pengukuran Keteraturan",
+        "pertanyaan": [
+          "Adakah alat yang digunakan untuk melacak fungsi perangkat pengamanan sistem?",
+          "Apakah organisasi memiliki prosedur untuk menganalisis efektivitas perangkat tersebut?",
+          "Adakah kontrol yang diterapkan untuk menjaga integritas perangkat tersebut?"
+        ]
+      },
+      {
+        "id": 8,
+        "indikator": "Evaluasi & Analisis Kesenjangan",
+        "pertanyaan": [
+          "Adakah analisis yang dilakukan untuk menilai efektivitas perangkat pengamanan sistem?",
+          "Adakah laporan yang dikeluarkan atas hasil analisa?",
+          "Adakah tinjauan rutin terhadap kebijakan perangkat pengamanan sistem?"
+        ]
+      },
+      {
+        "id": 9,
+        "indikator": "Perencanaan Pembaruan & Inisiatif",
+        "pertanyaan": [
+          "Adakah rencana pembaharuan atau peningkatan perangkat pengamanan sistem yang ditetapkan?",
+          "Apakah ada inisiatif baru untuk meningkatkan perangkat pengamanan sistem?",
+          "Adakah tinjauan rutin terhadap kebijakan perangkat pengamanan sistem?"
+        ]
+      },
+      {
+        "id": 10,
+        "indikator": "Keterlanjutan & Integrasi Rutin",
+        "pertanyaan": [
+          "Adakah integrasi regular antara perangkat pengamanan sistem dengan sistem lain?",
+          "Adakah pelatihan yang diberikan kepada staf tentang manajemen perangkat pengamanan sistem?",
+          "Adakah dukungan dari manajemen tinggi untuk kegiatan manajemen perangkat pengamanan sistem?"
+        ]
+      }
+    ]
+  }
+}
+
+
+
+{
+  "INPUT_DATA": {
+    "Pertanyaan": [
+      {
+        "id": 7,
+        "indikator": "Perangkat Pendukung Keamanan",
+        "pertanyaan": [
+          "Apakah anggota organisasi menyadari pentingnya enkripsi dan kriptografi (termasuk electronic certificates) untuk mengamankan data?",
+          "Adakah perangkat pendukung keamanan seperti enkripsi dan kriptografi (termasuk electronic certificates) yang tersedia?",
+          "Adakah inventarisasi dan pemantauan regular terhadap status penggunaan electronic certificates?"
+        ]
+      },
+      {
+        "id": 8,
+        "indikator": "Monitoring & Pengukuran Keteraturan",
+        "pertanyaan": [
+          "Adakah alat yang digunakan untuk melacak fungsi perangkat pendukung keamanan?",
+          "Apakah organisasi memiliki prosedur untuk menganalisis efektivitas perangkat tersebut?",
+          "Adakah kontrol yang diterapkan untuk menjaga integritas perangkat tersebut?"
+        ]
+      },
+      {
+        "id": 9,
+        "indikator": "Evaluasi & Analisis Kesenjangan",
+        "pertanyaan": [
+          "Adakah analisis yang dilakukan untuk menilai efektivitas perangkat pendukung keamanan?",
+          "Adakah laporan yang dikeluarkan atas hasil analisa?",
+          "Adakah tinjauan rutin terhadap kebijakan perangkat pendukung keamanan?"
+        ]
+      },
+      {
+        "id": 10,
+        "indikator": "Perencanaan Pembaruan & Inisiatif",
+        "pertanyaan": [
+          "Adakah rencana pembaharuan atau peningkatan perangkat pendukung keamanan yang ditetapkan?",
+          "Apakah ada inisiatif baru untuk meningkatkan perangkat pendukung keamanan?",
+          "Adakah tinjauan rutin terhadap kebijakan perangkat pendukung keamanan?"
+        ]
+      },
+      {
+        "id": 11,
+        "indikator": "Keterlanjutan & Integrasi Rutin",
+        "pertanyaan": [
+          "Adakah integrasi regular antara perangkat pendukung keamanan dengan sistem lain?",
+          "Adakah pelatihan yang diberikan kepada staf tentang manajemen perangkat pendukung keamanan?",
+          "Adakah dukungan dari manajemen tinggi untuk kegiatan manajemen perangkat pendukung keamanan?"
+        ]
+      }
+    ]
+  }
+}
+
+
+{
+  "INPUT_DATA": {
+    "Pertanyaan": [
+      {
+        "id": 8,
+        "indikator": "Enkripsi dan Kriptografi",
+        "pertanyaan": [
+          "Apakah anggota organisasi menyadari pentingnya enkripsi dan kriptografi (termasuk electronic certificates) untuk mengamankan data?",
+          "Adakah perangkat pendukung keamanan seperti enkripsi dan kriptografi (termasuk electronic certificates) yang tersedia?",
+          "Adakah inventarisasi dan pemantauan regular terhadap status penggunaan electronic certificates?"
+        ]
+      },
+      {
+        "id": 9,
+        "indikator": "Monitoring & Pengukuran Keteraturan",
+        "pertanyaan": [
+          "Adakah alat yang digunakan untuk melacak fungsi perangkat pendukung keamanan?",
+          "Apakah organisasi memiliki prosedur untuk menganalisis efektivitas perangkat tersebut?",
+          "Adakah kontrol yang diterapkan untuk menjaga integritas perangkat tersebut?"
+        ]
+      },
+      {
+        "id": 10,
+        "indikator": "Evaluasi & Analisis Kesenjangan",
+        "pertanyaan": [
+          "Adakah analisis yang dilakukan untuk menilai efektivitas perangkat pendukung keamanan?",
+          "Adakah laporan yang dikeluarkan atas hasil analisa?",
+          "Adakah tinjauan rutin terhadap kebijakan perangkat pendukung keamanan?"
+        ]
+      },
+      {
+        "id": 11,
+        "indikator": "Perencanaan Pembaruan & Inisiatif",
+        "pertanyaan": [
+          "Adakah rencana pembaharuan atau peningkatan perangkat pendukung keamanan yang ditetapkan?",
+          "Apakah ada inisiatif baru untuk meningkatkan perangkat pendukung keamanan?",
+          "Adakah tinjauan rutin terhadap kebijakan perangkat pendukung keamanan?"
+        ]
+      },
+      {
+        "id": 12,
+        "indikator": "Keterlanjutan & Integrasi Rutin",
+        "pertanyaan": [
+          "Adakah integrasi regular antara perangkat pendukung keamanan dengan sistem lain?",
+          "Adakah pelatihan yang diberikan kepada staf tentang manajemen perangkat pendukung keamanan?",
+          "Adakah dukungan dari manajemen tinggi untuk kegiatan manajemen perangkat pendukung keamanan?"
+        ]
+      }
+    ]
+  }
+}
+
+
+{
+  "INPUT_DATA": {
+    "Pertanyaan": [
+      {
+        "id": 1,
+        "indikator": "Kesadaran & Pentingnya",
+        "pertanyaan": [
+          "Apakah organisasi menyadari pentingnya jaminan manajemen log dari masing-masing sistem, pemeliharaan, dan pengelolaan?",
+          "Apakah anggota organisasi mengetahui bagaimana pentingnya log untuk jejak audit dan forensik?",
+          "Apakah manajemen organisasi mengakui pentingnya analisa berkala terhadap log?"
+        ]
+      },
+      {
+        "id": 2,
+        "indikator": "Eksistensi & Dokumentasi",
+        "pertanyaan": [
+          "Adakah dokumen log tersedia yang mencakup semua sistem?",
+          "Apakah log tersebut mencakup aktivitas insiden personal data breach?",
+          "Apakah ada prosedur dokumentasi tentang manajemen log?"
+        ]
+      },
+      {
+        "id": 3,
+        "indikator": "Monitoring & Pengukuran Keteraturan",
+        "pertanyaan": [
+          "Apakah seluruh perubahan dalam sistem informasi secara otomatis tercatat dalam log?",
+          "Apakah upaya akses tidak sah secara otomatis tercatat dalam log?",
+          "Adakah mekanisme monitoring dan pengukuran kualitas log yang dilaksanakan?"
+        ]
+      },
+      {
+        "id": 4,
+        "indikator": "Evaluasi & Analisis Kesenjangan",
+        "pertanyaan": [
+          "Apakah organisasi melakukan analisa berkala untuk memastikan akurasi, validitas, dan kelengkapan isinya (guna kepentingan jejak audit dan forensik)?",
+          "Adakah laporan yang dikeluarkan atas hasil analisa log?",
+          "Apakah organisasi memiliki metrik untuk mengevaluasi efektivitas manajemen log?"
+        ]
+      },
+      {
+        "id": 5,
+        "indikator": "Perencanaan Pembaruan & Inisiatif",
+        "pertanyaan": [
+          "Adakah rencana pembaharuan atau peningkatan log yang ditetapkan?",
+          "Apakah ada inisiatif baru untuk meningkatkan manajemen log?",
+          "Adakah tinjauan rutin terhadap kebijakan manajemen log?"
+        ]
+      },
+      {
+        "id": 6,
+        "indikator": "Keterlanjutan & Integrasi Rutin",
+        "pertanyaan": [
+          "Adakah integrasi regular antara log dengan sistem lain untuk tujuan audit?",
+          "Adakah pelatihan yang diberikan kepada staf tentang pentingnya manajemen log?",
+          "Adakah dukungan dari manajemen tinggi untuk kegiatan manajemen log?"
+        ]
+      }
+    ]
+  }
+}

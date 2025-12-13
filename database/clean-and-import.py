@@ -2,216 +2,275 @@ import csv
 import json
 import time
 import os
+import logging
 from pymongo import MongoClient
+from typing import List, Dict, Any
+from datetime import datetime
 
-def csv_to_mongodb():
-    """Convert CSV to MongoDB documents for two collections"""
-    print("Starting CSV to MongoDB import...")
-    time.sleep(15)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+class MongoDBConfig:
+    """MongoDB configuration from environment variables"""
     
-    # Update paths for the new CSV structure
-    keterangan_path = '/database/keterangan.csv'  # CSV with Package, Keterangan, embedded columns
-    questions_path = '/database/data_wisang.csv'
+    @staticmethod
+    def get_connection_string() -> str:
+        host = os.getenv('MONGO_HOST', 'mongodb')
+        port = os.getenv('MONGO_PORT', '27017')
+        username = os.getenv('MONGO_USERNAME', 'admin')
+        password = os.getenv('MONGO_PASSWORD', 'securepassword123')
+        auth_db = os.getenv('MONGO_AUTH_DB', 'admin')
+        
+        return f'mongodb://{username}:{password}@{host}:{port}/?authSource={auth_db}'
     
-    print(f"Checking files:")
-    print(f"Keterangan file exists: {os.path.exists(keterangan_path)}")
-    print(f"Questions file exists: {os.path.exists(questions_path)}")
+    @staticmethod
+    def get_database_name() -> str:
+        return os.getenv('MONGO_DATABASE', 'cybersecurity_assessment')
+
+
+class CSVImporter:
+    """Handle CSV/JSON import to MongoDB collections"""
     
-    # List directory contents
-    if os.path.exists('/database'):
-        print("Contents of /database:")
-        for item in os.listdir('/database'):
-            print(f"  - {item}")
+    def __init__(self, db_name: str = None):
+        self.connection_string = MongoDBConfig.get_connection_string()
+        self.db_name = db_name or MongoDBConfig.get_database_name()
+        self.client = None
+        self.db = None
+        
+    def connect(self) -> bool:
+        """Establish MongoDB connection"""
+        try:
+            self.client = MongoClient(self.connection_string)
+            self.client.admin.command('ping')
+            self.db = self.client[self.db_name]
+            logger.info(f"Connected to MongoDB database: {self.db_name}")
+            return True
+        except Exception as e:
+            logger.error(f"MongoDB connection failed: {e}")
+            return False
     
-    # Connect to MongoDB
-    try:
-        client = MongoClient('mongodb://admin:securepassword123@mongodb:27017/cybersecurity_assessment?authSource=admin')
-        # Test connection
-        client.admin.command('ping')
-        print("MongoDB connection successful!")
-    except Exception as e:
-        print(f"MongoDB connection failed: {e}")
-        return
+    def disconnect(self):
+        """Close MongoDB connection"""
+        if self.client:
+            self.client.close()
+            logger.info("MongoDB connection closed")
     
-    db = client.cybersecurity_assessment
+    def drop_collection(self, collection_name: str) -> bool:
+        """Drop existing collection"""
+        try:
+            self.db[collection_name].drop()
+            logger.info(f"Collection '{collection_name}' dropped")
+            return True
+        except Exception as e:
+            logger.warning(f"Could not drop collection '{collection_name}': {e}")
+            return False
     
-    # Collections
-    collection1 = db.keterangan  # Collection for "keterangan"
-    collection2 = db.questions   # Collection for "questions"
-    
-    # Drop existing collections to start fresh
-    print("Dropping existing collections...")
-    try:
-        collection1.drop()
-        print("Collection 'keterangan' dropped successfully")
-    except Exception as e:
-        print(f"Note: Could not drop collection 'keterangan': {e}")
-    
-    try:
-        collection2.drop()
-        print("Collection 'questions' dropped successfully")
-    except Exception as e:
-        print(f"Note: Could not drop collection 'questions': {e}")
-    
-    print("Starting fresh import...")
-    
-    # Read and import CSV for collection1 (keterangan) - NEW FORMAT
-    documents1 = []
-    try:
-        if not os.path.exists(keterangan_path):
-            print(f"ERROR: File not found: {keterangan_path}")
-        else:
-            with open(keterangan_path, 'r', newline='', encoding='utf-8') as csvfile:
-                # Try comma delimiter first (standard CSV)
+    def import_keterangan(self, csv_path: str) -> int:
+        """Import keterangan CSV to MongoDB"""
+        collection = self.db.keterangan
+        documents = []
+        
+        if not os.path.exists(csv_path):
+            logger.error(f"File not found: {csv_path}")
+            return 0
+        
+        try:
+            with open(csv_path, 'r', encoding='utf-8') as csvfile:
                 sample = csvfile.read(1024)
                 csvfile.seek(0)
-                
                 delimiter = ',' if ',' in sample else ';'
-                print(f"Using delimiter: '{delimiter}' for keterangan.csv")
-                
-                # Read first line to check headers
-                first_line = csvfile.readline()
-                print(f"First line of keterangan.csv: {first_line.strip()}")
-                csvfile.seek(0)  # Reset to beginning
                 
                 reader = csv.DictReader(csvfile, delimiter=delimiter)
-                print(f"CSV headers: {reader.fieldnames}")
+                logger.info(f"Reading keterangan CSV with delimiter: '{delimiter}'")
                 
-                for row_num, row in enumerate(reader, 1):
-                    if any(row.values()):  # Skip empty rows
-                        # Clean up the row data for collection1 (keterangan)
-                        doc = {}
-                        for key, value in row.items():
-                            if key and value:  # Skip empty keys or values
-                                clean_key = key.strip()
-                                clean_value = value.strip()
-                                
-                                # Handle specific fields from the new CSV format
-                                if clean_key == 'Package':
-                                    doc['package'] = clean_value
-                                elif clean_key == 'Keterangan':
-                                    doc['keterangan'] = clean_value
-                                elif clean_key == 'embedded':
-                                    doc['embedded'] = json.loads(clean_value)  # Convert string to list
-                                else:
-                                    doc[clean_key.lower()] = clean_value
-                        
-                        if doc and 'package' in doc and 'keterangan' in doc:  # Only add valid documents
-                            doc['created_at'] = time.time()
-                            doc['updated_at'] = time.time()
-                            documents1.append(doc)
-                            
-                            if len(documents1) % 5 == 0:
-                                print(f"Processed {len(documents1)} rows for keterangan...")
+                for row in reader:
+                    if not any(row.values()):
+                        continue
+                    
+                    doc = {
+                        'package': row.get('Package', '').strip(),
+                        'keterangan': row.get('Keterangan', '').strip(),
+                        'created_at': datetime.now().isoformat(),
+                        'updated_at': datetime.now().isoformat()
+                    }
+                    
+                    embedded_value = row.get('embedded', '').strip()
+                    if embedded_value:
+                        try:
+                            doc['embedded'] = json.loads(embedded_value)
+                        except json.JSONDecodeError:
+                            doc['embedded'] = []
+                    
+                    if doc['package'] and doc['keterangan']:
+                        documents.append(doc)
             
-            if documents1:
-                print(f"Importing {len(documents1)} documents to collection1 (keterangan)...")
-                result1 = collection1.insert_many(documents1)
-                print(f"Successfully imported {len(result1.inserted_ids)} documents into keterangan.")
-                
-                # Show sample for collection1
-                sample_doc1 = collection1.find_one()
-                print("Sample document from collection1 (keterangan):")
-                print(json.dumps(sample_doc1, default=str, indent=2))
-                
+            if documents:
+                result = collection.insert_many(documents)
+                logger.info(f"Imported {len(result.inserted_ids)} documents to 'keterangan'")
+                return len(result.inserted_ids)
             else:
-                print("No valid documents found for keterangan to import")
+                logger.warning("No valid documents found in keterangan CSV")
+                return 0
                 
+        except Exception as e:
+            logger.error(f"Error importing keterangan: {e}")
+            return 0
+    
+    def import_questions_v1(self, csv_path: str, package_id: str = "qb_v1_000") -> int:
+        """Import questions CSV to question_before_v1 collection"""
+        collection = self.db.question_before_v1
+        documents = []
+        
+        if not os.path.exists(csv_path):
+            logger.error(f"File not found: {csv_path}")
+            return 0
+        
+        try:
+            with open(csv_path, 'r', encoding='utf-8') as csvfile:
+                reader = csv.DictReader(csvfile, delimiter=';')
+                logger.info("Reading questions CSV for v1")
+                
+                for row in reader:
+                    if not any(row.values()):
+                        continue
+                    
+                    doc = {
+                        'id_package': package_id,
+                        'level': row.get('Level', row.get('level', '')).strip(),
+                        'indicator': row.get('Indikator', row.get('indikator', '')).strip(),
+                        'question': row.get('Pertanyaan', row.get('pertanyaan', '')).strip(),
+                        'created_at': datetime.now().isoformat(),
+                        'updated_at': datetime.now().isoformat()
+                    }
+                    
+                    if doc['question']:
+                        documents.append(doc)
+            
+            if documents:
+                result = collection.insert_many(documents)
+                logger.info(f"Imported {len(result.inserted_ids)} documents to 'question_before_v1'")
+                return len(result.inserted_ids)
+            else:
+                logger.warning("No valid documents found in questions CSV")
+                return 0
+                
+        except Exception as e:
+            logger.error(f"Error importing questions v1: {e}")
+            return 0
+    
+    def import_questions_v2(self, json_path: str, package_id: str = "qb_v2_000") -> int:
+        """Import generated questions JSON to question_before_v2 collection"""
+        collection = self.db.question_before_v2
+        documents = []
+        
+        if not os.path.exists(json_path):
+            logger.error(f"File not found: {json_path}")
+            return 0
+        
+        try:
+            with open(json_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            
+            metadata = data.get('metadata', {})
+            enablers = data.get('enablers', [])
+            
+            logger.info(f"Processing JSON v2 - Model: {metadata.get('model')}, Version: {metadata.get('version')}")
+            
+            for enabler in enablers:
+                enabler_id = enabler.get('enabler_id')
+                enabler_name = enabler.get('enabler_name')
+                questions = enabler.get('questions', [])
+                contribution_max = enabler.get('contribution_max', 4)
+                sum_contribution_max = enabler.get('sum_contribution_max', 0)
+                
+                for q in questions:
+                    doc = {
+                        'id_package': package_id,
+                        'enabler': f"{enabler_id}. {enabler_name}",
+                        'indicator': q.get('indicator', ''),
+                        'question': q.get('question', ''),
+                        'contribution_max': q.get('contribution_max', contribution_max),
+                        'sum_contribution_max': sum_contribution_max,
+                        'generated_at': metadata.get('generated_at'),
+                        'created_at': datetime.now().isoformat(),
+                        'updated_at': datetime.now().isoformat()
+                    }
+                    
+                    if doc['question']:
+                        documents.append(doc)
+            
+            if documents:
+                result = collection.insert_many(documents)
+                logger.info(f"Imported {len(result.inserted_ids)} documents to 'question_before_v2'")
+                return len(result.inserted_ids)
+            else:
+                logger.warning("No valid documents found in JSON v2")
+                return 0
+                
+        except Exception as e:
+            logger.error(f"Error importing questions v2: {e}")
+            import traceback
+            traceback.print_exc()
+            return 0
+    
+    def verify_import(self):
+        """Verify imported data"""
+        collections_info = {
+            'keterangan': self.db.keterangan.count_documents({}),
+            'question_before_v1': self.db.question_before_v1.count_documents({}),
+            'question_before_v2': self.db.question_before_v2.count_documents({})
+        }
+        
+        logger.info("Import verification:")
+        for collection_name, count in collections_info.items():
+            logger.info(f"  {collection_name}: {count} documents")
+        
+        for collection_name in collections_info.keys():
+            sample = self.db[collection_name].find_one()
+            if sample:
+                logger.info(f"Sample from {collection_name}:")
+                logger.info(json.dumps(sample, default=str, indent=2))
+
+
+def main():
+    """Main import process"""
+    time.sleep(5)
+    
+    keterangan_csv = '/database/keterangan.csv'
+    questions_v1_csv = '/database/data_wisang.csv'
+    questions_v2_json = '/database/generated_questions_08122025_0138.json'
+    
+    importer = CSVImporter()
+    
+    if not importer.connect():
+        logger.error("Failed to connect to MongoDB")
+        return
+    
+    try:
+        importer.drop_collection('keterangan')
+        importer.drop_collection('question_before_v1')
+        importer.drop_collection('question_before_v2')
+        
+        keterangan_count = importer.import_keterangan(keterangan_csv)
+        v1_count = importer.import_questions_v1(questions_v1_csv, package_id="qb_v1_000")
+        v2_count = importer.import_questions_v2(questions_v2_json, package_id="qb_v2_000")
+        
+        importer.verify_import()
+        
+        logger.info("Import completed successfully")
+        logger.info(f"Summary - Keterangan: {keterangan_count}, V1: {v1_count}, V2: {v2_count}")
+        
     except Exception as e:
-        print(f"Error during import for keterangan: {e}")
+        logger.error(f"Import failed: {e}")
         import traceback
         traceback.print_exc()
-    
-    # Read and import CSV for collection2 (questions)
-    documents2 = []
-    try:
-        if not os.path.exists(questions_path):
-            print(f"ERROR: File not found: {questions_path}")
-        else:
-            with open(questions_path, 'r', newline='', encoding='utf-8') as csvfile:
-                delimiter = ';'
-                print(f"Using delimiter: '{delimiter}' for questions CSV")
-                
-                # Read first line to check headers
-                first_line = csvfile.readline()
-                print(f"First line of data_wisang.csv: {first_line.strip()}")
-                csvfile.seek(0)  # Reset to beginning
-                
-                reader = csv.DictReader(csvfile, delimiter=delimiter)
-                print(f"CSV headers: {reader.fieldnames}")
-                
-                for row_num, row in enumerate(reader, 1):
-                    if any(row.values()):  # Skip empty rows
-                        # Clean up the row data for collection2 (questions)
-                        doc = {}
-                        for key, value in row.items():
-                            if key and value:  # Skip empty keys or values
-                                clean_key = key.strip().lower()
-                                clean_value = value.strip()
-                                
-                                # Map Indonesian field names to English
-                                if clean_key == 'pertanyaan':
-                                    doc['question'] = clean_value
-                                elif clean_key == 'paket':
-                                    doc['package'] = clean_value
-                                elif clean_key == 'level':
-                                    doc['level'] = clean_value
-                                elif clean_key == 'kategori':
-                                    doc['category'] = clean_value
-                                else:
-                                    doc[clean_key] = clean_value
-                        
-                        if doc and 'question' in doc:  # Only add documents with questions
-                            doc['created_at'] = time.time()
-                            doc['updated_at'] = time.time()
-                            documents2.append(doc)
-                            
-                            if len(documents2) % 10 == 0:
-                                print(f"Processed {len(documents2)} rows for questions...")
-            
-            if documents2:
-                print(f"Importing {len(documents2)} documents to collection2 (questions)...")
-                result2 = collection2.insert_many(documents2)
-                print(f"Successfully imported {len(result2.inserted_ids)} documents into questions.")
-                
-                # Show sample for collection2
-                sample_doc2 = collection2.find_one()
-                print("Sample document from collection2 (questions):")
-                print(json.dumps(sample_doc2, default=str, indent=2))
-                
-            else:
-                print("No valid documents found for questions to import")
-                
-    except Exception as e:
-        print(f"Error during import for questions: {e}")
-        import traceback
-        traceback.print_exc()
-    
-    # Final summary
-    print("\n=== IMPORT SUMMARY ===")
-    print(f"Total keterangan documents imported: {len(documents1) if documents1 else 0}")
-    print(f"Total questions documents imported: {len(documents2) if documents2 else 0}")
-    
-    # Verify import and show package information
-    try:
-        keterangan_count = collection1.count_documents({})
-        questions_count = collection2.count_documents({})
-        print(f"Verification - Keterangan collection count: {keterangan_count}")
-        print(f"Verification - Questions collection count: {questions_count}")
-        
-        # Show available packages
-        if keterangan_count > 0:
-            packages = collection1.distinct('package')
-            print(f"Available packages in keterangan: {packages}")
-        
-        if questions_count > 0:
-            question_packages = collection2.distinct('package')
-            print(f"Available packages in questions: {question_packages}")
-            
-    except Exception as e:
-        print(f"Error during verification: {e}")
-    
-    print("Import completed!")
+    finally:
+        importer.disconnect()
+
 
 if __name__ == "__main__":
-    csv_to_mongodb()
+    main()

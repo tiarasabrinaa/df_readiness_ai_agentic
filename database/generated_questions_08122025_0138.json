@@ -1,0 +1,396 @@
+{
+  "metadata": {
+    "model": "DFR Capability Maturity Model",
+    "version": "2.0",
+    "generated_at": "2025-12-08 01:38:32",
+    "total_enablers": 7,
+    "total_indicators": 62,
+    "scale": {
+      "1": {
+        "level": "Initial",
+        "description": "Tidak ada struktur atau proses yang diterapkan"
+      },
+      "2": {
+        "level": "Managed",
+        "description": "Beberapa proses mulai dilakukan"
+      },
+      "3": {
+        "level": "Defined",
+        "description": "Proses telah terdokumentasi"
+      },
+      "4": {
+        "level": "Quantitatively Managed",
+        "description": "Proses terkelola dengan evaluasi berbasis data"
+      },
+      "5": {
+        "level": "Optimized",
+        "description": "Proses dioptimalkan dan terintegrasi"
+      }
+    }
+  },
+  "enablers": [
+    {
+      "enabler_id": 1,
+      "enabler_name": "Principles, Policies, and Frameworks",
+      "sum_contribution_max": 23,
+      "total_indicators": 10,
+      "questions_parsed": 10,
+      "questions": [
+        {
+          "indicator": "Initiatives to raise awareness for DF activities are in place",
+          "question": "Apakah organisasi Anda memiliki program untuk meningkatkan kesadaran tentang kegiatan Digital Forensics?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Initiatives to raise awareness for DF activities are in place and continuously monitored",
+          "question": "Apakah organisasi Anda memiliki program untuk meningkatkan kesadaran tentang kegiatan Digital Forensics dan memonitornya secara terus-menerus?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Governance and Management understand DFR initiatives",
+          "question": "Mengertikah governance dan manajemen dalam organisasi Anda tentang inisiatif Digital Forensics?",
+          "contribution_max": 1
+        },
+        {
+          "indicator": "Governance and Management pursue DFR initiatives",
+          "question": "Apakah governance dan manajemen dalam organisasi Anda mendorong pelaksanaan inisiatif Digital Forensics?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Governance and Management are completely involved in planning DFR initiatives",
+          "question": "Apakah governance dan manajemen dalam organisasi Anda sepenuhnya terlibat dalam merencanakan inisiatif Digital Forensics?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Governance and Management support DFR related organizational changes",
+          "question": "Apakah governance dan manajemen dalam organisasi Anda mendukung perubahan organisasional yang berkaitan dengan Digital Forensics?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "A change management is in place",
+          "question": "Apakah organisasi Anda memiliki sistem manajemen perubahan?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Principles and policies according to a DF investigation are present",
+          "question": "Adakah prinsip dan kebijakan sesuai dengan investigasi Digital Forensics yang ada di organisasi Anda?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Employees take the principles of DF related actions seriously",
+          "question": "Apakah karyawan dalam organisasi Anda mengambil serius prinsip-prinsip tindakan yang berkaitan dengan Digital Forensics?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Principles are clearly formulated",
+          "question": "Adakah prinsip-prinsip yang terkait dengan Digital Forensics yang ditulis dengan jelas?",
+          "contribution_max": 2
+        }
+      ]
+    },
+    {
+      "enabler_id": 2,
+      "enabler_name": "Processes",
+      "sum_contribution_max": 18,
+      "total_indicators": 7,
+      "questions_parsed": 7,
+      "questions": [
+        {
+          "indicator": "A basic understanding of the DF investigation process is present",
+          "question": "Apakah organisasi Anda memiliki pemahaman dasar tentang proses investigasi Digital Forensics?",
+          "contribution_max": 1
+        },
+        {
+          "indicator": "A deep understanding of the DF investigation process is present",
+          "question": "Sejauh mana organisasi Anda memiliki pemahaman mendalam tentang proses investigasi Digital Forensics?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "The support for the DF investigation process is continuously improved",
+          "question": "Bagaimana tingkat peningkatan dukungan untuk proses investigasi Digital Forensics dalam organisasi Anda?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Related sub-processes to DF are documented",
+          "question": "Apakah sub-proses terkait dengan Digital Forensics yang ada dalam organisasi Anda sudah tertuang dalam dokumen?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Guidelines to prevent business interruption in the case of a DF investigation are defined",
+          "question": "Adakah panduan yang telah ditetapkan oleh organisasi Anda untuk mencegah gangguan bisnis pada kasus investigasi Digital Forensics?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Process models of business processes are present",
+          "question": "Apakah model proses bisnis yang ada di organisasi Anda mencakup proses Digital Forensics?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "DF related processes are partially automated",
+          "question": "Bagaimana tingkat otomatisasi dari proses Digital Forensics yang ada di organisasi Anda?",
+          "contribution_max": 3
+        }
+      ]
+    },
+    {
+      "enabler_id": 3,
+      "enabler_name": "Organizational Structures",
+      "sum_contribution_max": 17,
+      "total_indicators": 8,
+      "questions_parsed": 8,
+      "questions": [
+        {
+          "indicator": "Responsibilities for the case of a DF investigation are known",
+          "question": "Apakah tanggung jawab dalam kasus investigasi Digital Forensics diketahui oleh semua pihak yang terlibat?",
+          "contribution_max": 1
+        },
+        {
+          "indicator": "Responsibilities for the case of a DF investigation are defined",
+          "question": "Apakah tanggung jawab dalam kasus investigasi Digital Forensics telah ditentukan secara formal dan dapat diacu?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "DF related decision-making guidelines are included in job-descriptions or roles",
+          "question": "Adakah pedoman pengambilan keputusan terkait Digital Forensics dimasukkan dalam deskripsi pekerjaan atau peran karyawan?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Rights within Information Systems are defined",
+          "question": "Adakah hak-hak dalam Sistem Informasi telah ditentukan dengan jelas?",
+          "contribution_max": 1
+        },
+        {
+          "indicator": "Rights within Information Systems are defined and adjusted to prevent potential destroying or tampering of evidences",
+          "question": "Adakah hak-hak dalam Sistem Informasi telah ditentukan dan diperbaiki untuk mencegah potensi kerusakan atau manipulasi bukti?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "An Identity Management System is in place",
+          "question": "Apakah sistem Manajemen Identitas sudah ada dalam organisasi Anda?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Escalation rules are defined",
+          "question": "Adakah aturan peningkatan (escalation rules) telah ditentukan dalam organisasi Anda?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Escalation rules are defined, reviewed and monitored",
+          "question": "Adakah aturan peningkatan (escalation rules) tersebut telah ditentukan, dievaluasi, dan dipantau?",
+          "contribution_max": 3
+        }
+      ]
+    },
+    {
+      "enabler_id": 4,
+      "enabler_name": "Information",
+      "sum_contribution_max": 23,
+      "total_indicators": 11,
+      "questions_parsed": 11,
+      "questions": [
+        {
+          "indicator": "Documents about the right handling of digital evidences in general are present",
+          "question": "Apakah ada dokumen yang menjelaskan cara yang benar untuk mengelola bukti digital secara umum di organisasi Anda?",
+          "contribution_max": 1
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences of all devices and systems within the organization are present",
+          "question": "Apakah ada dokumen yang menjelaskan cara yang benar untuk mengelola bukti digital dari semua perangkat dan sistem dalam organisasi Anda?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Documents about the right handling of digital evidences of all devices and systems within the organization are present and frequently reviewed",
+          "question": "Apakah ada dokumen yang menjelaskan cara yang benar untuk mengelola bukti digital dari semua perangkat dan sistem dalam organisasi Anda, dan apakah mereka sering diperiksa dan direvisi?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Information about DF investigations are available and accessible",
+          "question": "Informasi tentang investigasi Digital Forensics tersedia dan mudah diakses oleh staf di organisasi Anda?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Employee can contribute findings and knowledge regarding DF",
+          "question": "Apakah karyawan di organisasi Anda dapat memberikan temuan dan pengetahuan terkait Digital Forensics?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "The usage of tools for DF is documented",
+          "question": "Apakah penggunaan alat untuk Digital Forensics telah dicatat dalam dokumentasi?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "The usage of tools for DF is documented and continuously reviewed",
+          "question": "Apakah penggunaan alat untuk Digital Forensics telah dicatat dalam dokumentasi dan apakah mereka sering diperiksa dan direvisi?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Information about the usage of digital evidences in a law court is present",
+          "question": "Apakah ada informasi tentang bagaimana bukti digital digunakan dalam pengadilan?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Information about the usage of digital evidences in a law court is present and frequently updated",
+          "question": "Apakah ada informasi tentang bagaimana bukti digital digunakan dalam pengadilan, dan apakah mereka sering diperbarui?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Employees get frequent updates according DF related topics (e.g.: e-Mail, letter)",
+          "question": "Apakah karyawan di organisasi Anda mendapatkan update sering terkait topik-topik Digital Forensics (misalnya: email, surat)?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Employees get timely updates according DF related topics (e.g.: e-Mail, letter)",
+          "question": "Apakah karyawan di organisasi Anda mendapatkan update tepat waktu terkait topik-topik Digital Forensics (misalnya: email, surat)?",
+          "contribution_max": 3
+        }
+      ]
+    },
+    {
+      "enabler_id": 5,
+      "enabler_name": "Culture, Ethics, and Behavior",
+      "sum_contribution_max": 19,
+      "total_indicators": 9 ,
+      "questions_parsed": 9 ,
+      "questions": [
+        {
+          "indicator": "A fraud intolerant culture is present",
+          "question": "Apakah ada budaya yang tidak toleran terhadap penipuan dalam organisasi Anda?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "A fraud intolerant culture is pursued",
+          "question": "Organisasi Anda mengejar budaya yang tidak toleran terhadap penipuan?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Open handling of mistakes and issues is present",
+          "question": "Adakah pengelolaan terbuka atas kesalahan dan masalah dalam organisasi Anda?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Anti-fraud ethics are established",
+          "question": "Ethika anti-penipuan telah ditetapkan dalam organisasi Anda?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "A willingness to unveil fraud/crime is present",
+          "question": "Ada keinginan untuk mengungkap penipuan/kejahatan dalam organisasi Anda?",
+          "contribution_max": 1
+        },
+        {
+          "indicator": "DF related activities are accepted within employees",
+          "question": "Aktivitas Digital Forensics diterima oleh karyawan dalam organisasi Anda?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Specific guidelines for potential fraud related situations are present",
+          "question": "Pedoman spesifik untuk situasi potensial penipuan ada dalam organisasi Anda?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Specific guidelines for potential fraud related situations are present and reviewed",
+          "question": "Pedoman spesifik untuk situasi potensial penipuan ada dan direview dalam organisasi Anda?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Employees do not hinder a DF investigation",
+          "question": "Apakah karyawan dalam organisasi Anda tidak menghambat penyelidikan Digital Forensics?",
+          "contribution_max": 1
+        }
+      ]
+    },
+    {
+      "enabler_id": 6,
+      "enabler_name": "People, Skills, and Competences",
+      "sum_contribution_max": 11,
+      "total_indicators": 5,
+      "questions_parsed": 5,
+      "questions": [
+        {
+          "indicator": "Employees understand the importance of digital evidences",
+          "question": "Apakah karyawan Anda memahami pentingnya bukti digital?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Employees get informal DFR related training",
+          "question": "Adakah pelatihan tidak resmi terkait Digital Forensics yang diterima oleh karyawan Anda?",
+          "contribution_max": 1
+        },
+        {
+          "indicator": "Employees get formal DFR related training",
+          "question": "Adakah pelatihan resmi terkait Digital Forensics yang diterima oleh karyawan Anda?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "The proper application of the knowledge is assessed regularly",
+          "question": "Apakah aplikasi pengetahuan karyawan dalam bidang Digital Forensics dievaluasi secara rutin?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Human resource division ensures the right amount of DF skilled employees",
+          "question": "Apakah divisi sumber daya manusia memastikan ada jumlah yang tepat dari pegawai yang berkompeten dalam Digital Forensics?",
+          "contribution_max": 3
+        }
+      ]
+    },
+    {
+      "enabler_id": 7,
+      "enabler_name": "Services, Infrastructure, and Applications",
+      "sum_contribution_max": 24,
+      "total_indicators": 10,
+      "questions_parsed": 10,
+      "questions": [
+        {
+          "indicator": "Services, infrastructure and applications are documented",
+          "question": "Apakah layanan, infrastruktur, dan aplikasi yang digunakan oleh organisasi telah tertulis dalam dokumen?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Services, infrastructure and applications are documented and continuously updated",
+          "question": "Apakah layanan, infrastruktur, dan aplikasi yang digunakan oleh organisasi telah tertulis dalam dokumen dan terus diperbarui?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Possibilities to retrieve log-files are known",
+          "question": "Apakah organisasi Anda mengetahui cara mengambil file log?",
+          "contribution_max": 1
+        },
+        {
+          "indicator": "Possibilities to retrieve log-files are known and the configuration is reviewed",
+          "question": "Apakah organisasi Anda mengetahui cara mengambil file log dan apakah konfigurasinya direview secara berkala?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "An internal laboratory is present",
+          "question": "Adakah laboratorium intern yang ada di organisasi Anda untuk melakukan penelitian digital forensik?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "A possibility to store and protect digital evidences is present",
+          "question": "Adakah kemungkinan penyimpanan dan perlindungan bukti digital yang tersedia di organisasi Anda?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Tools and methods to produce forensically sound copies of hard drives and memory are present",
+          "question": "Adakah alat dan metode yang tersedia untuk membuat salinan hard drive dan memori yang dapat dipercaya dari segi forensik?",
+          "contribution_max": 2
+        },
+        {
+          "indicator": "Tools and methods to produce forensically sound copies of hard drives and memory are present and reviewed frequently",
+          "question": "Adakah alat dan metode yang tersedia untuk membuat salinan hard drive dan memori yang dapat dipercaya dari segi forensik dan apakah mereka direview secara sering?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Own tools for DF related tasks are developed in a forensically sound manner",
+          "question": "Apakah organisasi Anda mengembangkan alat sendiri untuk tugas-tugas digital forensik dengan cara yang dapat dipercaya dari segi forensik?",
+          "contribution_max": 3
+        },
+        {
+          "indicator": "Methods to adjust infrastructure and applications are present",
+          "question": "Adakah metode yang tersedia untuk menyesuaikan infrastruktur dan aplikasi di organisasi Anda?",
+          "contribution_max": 3
+        }
+      ]
+    }
+  ]
+}
