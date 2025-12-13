@@ -47,7 +47,7 @@ class LLMService:
         
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.token}"
+            "Authorization": f"Bearer {self.token}",
             "Authorization": f"Bearer {self.token}"
         }
         
