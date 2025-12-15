@@ -11,8 +11,7 @@ from shared.async_utils import run_async
 def assessment_questions(manager: SessionManager) -> List[dict]:
     selected_package = manager.context.get("selected_package")
     
-    # get 2 questions per enabler
-    questions_data = v2.questions.get_all()
+    questions_data = v2.questions.get_questions_per_enabler()
     
     questions = format_questions(questions_data)
     
@@ -35,7 +34,7 @@ def process_assessment_submission(
         ValueError: If validation fails
     """
     # Validate phase
-    if manager.context.get("current_phase") != "testing":
+    if manager.context.get("current_phase") != "evaluation":
         raise ValueError("Please get test questions first")
     
     # Get answers

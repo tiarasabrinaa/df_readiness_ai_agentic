@@ -35,7 +35,7 @@ def process_assessment_submission(
         ValueError: If validation fails
     """
     # Validate phase
-    if manager.context.get("current_phase") != "testing":
+    if manager.context.get("current_phase") != "evaluation":
         raise ValueError("Please get test questions first")
     
     # Get answers

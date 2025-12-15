@@ -16,8 +16,8 @@ from .schemas import (
 
 logger = logging.getLogger("debug_logger")
 
-@assessment_before_bp_v2.route('/get_test_questions', methods=['GET'])
-def get_test_questions():
+@assessment_before_bp_v2.route('/get_quick_test_questions', methods=['GET'])
+def get_quick_test_questions():
     """Get test questions based on selected package"""
     try:
         manager = get_or_create_session()

@@ -39,6 +39,7 @@ def update_manager_phase_assessment(
     manager.context["test_answers"] = validated_answers
     manager.context["likert_scores"] = validated_answers
     manager.context["current_phase"] = "evaluation"
+    manager.context["questions"] = validated_answers
 
 def format_questions(questions_data: List[dict]) -> List[dict]:
     """Transform raw question data to API format"""

@@ -102,7 +102,7 @@ class QuestionsV2Service(BaseMongoService):
         try:
             self.ensure_connected()
             
-            cursor = self.collection.find({}).limit(1)
+            cursor = self.collection.find({})
             questions = []
             
             for doc in cursor:
@@ -141,4 +141,36 @@ class QuestionsV2Service(BaseMongoService):
             return sorted([p for p in packages if p])
         except Exception as e:
             logger.error(f"Error getting v2 packages: {e}")
+            return []
+    
+    def get_questions_per_enabler(self) -> List[Dict]:
+        """
+        Get 3 questions per enabler for quick test (V2 specific)
+        
+        Returns:
+            List of question dictionaries
+        """
+        try:
+            self.ensure_connected()
+            enablers = self.get_enablers()
+            selected_questions = []
+            
+            for enabler in enablers:
+                query = {"enabler": enabler}
+                cursor = self.collection.find(query).limit(3)
+                
+                for doc in cursor:
+                    selected_questions.append({
+                        "id": str(doc["_id"]),
+                        "question": doc.get("question", ""),
+                        "enabler": doc.get("enabler", ""),
+                        "indicator": doc.get("indicator", ""),
+                        "package": doc.get("id_package", "")
+                    })
+            
+            logger.info(f"Retrieved {len(selected_questions)} questions for quick test")
+            return selected_questions
+            
+        except Exception as e:
+            logger.error(f"Error getting questions per enabler: {e}")
             return []
