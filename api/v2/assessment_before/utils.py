@@ -45,5 +45,7 @@ def format_questions(questions_data: List[dict]) -> List[dict]:
     return [{
         "question": q.get("question", ""),
         "indicator": q.get("indicator", ""),
-        "level": q.get("level", "")
+        "enabler": q.get("level", ""),
+        "contribution_max": q.get("contribution_max", 3),
+        "options": [i for i in range(q.get("contribution_max", 4))]
     } for q in questions_data]

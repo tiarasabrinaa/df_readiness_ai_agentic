@@ -11,6 +11,7 @@ class SubmitTestAnswersRequest(BaseModel):
 class AssessmentQuestion(BaseModel):
     """Individual test question model"""
     contribution_max: int
+    question: str
     enabler: str
     indicator: str
     options: List[int]

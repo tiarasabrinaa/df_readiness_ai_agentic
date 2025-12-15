@@ -1,56 +1,69 @@
-from typing import List, Dict
+from typing import List, Dict, Any
 
-class CalculateScore:
-    """
-    Calculator for contribution-based scoring
-    Formula: (contribution_max / answer) * sum_contribution_max
-    """
+from flask import jsonify
+from api.v2.assessment_before.utils import format_questions, update_manager_phase_assessment, validate_answers, format_questions
+
+from ..base.base_schemas import BaseResponse
+from services.database import v2
+from shared.session_manager import SessionManager
+from shared.async_utils import run_async
+
+def assessment_questions(manager: SessionManager) -> List[dict]:
+    selected_package = manager.context.get("selected_package")
     
-    @staticmethod
-    def calculate_single_score(contribution_max: int, answer: int, sum_contribution_max: int) -> float:
-        """
-        Calculate score for single answer
-        
-        Args:
-            contribution_max: Maximum contribution for this question
-            answer: User's answer (1-4)
-            sum_contribution_max: Sum of all contribution_max values
-            
-        Returns:
-            Calculated score
-        """
-        if answer == 0:
-            return 0.0
-        
-        score = (contribution_max / answer) * sum_contribution_max
-        return round(score, 2)
+    # get 2 questions per enabler
+    questions_data = v2.questions.get_all()
     
-    @staticmethod
-    def calculate_enabler_score(answers: List[int], test_questions: List[Dict], sum_contribution_max: int) -> Dict:
-        """
-        Calculate total score for each enabler
-        
-        Args:
-            answers: List of user's answers
-            test_questions: List of test questions with enabler info
-            sum_contribution_max: Sum of all contribution_max values
-            
-        Returns:
-            Dictionary with scores per enabler
-        """
-        enabler_scores = {}
-        
-        for i, answer in enumerate(answers):
-            question = test_questions[i]
-            contribution_max = question.get("contribution_max", 0)
-            enabler = question.get("enabler", "unknown")
-            
-            # Calculate score for the current question
-            score = CalculateScore.calculate_single_score(contribution_max, answer, sum_contribution_max)
-            
-            # Aggregate score by enabler
-            if enabler not in enabler_scores:
-                enabler_scores[enabler] = 0.0
-            enabler_scores[enabler] += score
-        
-        return enabler_scores
+    questions = format_questions(questions_data)
+    
+    update_manager_phase_assessment(manager, questions)
+
+    return questions
+
+def process_assessment_submission(
+    manager: SessionManager, 
+    data: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Process assessment submission
+    
+    Returns:
+        Dict with: current_phase, average_score, total_responses, 
+                   sum_contribution_max, total_score
+    
+    Raises:
+        ValueError: If validation fails
+    """
+    # Validate phase
+    if manager.context.get("current_phase") != "testing":
+        raise ValueError("Please get test questions first")
+    
+    # Get answers
+    answers = data.get('answers', [])
+    
+    if not isinstance(answers, list):
+        raise ValueError("Answers must be a list")
+    
+    # Validate count
+    expected_count = len(manager.context.get("test_questions", []))
+    if len(answers) != expected_count:
+        raise ValueError(f"Please provide exactly {expected_count} answers")
+    
+    # Validate and convert answers
+    validated_answers = validate_answers(answers)
+    
+    # Calculate scores
+    total_score = sum(validated_answers)
+    avg_score = total_score / len(validated_answers)
+    
+    # Store results
+    update_manager_phase_assessment(manager, validated_answers)
+    
+    # Return results
+    return {
+        "current_phase": manager.context["current_phase"],
+        "average_score": round(avg_score, 2),
+        "total_responses": len(validated_answers),
+        "sum_contribution_max": len(validated_answers) * 4,
+        "total_score": total_score
+    }
