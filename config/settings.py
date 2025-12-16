@@ -29,7 +29,8 @@ class Settings:
     LLM_MODEL: str = os.getenv("LLM_MODEL", "")
 
     ## LLM Fallback Key
-    FALLBACK_LLM_KEY: str = os.getenv("FALLBACK_LLM_KEY", "")
+    FALLBACK_LLM_KEY_GEMINI: str = os.getenv("FALLBACK_LLM_KEY_GEMINI", "")
+    FALLBACK_LLM_KEY_OPENAI: str = os.getenv("FALLBACK_LLM_KEY_OPENAI", "")
     
     # Validate LLM configuration
     if not LLM_URL or not LLM_TOKEN:

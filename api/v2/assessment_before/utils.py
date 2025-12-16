@@ -105,6 +105,8 @@ def calculate_score(manager: SessionManager) -> Dict[str, float]:
 
     # Round scores
     score_per_enabler = {k: round(v, 2) for k, v in score_per_enabler.items()}
+
+    manager.context["enablers_score"] = score_per_enabler
     
     return score_per_enabler
 

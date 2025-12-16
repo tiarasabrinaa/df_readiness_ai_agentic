@@ -26,6 +26,8 @@ Pengguna telah memberikan jawaban assessment berikut:
 
 Berikut adalah profil organisasi pengguna: {profile_description}
 
+Berikut adalah MATURITY LEVEL AKHIR user: {maturity_level}
+
 **PERINGATAN PENTING:**
 - HANYA gunakan informasi dari jawaban assessment dan konteks organisasi pengguna.
 - Semua jawaban HARUS didasarkan pada konteks/jurnal yang telah diberikan.
@@ -34,6 +36,8 @@ Summary berisi 2-3 kalimat yang mencakup:
 1. Gambaran umum tingkat kesiapan digital forensics organisasi berdasarkan jawaban assessment.
 2. Penjelasan singkat mengenai tingkat kematangan digital forensics organisasi.
 3. Identifikasi singkat penyebab utama di balik tingkat kematangan tersebut.
+4. Jangan menggunakan kata "organisasi ini" atau "organisasi Anda", langsung berikan deskripsi dan analisisnya.
+5. Jangan menggunakan kata "ini" di awal kalimat.
 
 Format HARUS berupa string tanpa tambahan penjelasan atau format lain.
 """
@@ -50,21 +54,21 @@ Profil organisasi: {profile_description}
 Konteks jurnal: {journal_text}
 
 **TUGAS:**
-Berikan 3-5 rekomendasi langkah selanjutnya yang spesifik dan actionable untuk meningkatkan kematangan digital forensics organisasi, khususnya pada enabler yang lemah.
+Berikan 3 rekomendasi langkah selanjutnya yang spesifik dan actionable untuk meningkatkan kematangan digital forensics organisasi, khususnya pada enabler yang lemah.
 
 Setiap rekomendasi harus:
-1. Spesifik dan dapat diimplementasikan
+1. Spesifik dengan tujuan dan dapat diimplementasikan
 2. Relevan dengan konteks organisasi
 3. Memprioritaskan enabler dengan nilai rendah
 4. Mengacu pada best practice dari jurnal
+5, Satu step hanya terdiri dari satu kalimat yang berisi 8 - 10 kata ringkas.
 
-Format sebagai numbered list.
+Format sebagai numbered list. Jangan tambahkan penjelasan di luar list.
 """
-
 
 # ============== HELPER FUNCTIONS ==============
 
-def build_summary_analysis_messages(questions_answers: str, profile_description: str) -> List[Dict[str, str]]:
+def build_summary_analysis_messages(questions_answers: str, profile_description: str, maturity_level: str) -> List[Dict[str, str]]:
     """Build LLM messages for summary analysis generation"""
     return [
         {
@@ -76,7 +80,8 @@ def build_summary_analysis_messages(questions_answers: str, profile_description:
             "content": SUMMARY_ANALYSIS_USER_PROMPT.format(
                 journal_text=JOURNAL_TEXT,
                 questions_answers=questions_answers,
-                profile_description=profile_description
+                profile_description=profile_description,
+                maturity_level=maturity_level
             )
         }
     ]

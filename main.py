@@ -19,6 +19,7 @@ from api.rag_faiss import rag_faiss_bp
 
 from api.v2.assessment_before import assessment_before_bp_v2 as assessment_before_bp_v2
 from api.v2.result import result_v2
+from api.v2.timeline import timeline_v2
 
 
 # ============== APP INITIALIZATION ==============
@@ -43,7 +44,7 @@ app.register_blueprint(rag_faiss_bp, url_prefix='/api/v1/rag_faiss')
 
 app.register_blueprint(assessment_before_bp_v2, url_prefix='/api/v2/assessment_before')
 app.register_blueprint(result_v2, url_prefix='/api/v2/result')
-
+app.register_blueprint(timeline_v2, url_prefix='/api/v2/timeline')
 
 # ============== JWT MIDDLEWARE ==============
 PUBLIC_PATHS = {

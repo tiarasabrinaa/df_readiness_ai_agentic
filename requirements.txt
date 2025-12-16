@@ -49,3 +49,4 @@ pydantic
 nest_asyncio
 google-genai
 google-generativeai
+openai

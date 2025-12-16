@@ -55,8 +55,10 @@ def process_assessment_submission(
     update_manager_phase_assessment_submission(manager, validated_answers)
 
     enablers_score = calculate_score(manager)
+    manager.context["score_enablers"] = enablers_score
 
     maturity_level = check_maturity_level(enablers_score)
+    manager.context["maturity_level"] = maturity_level
     
     # Return results
     return {

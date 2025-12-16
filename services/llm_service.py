@@ -4,8 +4,10 @@ import json
 from typing import Dict, Any, Optional, List
 from config.settings import settings
 import logging
+
 from google import genai
 from google.genai import types
+from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -15,21 +17,51 @@ class LLMService:
         self.token = settings.LLM_TOKEN
         self.model = settings.LLM_MODEL
         
-        self.token_fallback = settings.FALLBACK_LLM_KEY
+        self.token_fallback_gemini = settings.FALLBACK_LLM_KEY_GEMINI
+        self.token_fallback_openai = settings.FALLBACK_LLM_KEY_OPENAI
         
     async def call_llm(self, messages: list, max_tokens: int = 2000, temperature: float = 0.7) -> str:
+        """
+        Try LLMs in cascade:
+        1. Primary LLM
+        2. Gemini fallback
+        3. OpenAI fallback
+        """
+        
+        # === TRY PRIMARY LLM ===
         try:
             result = await self._call_primary_llm(messages, max_tokens, temperature)
             
-            if self._is_error_response(result):
-                logger.warning("Primary LLM returned error, trying fallback")
-                return await self._call_gemini_fallback(messages)
+            # Check if result looks like an error
+            if not self._is_error_response(result):
+                return result
             
+            logger.warning("Primary LLM returned error response, trying Gemini")
+            
+        except Exception as e:
+            logger.error(f"Primary LLM failed with exception: {e}")
+        
+        # === TRY GEMINI FALLBACK ===
+        try:
+            result = await self._call_gemini_fallback(messages)
+            
+            # Check if result looks like an error
+            if not self._is_error_response(result):
+                return result
+            
+            logger.warning("Gemini returned error response, trying OpenAI")
+            
+        except Exception as e:
+            logger.error(f"Gemini fallback failed with exception: {e}")
+        
+        # === TRY OPENAI FALLBACK ===
+        try:
+            result = await self._call_openai_fallback(messages)
             return result
             
         except Exception as e:
-            logger.error(f"Primary LLM failed: {e}, trying fallback")
-            return await self._call_gemini_fallback(messages)
+            logger.error(f"OpenAI fallback also failed: {e}")
+            return "Maaf, semua sistem AI sedang tidak tersedia. Silakan coba lagi nanti."
 
 
     async def _call_primary_llm(self, messages: list, max_tokens: int, temperature: float) -> str:
@@ -71,7 +103,7 @@ class LLMService:
     async def _call_gemini_fallback(self, messages: list) -> str:
         """Call Gemini as fallback"""
         try:
-            client = genai.Client(api_key=self.token_fallback)
+            client = genai.Client(api_key=self.token_fallback_gemini)
             
             gemini_contents = []
             system_instruction = None
@@ -106,6 +138,31 @@ class LLMService:
             logger.error(f"Fallback LLM also failed: {e}", exc_info=True)
             return "Maaf, sistem AI sedang tidak tersedia. Silakan coba lagi nanti."
 
+    async def _call_openai_fallback(self, messages: list) -> str:
+        """Call OpenAI as another fallback"""
+        try:
+            openai_client = OpenAI(api_key=self.token_fallback_openai)
+            
+            formatted_messages = [
+                {"role": msg["role"], "content": msg["content"]} for msg in messages
+            ]
+            
+            response = openai_client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=formatted_messages,
+                max_tokens=1500,
+                temperature=0.7
+            )
+            
+            if response.choices:
+                return response.choices[0].message.content.strip()
+            
+            logger.error("OpenAI returned empty choices")
+            raise Exception("OpenAI returned empty response")
+            
+        except Exception as e:
+            logger.error(f"OpenAI Fallback LLM also failed: {e}", exc_info=True)
+            return "Maaf, sistem AI sedang tidak tersedia. Silakan coba lagi nanti."
 
     def _is_error_response(self, text: str) -> bool:
         """Check if response text is an error message"""
