@@ -165,7 +165,8 @@ class QuestionsV2Service(BaseMongoService):
                         "question": doc.get("question", ""),
                         "enabler": doc.get("enabler", ""),
                         "indicator": doc.get("indicator", ""),
-                        "package": doc.get("id_package", "")
+                        "package": doc.get("id_package", ""),
+                        "contribution_max": doc.get("contribution_max", 0)
                     })
             
             logger.info(f"Retrieved {len(selected_questions)} questions for quick test")

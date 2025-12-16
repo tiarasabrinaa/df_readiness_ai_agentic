@@ -1,0 +1,188 @@
+Title = Towards a capability maturity model for digital forensic readiness
+
+**Capability model development approach**
+
+In recent years, several different applications and variations of maturity models have been developed. They have been implemented across a multitude of domains. The base model was the CMM from the Software Engineering Institute of the Carnegie Mellon University. The increased development of different capability models in various business areas has also shown downsides. Publications of capability maturity models show, that the models or con- cepts are not scientifically proven according to their development process. A few models seem to be developed as a marketing instrument of a consulting or software development company. The documentation about the development process of a model is also often poorly pre- pared [2]. To overcome this pitfall, the development of a capability maturity model for DFR in this work underlies a strict and transparent methodology. For this, various con- cepts for the development of a capability maturity model are described and a specific approach is selected and adopted.
+
+**Baseline model**
+
+Becker et al. [2] provide a scientifically proven principle for developing a capability maturity model. They define and differ five important phases within the developing process: Definition of the problem, comparison of existing models, defining a development strategy, iterative devel- opment of the model and concepts for transfer and evalu- ation. The intended development of a digital forensic readiness maturity model in this work uses a general development framework provided by De Bruin et al. [3]. The framework presents a guideline to develop a theoret- ically sound, rigorously tested and widely accepted matu- rity model. The suggested framework consists of the phases Scope, Design, Populate, Test, Deploy and Maintain.
+
+** Definition of maturity levels for the DFR CMM**
+The representation of capability profiles is not unrestrict- edly applicable for comparing capabilities of an organiza- tion with others or companies within the same branch. Due to the fact that the intended capability maturity model is based on the CMMI, essential elements of CMMI can be reused. The CMMI has defined maturity levels to allow an overall assessment of the maturity of an organization. This reorientation of a maturity level aligns to a specific selec- tion of PAs. They should cover the intended assessment holistically. This approach supports the assessment of the whole organization and enables an inter-organizational comparison. To provide this holistic assessment of an organization according DFR including all relevant evalu- ation domains, five maturity levels have been defined. Based on the core concept of the CMMI [7] and the sys- tematic provided by [19] the following maturity levels are defined. Aspects of [6, 19, 28] also influenced the definition of the levels.
+1. Level 1 Level 1 represents non-existing measures according DFR. This is general characterized by having no formalization and a digital forensic investigation is per- formed chaotically and unstructured. There are also no standards or documentations about how a process should be performed. Knowledge about DF and the importance of keeping traces secure and useful for a court of law are not present within the organization.
+2. Level 2 Level 2 defines basic elements in performing DFR related activities. For example, there is a low or minimal formalization of procedures in the case of a digital investigation. Also a repeatability in various processes is recognizable. Additionally, a basic documentation is pre- sent. In this level, minor DFR aspects are fulfilled and DFR is addressed as a relevant topic inside the organization. It is noticeable that these initiatives are not enough if a real investigation needs to be conducted.
+3. Level 3 Level 3 provides a solid base in performing DFR activities. At this level an organization has standardized forensic procedures, compressively documented processes and formal trainings. The involved staff has an accept- able understanding of DF and its consequences. This empowers an organization that potential failures in an early stage of a forensic investigation are prevented. According to Tan, the increased usability of evidences is an eminent aspect of DFR [34]. By having measures at this level in place can additionally save costs within a digital investigation.
+4. Level 4 Level 4 describes an advanced state of having DFR initiatives in place. Beyond the previous levels and aspects, this level focuses on a professional implementation of DFR. For example, DFR is an enterprise-wide and strategic issue. At this level the support of an executive manager is committed and various process improvement measures are in place.
+5. Level 5 The highest level of the model is represented as level 5. The achievement of this level implies a full implementation of DFR including a continuous improve- ment of DFR related measures and structures. With the definition of process improvement objectives, implement- ing formal staff training and a corresponding accreditation this level can be reached.
+
+The digital forensic capability maturity
+Based on the development approach, suggested in Sect. 3, and the distilled requirement of DFR, presented in Sect. 2.2, the following DFR capability maturity model has been developed by conducting and presenting the various maturity levels of the DFR CMM. For each level the main characteristic processes, people and technology are exam- ined and used in the description. The maturity level of the DFR CMM are described in Table 1. related questions. These questions represent indicators which are present or not. Some measures for implementing DFR need the support by the management or governance of an organization. Due to the fact that the model is built by facilitating IT-Governance principles from COBIT 5, the enabler concept provides a future-orientated guideline for a continuous improvement within the organization. This approach results in an overview of goals the seven enablers need to achieve to successfully implement DFR. With this DFR specific CMM a comprehensive and detailed justifi- cation of the intended progress can be reached.
+The relation between capability and maturity levels and their possible definitions are presented in Fig. 1. In this figure also a possible linkage between capability levels and the enabler concept of COBIT 5 is illustrated. The capability level of a specific enabler can be deter- mined by questioning a company or responsible person a set of indicators. Each indicator can be asked and evaluated individually.
+In the context of implementing DFR, two different types of indicators are used. On the one hand, mandatory indi- cators are used to define measures or structures which are necessary to reach a specific capability level. These indi- cators need to be fulfilled by an adequate implementation within the organization. On the other hand, optional indi- cators are defined. These indicators are not compulsory. They can be fulfilled to support a specification or charac- teristic of DFR capabilities. Such elements are expressly welcomed but not an essential element of having DFR measures in place at the assigned capability level. How- ever, these optional indicators can become mandatory in the future if the requirements in DFR are changing or an implementation of higher DFR capabilities is intended. They can be seen as suggestions for an optimal imple- mentation of the capability level. In ‘‘Appendix 1’’ the Tables 4, 5, 6, 7, 8, 9 and 10 show mandatory and optional indicators for determining the capability level of an enabler. Table 11 provides an overview about the neces- sary capability levels per enabler for having a specific maturity level.
+The minimal necessity to have DFR in place is the maturity level 3. As a negative side effect this could mis- lead managers to think the organization is fully prepared at this level. Even if the minimal level for DFR is reached by an organization, it is necessary to pursue a further devel- opment. This guarantees a higher application and faster response to changing circumstances around DFR. The higher levels, Level 4 and 5, assist to set up necessary requirements to faster adopt new demands in DFR.
+
+Description of the defined maturity levels
+Level: 1
+Description:
+- Initial No documentation is presented
+- No communication structure is defined
+- No training is in place
+- No regulations are defined
+- DF process is performed ad-hoc and without structure
+- No DFR structure is in place
+=================
+Level: 2
+Description:
+- Managed Repeatable processes are in place
+- Informal training is performed
+- Minimal formalization is present
+- A basic documentation is present
+- Low or informal communication structure is defined
+- DF related measures are informally or ad-hoc performed
+=================
+Level: 3
+Description:
+- Defined Documented processes are present
+- Documented usage of tools and methods are present
+- Standardized procedures are in place
+- Documentation is reviewed and accepted
+- Formal trainings are offered and conducted
+- Formal regulations are in place
+- Communication is defined and new employees are involved
+=================
+Level: 4
+Description:
+Quantitatively
+- Managed
+- Minimal requirements for DFR are fulfilled
+- DFR related process improvement measurements are in place
+- Used documents are checked for alignment with goals & objectives
+- Frequent communication to all staff is implemented
+- A formal training and accreditation is in place
+- Principles are accepted and followed
+- Monitoring and regulation mechanism are established
+=================
+Level: 5
+Description:
+- Optimized Extended requirements for DFR are fulfilled
+- DFR related process improvement measurements are in place and objectives are aligned within the organization government
+- DFR related processes are continuously improved and measured
+- Changes in the documentation structure are incorporated and clearly communicated
+- Frequently and timely communication to all staff is implemented
+- A formal training and accreditation is in place
+- Legislation and laws are reviewed and DF aspects are integrated into procedures, documents and/or adopted to organizational structure
+
+Description of the defined capability levels
+0 - incomplete: The DF related objectives are not reached
+1 - performed: The intended goals in DF are reached
+2 - managed: DF initiatives and activities are managed and not ad-hoc performed
+3 - completely defined: A standardized process for DF activities is in place. The procedures underlie a continuous improvement
+
+**Implementation**
+The previously proposed model for determining a com- pany’s digital forensic readiness maturity level is based on querying indicators to determine the capability levels. This mechanism was implemented as a web-based application.1 The indicators shown in the Tables 4, 5, 6, 7, 8, 9 and 10 in Appendix A have been translated into questions and stored in a MySQL database. The logic to determine the capa- bility level and the maturity level was implemented with JavaScript. If a company undergoes such an assessment, a skilled professional can evaluate the indicators, grouped by COBIT 5 enablers, according to the current situation. As soon as sufficient questions for the determination of the maturity level have been answered, the tool presents the result. The result consists of the capability levels of the company per enabler, the level of maturity achieved and a list with the answered indicators. With these results, specific areas of the company can be developed to achieve the DFR objectives.
+
+**Evaluation of the model**
+The applicability of the model is tested by using informa- tion about the Target Corp. Data Breach [32] as a baseline for a case study. In November and December 2013, the company suffered a until then unique security breach. Attackers penetrated the company’s network via a third party vendor and compromised point of sale devices with malware. This made it possible for the attacker to collect 40 million card numbers and 70 million personal entries. This data was afterwards offered for sale on the black market.
+This case was chosen because it occurred despite enor- mous previously established IT security measures. The case has been under investigation for several years and faces significant barriers to capture the cybercriminals [32]. Subsequently, the seven enablers are examined accord- ing to the implemented measures for DFR before the incident. Further the level of capability of the respective enabler is determined and finally the level of maturity is derived.
+*1. Enabler principles, policies and frameworks*
+The employed Chief Information Officer before the incident had no background in computer science. Management also decided not to follow warnings and advices of a recently installed IT security tool and decided not to re-evaluate the systems. In addition, advices from security experts to the management were ignored. The fact that after the incident the position as Chief Information Officer was filled with a candidate with the appropriate experience also shows that there was no knowledge present about the correct proce- dure in case of an incident. [33] The analysis of the case shows that the Target Corp. was repeatedly warned about the incident by the protection systems and that the employees did not initiate the correct actions [23]. This analysis allows to conclude that besides the man- agement’s lack of understanding of IT security measures, the establishment of suitable principles, policies and frameworks according DF measures was not fully estab- lished and therefore no regulations for DFR were implemented.
+*2. Enabler processes*
+It can be assumed that the company has a good understanding of its business processes, since a crucial security function of the point of sale devices had just been deactivated in order to not slow down the check out process of the customer [33]. Target Corp. had implemented good IT security measures, but the handling of messages from the systems was not correct among the employees due to inadequate training [32]. As a result, the knowledge of a correct procedure in case of an incident could not be implemented.
+*3. Enabler organizational structures*
+After the breach a new CIO was announced and a 100 million dollar plan for enhancing their security has been promoted. Therein the enhancement of security of various accounts as well as reviewing and limiting vendor access has been addresses. Especially the insufficient implementation of access con- trol by different groups and third party partners made the attack feasible [32]. This allows the conclusion that central elements of the organizational structure were insufficiently developed.
+*4. Enabler information*
+It is not clear whether sufficient internal information about the handling of digital evidence was available. However, it is well known that major investments were made in IT security tools and measures. These included the network security system named Fire- Eye, which includes a Network Intrusion Detection System (NIDS) [32]. These tools usually also include possibilities to obtain evidence for a forensic investigation. Since dif- ferent prevention functionalities were deactivated due to lack of knowledge of the administrators [32] it is assumed that further possibilities of the system were also not or insufficiently known among relevant stakeholder.
+*5. Enabler culture, ethics and behavior*
+Little is known about the culture, ethics and behavior before the incident. It is assumed that the data breach was not performed or ini- tiated by an insider [32]. However, employee awareness of IT security incidents was partially suppressed for business- enhancing convenience [23]. Therefore, for the use case presented here, it is assumed that a fraud intolerant culture exists in the company and that the employees do not hinder an investigation. How- ever, in some cases this is overshadowed by measures that threaten IT security for the purpose of promoting direct business goals.
+*6. Enabler people, skills and competences*
+It can be seen that before the attack, management had already been informed about IT security weaknesses but did not follow the recommendations of experts [33]. The lack of knowledge about the consequences of dis- abling important security warnings in intrusion detection systems combined with the result that employees still do not follow the procedure of the system is critical. This shows that the employees have been insufficiently trained [23]. It is assumed that in this use case not only the teaching of relevant IT security skills and competences but also the DF trainings have failed
+*7. Enabler services, infrastructure and applications*
+The Target Corp. had extensive ambitions to keep the IT security in the company up-to-date and running. Before the data breach, for example, a malware detection tool was implemented in the company for 1.6 USD. In addition, extensive evaluations of the existing IT security measures were regularly undertaken. [23]
+
+**etermined capability levels per enabler of the use case**
+Principles, policies and frameworks 0—Incomplete
+Processes 1—Performed
+Organizational structures 0—Incomplete
+Information 0—Incomplete
+Culture, ethics and behavior 1—Performed
+People, skills and competences 0—Incomplete
+Services, infrastructure and applications 2—Managed
+
+**THE MOST CONSIDERED THINGS (Indicators of enablers)**
+
+**Indicators for the enabler principles, policies and frameworks**  
+1. Initiatives to raise awareness for DF activities are in place
+2. Initiatives to raise awareness for DF activities are in place and continuously monitored
+3. Governance and Management understand DFR initiatives
+4. Governance and Management pursue DFR initiatives
+5. Governance and Management are completely involved in planning DFR initiatives
+6. Governance and Management support DFR related organizational changes 
+7. A change management is in place
+8. Principles and policies according to a DF investigation are present 
+9. Employees take the principles of DF related actions seriously
+10. Principles are clearly formulated
+
+**Indicators for the enabler processes**
+1. A basic understanding of the DF investigation process is present 
+2. A deep understanding of the DF investigation process is present 
+3. The support for the DF investigation process is continuously improved 
+4. Related sub-processes to DF are documented
+5. Guidelines to prevent business interruption in the case of a DF investigation are defined
+6. Process models of business processes are present
+7. DF related processes are partially automated
+
+**Indicators for the enabler organizational structures**
+1. Responsibilities for the case of a DF investigation are known 
+2. Responsibilities for the case of a DF investigation are defined 
+3. DF related decision-making guidelines are included in job-descriptions or roles 
+4. Rights within Information Systems are defined
+5. Rights within Information Systems are defined and adjusted to prevent potential destroying or tampering of evidences
+6. An Identity Management System is in place
+7. Escalation rules are defined
+8. Escalation rules are defined, reviewed and monitored
+
+**Indicators for the enabler information**
+1. Documents about the right handling of digital evidences in general are present 
+2. Documents about the right handling of digital evidences of all devices and systems within the organization are present
+3. Documents about the right handling of digital evidences of all devices and systems within the organization are present and frequently reviewed
+4. Information about DF investigations are available and accessible 
+5. Employee can contribute findings and knowledge regarding DF  
+6. The usage of tools for DF is documented
+7. The usage of tools for DF is documented and continuously reviewed
+8. Information about the usage of digital evidences in a law court is present 
+9. Information about the usage of digital evidences in a law court is present and frequently updated 
+10. Employees get frequent updates according DF related topics (e.g.: e-Mail, letter) 
+11. Employees get timely updates according DF related topics (e.g.: e-Mail, letter) 
+
+**Indicators for the enabler culture, ethics and behavior**
+1. A fraud intolerant culture is present
+2. A fraud intolerant culture is pursued
+3. Open handling of mistakes and issues is present
+4. Open handling of mistakes and issues is present 
+5. Anti-fraud ethics are established
+6. A willingness to unveil fraud/crime is present
+7. DF related activities are accepted within employees
+8. Specific guidelines for potential fraud related situations are present 
+9. Specific guidelines for potential fraud related situations are present and reviewed
+10. Employees do not hinder a DF investigation
+
+**Indicators for the enabler people, skills and competences**
+1. Employees understand the importance of digital evidences
+2. Employees get informal DFR related training
+3. Employees get formal DFR related training
+4. The proper application of the knowledge is assessed regularly 
+5. Human resource division ensures the right amount of DF skilled employees
+
+**Indicators for the enabler services, infrastructure and applications**
+1. Services, infrastructure and applications are documented
+2. Services, infrastructure and applications are documented and continuously updated
+3. Possibilities to retrieve log-files are known
+4. Possibilities to retrieve log-files are known and the configuration is reviewed 
+5. Possibilities to retrieve log-files are known and the configuration is reviewed 
+6. An internal laboratory is present
+7. A possibility to store and protect digital evidences is present 
+8. Tools and methods to produce forensically sound copies of hard drives and memory are present 
+9. Tools and methods to produce forensically sound copies of hard drives and memory are present and reviewed frequently
+10. Own tools for DF related tasks are developed in a forensically sound manner 
+11. Methods to adjust infrastructure and applications are present 

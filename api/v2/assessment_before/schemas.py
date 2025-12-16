@@ -29,7 +29,5 @@ class SubmitAnswersAssessment(BaseModel):
     """Response data for POST /submit_test_answers"""
     session_id: str
     current_phase: str
-    average_score: float
-    sum_contribution_max: int
-    total_responses: int
-    total_score: int
+    enablers_score: Dict[str, float]
+    maturity_level: str

@@ -1,5 +1,5 @@
 # ============== UTILS ==============
-from typing import List, Any
+from typing import List, Any, Dict
 from shared.session_manager import SessionManager
 
 def validate_answers(answers: List[Any]) -> List[int]:
@@ -30,7 +30,7 @@ def validate_answers(answers: List[Any]) -> List[int]:
     
     return validated
 
-def update_manager_phase_assessment(
+def update_manager_phase_assessment_submission(
     manager: SessionManager, 
     validated_answers: List[int]
 ) -> None:
@@ -38,7 +38,15 @@ def update_manager_phase_assessment(
     manager.context["test_answers"] = validated_answers
     manager.context["likert_scores"] = validated_answers
     manager.context["current_phase"] = "evaluation"
-    manager.context["test_questions"] = validated_answers
+    manager.context["answers"] = validated_answers
+
+def update_manager_phase_assessment_question(
+    manager: SessionManager, 
+    questions: List[dict]
+) -> None:
+    """Store assessment questions in session context"""
+    manager.context["test_questions"] = questions
+    manager.context["current_phase"] = "evaluation"
 
 def format_questions(questions_data: List[dict]) -> List[dict]:
     """Transform raw question data to API format"""
@@ -50,25 +58,78 @@ def format_questions(questions_data: List[dict]) -> List[dict]:
         "options": [i for i in range(q.get("contribution_max", 4)+1)]
     } for q in questions_data]
 
-def get_3_questions_per_enabler() -> List[dict]:
-    """
-    Retrieve 3 questions for each enabler for quick test
+def calculate_score(manager: SessionManager) -> Dict[str, float]:
+    """Calculate and return average score from stored answers"""
+    answers = manager.context.get("test_answers", [])
+    questions = manager.context.get("test_questions", [])
     
-    Returns:
-        List of question dictionaries
-    """
-    from services.database.v2 import questions as v2_questions_service
+    if not answers:
+        raise ValueError("No answers found to calculate score")
     
-    enablers = [
-        "APO01", "APO02", "APO03", "APO04", "APO05",
-        "BAI01", "BAI02", "BAI03", "BAI04", "BAI05",
-        "DSS01", "DSS02", "DSS03", "DSS04", "DSS05"
-    ]
+    if not questions:
+        raise ValueError("No questions found")
     
-    all_questions = []
+    if len(answers) != len(questions):
+        raise ValueError("Mismatch between answers and questions count")
+
+    # Sum contribution max per enabler
+    sum_contribution_max = {
+        "1. Principles, Policies, and Frameworks": 6,
+        "2. Processes": 7,
+        "3. Organizational Structures": 6,
+        "4. Information": 6,
+        "5. Culture, Ethics, and Behavior": 8,
+        "6. People, Skills, and Competences": 5,
+        "7. Services, Infrastructure, and Applications": 6
+    }
+
+    # Initialize scores
+    score_per_enabler = {
+        "1. Principles, Policies, and Frameworks": 0.0,
+        "2. Processes": 0.0,
+        "3. Organizational Structures": 0.0,
+        "4. Information": 0.0,
+        "5. Culture, Ethics, and Behavior": 0.0,
+        "6. People, Skills, and Competences": 0.0,
+        "7. Services, Infrastructure, and Applications": 0.0
+    }
+
+    for enabler, sum_contribution_max_per_enabler in sum_contribution_max.items():
+        for i in range(len(answers)):
+            question_enabler = questions[i].get("enabler", "")
+            
+            if question_enabler == enabler:
+                max_contribution = questions[i].get("contribution_max", 3)
+                answer_score_per_question = (answers[i] / sum_contribution_max_per_enabler) * 3
+                score_per_enabler[enabler] += answer_score_per_question
+
+    # Round scores
+    score_per_enabler = {k: round(v, 2) for k, v in score_per_enabler.items()}
     
-    for enabler in enablers:
-        questions = v2_questions_service.get_by_enabler(enabler, limit=3)
-        all_questions.extend(questions)
-    
-    return all_questions
+    return score_per_enabler
+
+def check_maturity_level(score_per_enabler: Dict[str, float]) -> Dict[str, str]:
+    """Determine maturity level per enabler based on score"""
+
+    list_score = list(score_per_enabler.values())
+
+    capability_requirements = {
+        "maturity_1": [0, 0, 0, 0, 0, 0, 0],
+        "maturity_2": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        "maturity_3": [2.0, 2.0, 2.0, 2.0, 1.0, 2.0, 2.0],
+        "maturity_4": [2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 2.0],
+        "maturity_5": [3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0]
+    }
+
+    if list_score <= capability_requirements["maturity_1"]:
+        return "maturity_1"
+    elif list_score <= capability_requirements["maturity_2"]:
+        return "maturity_2"
+    elif list_score <= capability_requirements["maturity_3"]:
+        return "maturity_3"
+    elif list_score <= capability_requirements["maturity_4"]:
+        return "maturity_4"
+    elif list_score <= capability_requirements["maturity_5"]:
+        return "maturity_5"
+    else:
+        return "unknown"

@@ -31,7 +31,7 @@ def validate_answers(answers: List[Any]) -> List[int]:
     return validated
 
 
-def update_manager_phase_assessment(
+def update_manager_phase_assessment_submission(
     manager: SessionManager, 
     validated_answers: List[int]
 ) -> None:
@@ -39,7 +39,15 @@ def update_manager_phase_assessment(
     manager.context["test_answers"] = validated_answers
     manager.context["likert_scores"] = validated_answers
     manager.context["current_phase"] = "evaluation"
-    manager.context["questions"] = validated_answers
+    manager.context["answers"] = validated_answers
+
+def update_manager_phase_assessment_question(
+    manager: SessionManager, 
+    questions: List[dict]
+) -> None:
+    """Store assessment questions in session context"""
+    manager.context["test_questions"] = questions
+    manager.context["current_phase"] = "evaluation"
 
 def format_questions(questions_data: List[dict]) -> List[dict]:
     """Transform raw question data to API format"""
@@ -48,3 +56,9 @@ def format_questions(questions_data: List[dict]) -> List[dict]:
         "indicator": q.get("indicator", ""),
         "level": q.get("level", "")
     } for q in questions_data]
+
+def calculate_score(manager: SessionManager, validated_answers: List[int]) -> float:
+    "Calculating score of assessment with cobit method"
+
+    
+    

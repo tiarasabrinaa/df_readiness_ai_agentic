@@ -16,7 +16,9 @@ from api.start_profiling import start_profiling_bp
 from api.assessment_before import assessment_before_bp
 from api.result import result
 from api.rag_faiss import rag_faiss_bp
+
 from api.v2.assessment_before import assessment_before_bp_v2 as assessment_before_bp_v2
+from api.v2.result import result_v2
 
 
 # ============== APP INITIALIZATION ==============
@@ -38,7 +40,9 @@ app.register_blueprint(start_profiling_bp, url_prefix='/api/v1/start_profiling')
 app.register_blueprint(assessment_before_bp, url_prefix='/api/v1/assessment_before')
 app.register_blueprint(result, url_prefix='/api/v1/result')
 app.register_blueprint(rag_faiss_bp, url_prefix='/api/v1/rag_faiss')
+
 app.register_blueprint(assessment_before_bp_v2, url_prefix='/api/v2/assessment_before')
+app.register_blueprint(result_v2, url_prefix='/api/v2/result')
 
 
 # ============== JWT MIDDLEWARE ==============

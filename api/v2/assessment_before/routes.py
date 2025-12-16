@@ -78,11 +78,9 @@ def submit_test_answers():
         
         response_data = SubmitAnswersAssessment(
             session_id=manager.session_id,
-            current_phase=result["current_phase"],
-            average_score=result["average_score"],
-            total_responses=result["total_responses"],
-            sum_contribution_max=result["sum_contribution_max"],
-            total_score=result["total_score"]
+            current_phase=manager.context.get("current_phase", ""),
+            enablers_score=result["enablers_score"],
+            maturity_level=result["maturity_level"]
         )
         
         return jsonify(

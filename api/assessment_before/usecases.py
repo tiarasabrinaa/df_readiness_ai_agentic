@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from flask import jsonify
-from api.assessment_before.utils import format_questions, update_manager_phase_assessment, validate_answers, format_questions
+from api.assessment_before.utils import format_questions, update_manager_phase_assessment_question, update_manager_phase_assessment_submission, validate_answers, format_questions, calculate_score
 
 from ..base.base_schemas import BaseResponse
 from services.database import v2
@@ -16,7 +16,7 @@ def assessment_questions(manager: SessionManager) -> List[dict]:
     
     questions = format_questions(questions_data)
     
-    update_manager_phase_assessment(manager, questions)
+    update_manager_phase_assessment_question(manager, questions)
 
     return questions
 
@@ -57,12 +57,11 @@ def process_assessment_submission(
     avg_score = total_score / len(validated_answers)
     
     # Store results
-    update_manager_phase_assessment(manager, validated_answers)
+    update_manager_phase_assessment_submission(manager, validated_answers)
     
     # Return results
     return {
         "current_phase": manager.context["current_phase"],
-        "average_score": round(avg_score, 2),
         "total_responses": len(validated_answers),
         "sum_contribution_max": len(validated_answers) * 4,
         "total_score": total_score

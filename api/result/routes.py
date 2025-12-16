@@ -1,8 +1,11 @@
 from flask import request, jsonify
 from shared.session_manager import get_or_create_session, async_route
 from datetime import datetime
+
 from .usecases import evaluate_with_llm, send_email
 from ..base.base_schemas import BaseResponse
+from .schemas import EmailRequest, EmailResponse
+
 from email_template import generate_email_template
 
 
@@ -25,15 +28,15 @@ def submit_email():
         
         manager.context["user_profile"]["email"] = email
         
-        data = {
-            "session_id": manager.session_id,
-            "email": email,
-            "message": "Email submitted successfully"
-        }
+        data = EmailResponse (
+            session_id=manager.context.get("session_id", ""),
+            email=email,
+            message="Email submitted successfully"
+        )
     
         response = BaseResponse.success(
             data=data,
-            message="Test questions retrieved successfully"
+            message="Email submitted successfully"
         )
         return jsonify(response.model_dump()), 200
 

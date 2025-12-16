@@ -1,7 +1,7 @@
 from typing import List, Dict, Any
 
 from flask import jsonify
-from api.v2.assessment_before.utils import format_questions, update_manager_phase_assessment, validate_answers, format_questions
+from api.v2.assessment_before.utils import format_questions, update_manager_phase_assessment_question, update_manager_phase_assessment_submission, validate_answers, format_questions, calculate_score, check_maturity_level
 
 from ..base.base_schemas import BaseResponse
 from services.database import v2
@@ -11,11 +11,12 @@ from shared.async_utils import run_async
 def assessment_questions(manager: SessionManager) -> List[dict]:
     selected_package = manager.context.get("selected_package")
     
+    # get 2 questions per enabler
     questions_data = v2.questions.get_questions_per_enabler()
     
     questions = format_questions(questions_data)
     
-    update_manager_phase_assessment(manager, questions)
+    update_manager_phase_assessment_question(manager, questions)
 
     return questions
 
@@ -50,19 +51,15 @@ def process_assessment_submission(
     
     # Validate and convert answers
     validated_answers = validate_answers(answers)
-    
-    # Calculate scores
-    total_score = sum(validated_answers)
-    avg_score = total_score / len(validated_answers)
-    
-    # Store results
-    update_manager_phase_assessment(manager, validated_answers)
+
+    update_manager_phase_assessment_submission(manager, validated_answers)
+
+    enablers_score = calculate_score(manager)
+
+    maturity_level = check_maturity_level(enablers_score)
     
     # Return results
     return {
-        "current_phase": manager.context["current_phase"],
-        "average_score": round(avg_score, 2),
-        "total_responses": len(validated_answers),
-        "sum_contribution_max": len(validated_answers) * 4,
-        "total_score": total_score
+        "enablers_score": enablers_score,
+        "maturity_level": maturity_level
     }
