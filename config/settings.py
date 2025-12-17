@@ -24,13 +24,13 @@ class Settings:
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     # LLM Configuration
-    LLM_URL: str = os.getenv("LLM_URL", "")
-    LLM_TOKEN: str = os.getenv("LLM_TOKEN", "")
-    LLM_MODEL: str = os.getenv("LLM_MODEL", "")
+    LLM_URL: str = os.getenv("LLM_URL", "").strip()
+    LLM_TOKEN: str = os.getenv("LLM_TOKEN", "").strip()
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "").strip()
 
     ## LLM Fallback Key
-    FALLBACK_LLM_KEY_GEMINI: str = os.getenv("FALLBACK_LLM_KEY_GEMINI", "")
-    FALLBACK_LLM_KEY_OPENAI: str = os.getenv("FALLBACK_LLM_KEY_OPENAI", "")
+    FALLBACK_LLM_KEY_GEMINI: str = os.getenv("FALLBACK_LLM_KEY_GEMINI", "").strip()
+    FALLBACK_LLM_KEY_OPENAI: str = os.getenv("FALLBACK_LLM_KEY_OPENAI", "").strip()
     
     # Validate LLM configuration
     if not LLM_URL or not LLM_TOKEN:
@@ -103,6 +103,7 @@ class Settings:
         return {
             "url": self.LLM_URL,
             "token": self.LLM_TOKEN,
+            "model": self.LLM_MODEL,
             "timeout": 30,  # seconds
             "max_retries": 3
         }

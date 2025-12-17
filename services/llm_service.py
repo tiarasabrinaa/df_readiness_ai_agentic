@@ -20,21 +20,32 @@ class LLMService:
         self.token_fallback_gemini = settings.FALLBACK_LLM_KEY_GEMINI
         self.token_fallback_openai = settings.FALLBACK_LLM_KEY_OPENAI
         
+        # DEBUG: Log configuration (mask sensitive data)
+        logger.info(f"LLM Config - URL: {self.url}")
+        logger.info(f"LLM Config - Model: {self.model}")
+        logger.info(f"LLM Config - Token: {'***' + self.token[-4:] if self.token and len(self.token) > 4 else 'NOT SET'}")
+        
         # Validate primary LLM configuration
         if not self.url or not self.url.startswith(('http://', 'https://')):
             logger.warning(f"Invalid or missing LLM_URL: {self.url}. Primary LLM will be skipped.")
             self.url = None
         
+        if not self.token:
+            logger.error("LLM_TOKEN is not set!")
+        
+        if not self.model:
+            logger.error("LLM_MODEL is not set!")
+        
     async def call_llm(self, messages: list, max_tokens: int = 2000, temperature: float = 0.7) -> str:
         """
         Try LLMs in cascade:
-        1. Primary LLM
-        2. Gemini fallback
-        3. OpenAI fallback
+        1. Primary LLM (required)
+        2. Gemini fallback (optional)
+        3. OpenAI fallback (optional)
         """
         
         # === TRY PRIMARY LLM ===
-        if self.url:  # Only try if URL is configured
+        if self.url:
             try:
                 result = await self._call_primary_llm(messages, max_tokens, temperature)
                 
@@ -43,40 +54,56 @@ class LLMService:
                     logger.info("Primary LLM succeeded")
                     return result
                 
-                logger.warning("Primary LLM returned error response, trying Gemini")
+                logger.warning("Primary LLM returned error response, trying fallback")
                 
             except Exception as e:
                 logger.error(f"Primary LLM failed with exception: {e}")
         else:
-            logger.info("Primary LLM not configured, skipping to fallback")
+            logger.error("Primary LLM not configured")
+            return "Error: Primary LLM tidak dikonfigurasi dengan benar. Periksa LLM_URL, LLM_TOKEN, dan LLM_MODEL."
         
-        # === TRY GEMINI FALLBACK ===
-        try:
-            result = await self._call_gemini_fallback(messages)
-            
-            # Check if result looks like an error
-            if not self._is_error_response(result):
-                logger.info("Gemini fallback succeeded")
+        # === TRY GEMINI FALLBACK (only if configured) ===
+        if self.token_fallback_gemini and len(self.token_fallback_gemini) > 20:
+            try:
+                result = await self._call_gemini_fallback(messages)
+                
+                if not self._is_error_response(result):
+                    logger.info("Gemini fallback succeeded")
+                    return result
+                
+                logger.warning("Gemini returned error response")
+                
+            except Exception as e:
+                logger.error(f"Gemini fallback failed: {e}")
+        else:
+            logger.info("Gemini fallback not configured, skipping")
+        
+        # === TRY OPENAI FALLBACK (only if configured) ===
+        if self.token_fallback_openai and len(self.token_fallback_openai) > 20:
+            try:
+                result = await self._call_openai_fallback(messages)
+                logger.info("OpenAI fallback succeeded")
                 return result
-            
-            logger.warning("Gemini returned error response, trying OpenAI")
-            
-        except Exception as e:
-            logger.error(f"Gemini fallback failed with exception: {e}")
+                
+            except Exception as e:
+                logger.error(f"OpenAI fallback failed: {e}")
+        else:
+            logger.info("OpenAI fallback not configured, skipping")
         
-        # === TRY OPENAI FALLBACK ===
-        try:
-            result = await self._call_openai_fallback(messages)
-            logger.info("OpenAI fallback succeeded")
-            return result
-            
-        except Exception as e:
-            logger.error(f"OpenAI fallback also failed: {e}")
-            return "Maaf, semua sistem AI sedang tidak tersedia. Silakan coba lagi nanti."
+        # All failed
+        return "Maaf, sistem AI sedang tidak tersedia. Silakan coba lagi nanti."
 
 
     async def _call_primary_llm(self, messages: list, max_tokens: int, temperature: float) -> str:
         """Call primary LLM API"""
+
+        logger.info("="*50)
+        logger.info(f"Token dari env: '{self.token}'")
+        logger.info(f"Token length: {len(self.token)}")
+        logger.info(f"Token repr: {repr(self.token)}")
+        logger.info(f"Token hex: {self.token.encode('utf-8').hex()}")
+        logger.info("="*50)
+        
         payload = {
             "model": self.model,
             "messages": messages,
@@ -99,15 +126,32 @@ class LLMService:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(self.url, json=payload, headers=headers)
             
+            # Log response for debugging
+            logger.info(f"Response status: {response.status_code}")
+            
+            if response.status_code == 401:
+                logger.error(f"401 Response body: {response.text}")
+                raise Exception(f"API Auth Error 401 - Token invalid or expired")
+            
             if response.status_code != 200:
                 logger.error(f"API Error {response.status_code}: {response.text}")
                 raise Exception(f"API Error {response.status_code}")
             
             data = response.json()
             
+            # Check for error in response body (even if status is 200)
+            if 'error' in data:
+                logger.error(f"API returned error in body: {data['error']}")
+                raise Exception(f"API Error: {data['error']}")
+            
             if choices := data.get('choices'):
                 if message := choices[0].get('message'):
                     if content := message.get('content', '').strip():
+                        # Validate content is meaningful
+                        if len(content) < 10:
+                            logger.error(f"Primary LLM returned too short response: {content}")
+                            raise Exception("Response too short")
+                        
                         logger.info(f"Primary LLM returned {len(content)} characters")
                         return content
             
@@ -155,6 +199,11 @@ class LLMService:
     async def _call_openai_fallback(self, messages: list) -> str:
         """Call OpenAI as another fallback"""
         try:
+            # Validate API key first
+            if not self.token_fallback_openai or len(self.token_fallback_openai) < 20:
+                logger.error("OpenAI API key not configured or invalid")
+                raise Exception("OpenAI API key not configured")
+            
             openai_client = OpenAI(api_key=self.token_fallback_openai)
             
             formatted_messages = [
