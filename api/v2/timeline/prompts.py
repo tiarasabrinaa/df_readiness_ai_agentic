@@ -71,7 +71,7 @@ Buatkan timeline implementasi yang realistis dan terstruktur untuk meningkatkan 
 
 Timeline harus mencakup:
 1. Fase-fase implementasi dengan durasi spesifik
-2. Milestones kunci untuk setiap fase
+2. Task untuk setiap fase
 3. Fokus enabler per fase (prioritaskan enabler dengan nilai rendah)
 4. Quick wins yang bisa dicapai dalam 1-3 bulan pertama
 5. Estimasi resource dan effort yang dibutuhkan
@@ -85,13 +85,8 @@ Berikan output dalam format JSON dengan struktur:
     {{
       "tanggal_mulai": "YYYY-MM-DD",
       "tanggal_selesai": "YYYY-MM-DD",
-      "milestones": [
-        "1 kegiatan yang harus dilakukan, 1 kalimat
-      ],
-      "focus_enablers": [
-        "Enabler 1",
-        "Enabler 2"
-      ]
+      "task": "Deskripsi task", (dalam 1 kalimat)
+      "focus_enabler": "Enabler yang difokuskan pada task ini"
     }}
   ],
   "risks": [

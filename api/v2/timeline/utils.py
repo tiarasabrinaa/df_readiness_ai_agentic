@@ -80,7 +80,7 @@ def parse_timeline_json(llm_response: str) -> Dict[str, Any]:
         
         # Validate each timeline item has required fields
         for idx, item in enumerate(timeline['timeline']):
-            required_item_fields = ['tanggal_mulai', 'tanggal_selesai', 'milestones', 'focus_enablers']
+            required_item_fields = ['tanggal_mulai', 'tanggal_selesai', 'task', 'focus_enabler']
             for field in required_item_fields:
                 if field not in item:
                     raise ValueError(f"Timeline item {idx} missing required field: {field}")

@@ -24,8 +24,8 @@ class Settings:
     LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO")
 
     # LLM Configuration
-    LLM_URL: str = os.getenv("URL_CUSTOM_LLM_APILOGY", "")
-    LLM_TOKEN: str = os.getenv("TOKEN_CUSTOM_LLM_APILOGY", "")
+    LLM_URL: str = os.getenv("LLM_URL", "")
+    LLM_TOKEN: str = os.getenv("LLM_TOKEN", "")
     LLM_MODEL: str = os.getenv("LLM_MODEL", "")
 
     ## LLM Fallback Key

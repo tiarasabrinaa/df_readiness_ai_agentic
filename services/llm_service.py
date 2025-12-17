@@ -20,6 +20,11 @@ class LLMService:
         self.token_fallback_gemini = settings.FALLBACK_LLM_KEY_GEMINI
         self.token_fallback_openai = settings.FALLBACK_LLM_KEY_OPENAI
         
+        # Validate primary LLM configuration
+        if not self.url or not self.url.startswith(('http://', 'https://')):
+            logger.warning(f"Invalid or missing LLM_URL: {self.url}. Primary LLM will be skipped.")
+            self.url = None
+        
     async def call_llm(self, messages: list, max_tokens: int = 2000, temperature: float = 0.7) -> str:
         """
         Try LLMs in cascade:
@@ -29,17 +34,21 @@ class LLMService:
         """
         
         # === TRY PRIMARY LLM ===
-        try:
-            result = await self._call_primary_llm(messages, max_tokens, temperature)
-            
-            # Check if result looks like an error
-            if not self._is_error_response(result):
-                return result
-            
-            logger.warning("Primary LLM returned error response, trying Gemini")
-            
-        except Exception as e:
-            logger.error(f"Primary LLM failed with exception: {e}")
+        if self.url:  # Only try if URL is configured
+            try:
+                result = await self._call_primary_llm(messages, max_tokens, temperature)
+                
+                # Check if result looks like an error
+                if not self._is_error_response(result):
+                    logger.info("Primary LLM succeeded")
+                    return result
+                
+                logger.warning("Primary LLM returned error response, trying Gemini")
+                
+            except Exception as e:
+                logger.error(f"Primary LLM failed with exception: {e}")
+        else:
+            logger.info("Primary LLM not configured, skipping to fallback")
         
         # === TRY GEMINI FALLBACK ===
         try:
@@ -47,6 +56,7 @@ class LLMService:
             
             # Check if result looks like an error
             if not self._is_error_response(result):
+                logger.info("Gemini fallback succeeded")
                 return result
             
             logger.warning("Gemini returned error response, trying OpenAI")
@@ -57,6 +67,7 @@ class LLMService:
         # === TRY OPENAI FALLBACK ===
         try:
             result = await self._call_openai_fallback(messages)
+            logger.info("OpenAI fallback succeeded")
             return result
             
         except Exception as e:
@@ -68,20 +79,22 @@ class LLMService:
         """Call primary LLM API"""
         payload = {
             "model": self.model,
-            "model": self.model,
             "messages": messages,
             "temperature": temperature,
             "top_p": 0.8,
             "top_k": 20,
+            "max_tokens": max_tokens,  # FIXED: Added max_tokens
             "presence_penalty": 1.5,
+            "chat_template_kwargs": {"enable_thinking": False},  # FIXED: Added this
             "stream": False
         }
         
         headers = {
             "Content-Type": "application/json",
-            "Authorization": f"Bearer {self.token}",
             "Authorization": f"Bearer {self.token}"
         }
+        
+        logger.info(f"Calling primary LLM at {self.url} with model {self.model}")
         
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(self.url, json=payload, headers=headers)
@@ -95,6 +108,7 @@ class LLMService:
             if choices := data.get('choices'):
                 if message := choices[0].get('message'):
                     if content := message.get('content', '').strip():
+                        logger.info(f"Primary LLM returned {len(content)} characters")
                         return content
             
             logger.error(f"Unexpected response structure: {data.keys()}")
@@ -135,8 +149,8 @@ class LLMService:
             return response.text
             
         except Exception as e:
-            logger.error(f"Fallback LLM also failed: {e}", exc_info=True)
-            return "Maaf, sistem AI sedang tidak tersedia. Silakan coba lagi nanti."
+            logger.error(f"Gemini fallback failed: {e}", exc_info=True)
+            raise  # Re-raise to trigger next fallback
 
     async def _call_openai_fallback(self, messages: list) -> str:
         """Call OpenAI as another fallback"""
@@ -161,17 +175,21 @@ class LLMService:
             raise Exception("OpenAI returned empty response")
             
         except Exception as e:
-            logger.error(f"OpenAI Fallback LLM also failed: {e}", exc_info=True)
-            return "Maaf, sistem AI sedang tidak tersedia. Silakan coba lagi nanti."
+            logger.error(f"OpenAI fallback failed: {e}", exc_info=True)
+            raise  # Re-raise to show final error
 
     def _is_error_response(self, text: str) -> bool:
         """Check if response text is an error message"""
+        if not text or len(text.strip()) < 10:  # Too short to be valid
+            return True
+            
         error_indicators = [
             "maaf, terjadi masalah",
             "error",
             "timeout",
             "tidak ada respons",
-            "kesalahan sistem"
+            "kesalahan sistem",
+            "tidak tersedia"
         ]
         return any(indicator in text.lower() for indicator in error_indicators)
     
