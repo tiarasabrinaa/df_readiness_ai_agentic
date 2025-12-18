@@ -116,22 +116,22 @@ def check_maturity_level(score_per_enabler: Dict[str, float]) -> Dict[str, str]:
     list_score = list(score_per_enabler.values())
 
     capability_requirements = {
-        "maturity_1": [0, 0, 0, 0, 0, 0, 0],
-        "maturity_2": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-        "maturity_3": [2.0, 2.0, 2.0, 2.0, 1.0, 2.0, 2.0],
-        "maturity_4": [2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 2.0],
-        "maturity_5": [3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0]
+        "1": [0, 0, 0, 0, 0, 0, 0],
+        "2": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+        "3": [2.0, 2.0, 2.0, 2.0, 1.0, 2.0, 2.0],
+        "4": [2.0, 3.0, 3.0, 3.0, 3.0, 3.0, 2.0],
+        "5": [3.0, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0]
     }
 
-    if list_score <= capability_requirements["maturity_1"]:
-        return "maturity_1"
-    elif list_score <= capability_requirements["maturity_2"]:
-        return "maturity_2"
-    elif list_score <= capability_requirements["maturity_3"]:
-        return "maturity_3"
-    elif list_score <= capability_requirements["maturity_4"]:
-        return "maturity_4"
-    elif list_score <= capability_requirements["maturity_5"]:
-        return "maturity_5"
+    if list_score <= capability_requirements["1"]:
+        return "1"
+    elif list_score <= capability_requirements["2"]:
+        return "2"
+    elif list_score <= capability_requirements["3"]:
+        return "3"
+    elif list_score <= capability_requirements["4"]:
+        return "4"
+    elif list_score <= capability_requirements["5"]:
+        return "5"
     else:
         return "unknown"

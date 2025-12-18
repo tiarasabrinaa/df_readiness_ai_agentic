@@ -64,6 +64,8 @@ def get_results():
         analysis = run_async(get_summary_analysis(manager))
 
         data = {
+            "score_per_enablers": manager.context.get("score_enablers", {}),
+            "maturity_level": manager.context.get("maturity_level", ""),
             "summary_analysis": analysis["summary_analysis"],
             "next_steps": analysis["next_steps"],
             "highest_enabler": analysis["highest_enabler"],
