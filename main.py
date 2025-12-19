@@ -2,6 +2,7 @@
 Main Flask Application
 Digital Forensics Readiness Assessment API
 """
+import logging
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -24,6 +25,18 @@ from api.v2.timeline import timeline_v2
 # ============== APP INITIALIZATION ==============
 app = Flask(__name__)
 app.secret_key = settings.SECRET_KEY or 'secret_key'
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()  # Output to console/terminal
+    ]
+)
+
+# Set Flask's logger to DEBUG as well
+app.logger.setLevel(logging.DEBUG)
 
 # CORS configuration
 CORS(app, supports_credentials=True)
