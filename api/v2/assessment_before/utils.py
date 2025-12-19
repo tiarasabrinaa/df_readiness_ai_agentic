@@ -23,8 +23,8 @@ def validate_answers(answers: List[Any]) -> List[int]:
         except (ValueError, TypeError):
             raise ValueError(f"Answer {i+1} must be a number")
         
-        if score not in [1, 2, 3, 4]:
-            raise ValueError(f"Answer {i+1} must be 1, 2, 3, or 4")
+        if score not in [0, 1, 2, 3]:
+            raise ValueError(f"Answer {i+1} must be 0, 1, 2, 3")
         
         validated.append(score)
     
