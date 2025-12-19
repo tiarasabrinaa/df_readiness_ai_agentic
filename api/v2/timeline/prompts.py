@@ -15,23 +15,23 @@ with open(txt_file, 'r', encoding='utf-8') as file:
 # ============== MATURITY LEVEL DESCRIPTIONS ==============
 
 MATURITY_LEVELS = {
-    "maturity_1": {
+    "1": {
         "level": "Initial",
         "description": "Tidak ada struktur atau proses yang diterapkan"
     },
-    "maturity_2": {
+    "2": {
         "level": "Managed",
         "description": "Beberapa proses mulai dilakukan"
     },
-    "maturity_3": {
+    "3": {
         "level": "Defined",
         "description": "Proses telah terdokumentasi"
     },
-    "maturity_4": {
+    "4": {
         "level": "Quantitatively Managed",
         "description": "Proses terkelola dengan evaluasi berbasis data"
     },
-    "maturity_5": {
+    "5": {
         "level": "Optimized",
         "description": "Proses dioptimalkan dan terintegrasi"
     }

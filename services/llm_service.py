@@ -10,12 +10,14 @@ from google.genai import types
 from openai import OpenAI
 
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 class LLMService:
     def __init__(self):
-        self.url = settings.LLM_URL
-        self.token = settings.LLM_TOKEN
-        self.model = settings.LLM_MODEL
+        self.url = "https://llm.rokade.id/v1/chat/completions"
+        self.token = "8q27r8ADo8yaqaINYaty4w8tyai"
+        self.model = "Qwen/Qwen2.5-7B-Instruct-AWQ"
+        logger.info(f"LLMService initialized with URL: {self.url}, Model: {self.model}")
         
         self.token_fallback_gemini = settings.FALLBACK_LLM_KEY_GEMINI
         self.token_fallback_openai = settings.FALLBACK_LLM_KEY_OPENAI
@@ -96,13 +98,6 @@ class LLMService:
 
     async def _call_primary_llm(self, messages: list, max_tokens: int, temperature: float) -> str:
         """Call primary LLM API"""
-
-        logger.info("="*50)
-        logger.info(f"Token dari env: '{self.token}'")
-        logger.info(f"Token length: {len(self.token)}")
-        logger.info(f"Token repr: {repr(self.token)}")
-        logger.info(f"Token hex: {self.token.encode('utf-8').hex()}")
-        logger.info("="*50)
         
         payload = {
             "model": self.model,

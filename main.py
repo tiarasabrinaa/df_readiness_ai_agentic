@@ -21,7 +21,6 @@ from api.v2.assessment_before import assessment_before_bp_v2 as assessment_befor
 from api.v2.result import result_v2
 from api.v2.timeline import timeline_v2
 
-
 # ============== APP INITIALIZATION ==============
 app = Flask(__name__)
 app.secret_key = settings.SECRET_KEY or 'secret_key'
