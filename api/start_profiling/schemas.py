@@ -22,12 +22,16 @@ class SubmitAnswersRequest(BaseModel):
 
 # RESPONSE SCHEMAS
 
+class OptionProfiling(BaseModel):
+    label: str
+    is_field: Optional[bool] = False
+
 class QuestionProfilingModel(BaseModel):
     """Individual profiling question"""
     id: str = Field(..., description="Question identifier (e.g., 'question1')")
     question: str = Field(..., description="Question text in Indonesian")
     type: str = Field(..., description="Input type: text, select, number")
-    options: Optional[List[str]] = Field(None, description="Options for select type")
+    options: Optional[List[OptionProfiling]] = Field(None, description="Options for select type")
 
 class GetQuestionsData(BaseModel):
     """Response data for GET /start_profiling"""

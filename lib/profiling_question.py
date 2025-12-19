@@ -4,7 +4,7 @@ PROFILING_QUESTIONS = [
     "id": "question1",
     "type": "organization",
     "question": "Apakah organisasi Anda tergolong dalam kategori Usaha Mikro, Kecil, dan Menengah (UMKM)?",
-    "choices": [
+    "options": [
       { "label": "Ya, organisasi saya termasuk UMKM" },
       { "label": "Tidak, organisasi saya bukan UMKM" }
     ]
@@ -13,7 +13,7 @@ PROFILING_QUESTIONS = [
     "id": "question2",
     "type": "organization",
     "question": "Apakah organisasi Anda merupakan Badan Usaha Milik Negara (BUMN)?",
-    "choices": [
+    "options": [
       { "label": "Ya, organisasi saya adalah BUMN" },
       { "label": "Tidak, organisasi saya bukan BUMN" }
     ]
@@ -22,7 +22,7 @@ PROFILING_QUESTIONS = [
     "id": "question3",
     "type": "organization",
     "question": "Berapa jumlah karyawan di organisasi Anda?",
-    "choices": [
+    "options": [
       { "label": "<10" },
       { "label": "10-50" },
       { "label": "51-200" },
@@ -33,7 +33,7 @@ PROFILING_QUESTIONS = [
     "id": "question4",
     "type": "organization",
     "question": "Berapa omzet tahunan organisasi Anda?",
-    "choices": [
+    "options": [
       { "label": "< 1 Miliar" },
       { "label": "1-5 Miliar" },
       { "label": "6-20 Miliar" },
@@ -44,7 +44,7 @@ PROFILING_QUESTIONS = [
     "id": "question5",
     "type": "organization",
     "question": "Bagaimana status permodalan organisasi Anda?",
-    "choices": [
+    "options": [
       { "label": "Mandiri" },
       { "label": "Dibiayai oleh investor"},
       { "label": "Dibiayai oleh bank atau lembaga keuangan lainnya" }
@@ -54,7 +54,7 @@ PROFILING_QUESTIONS = [
     "id": "question6",
     "type": "organization",
     "question": "Seperti apa struktur organisasi Anda?",
-    "choices": [
+    "options": [
       { "label": "Piramidal" },
       { "label": "Flat" },
       { "label": "Matriks" },
@@ -65,7 +65,7 @@ PROFILING_QUESTIONS = [
     "id": "question7",
     "type": "organization",
     "question": "Berapa total asset yang dimiliki oleh organisasi Anda?",
-    "choices": [
+    "options": [
       { "label": "< 1 Miliar" },
       { "label": "1 - 10 Miliar" },
       { "label": "11 - 50 Miliar"},
@@ -76,7 +76,7 @@ PROFILING_QUESTIONS = [
     "id": "question8",
     "type": "organization",
     "question": "Berapa besar pajak yang dibayarkan oleh organisasi Anda dalam setahun?",
-    "choices": [
+    "options": [
       { "label": "<500 Juta" },
       { "label": "500 Juta - 5 Miliar" },
       { "label": "5 - 50 Miliar" },
@@ -87,7 +87,7 @@ PROFILING_QUESTIONS = [
     "id": "question9",
     "type": "personal",
     "question": "Berapa lama Anda telah menjabat posisi ini?",
-    "choices": [
+    "options": [
       { "label": "< 1 tahun" },
       { "label": "1-3 tahun" },
       { "label": "4-5 tahun" },
@@ -98,7 +98,7 @@ PROFILING_QUESTIONS = [
     "id": "question10",
     "type": "personal",
     "question": "Apa tingkat pendidikan Anda?",
-    "choices": [
+    "options": [
       { "label": "SMA/SMK" },
       { "label": "D3" },
       { "label": "S1" },
@@ -111,7 +111,7 @@ PROFILING_QUESTIONS = [
     "id": "question11",
     "type": "personal",
     "question": "Apa pengalaman kerja Anda dalam bidang ini?",
-    "choices": [
+    "options": [
       { "label": "< 1 tahun" },
       { "label": "1-3 tahun" },
       { "label": "4-5 tahun" },
