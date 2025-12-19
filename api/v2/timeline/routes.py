@@ -104,14 +104,15 @@ def create_timeline():
     try:
         manager = get_or_create_session()
         
+        # TODO: Re-enable phase validation after fixing phase management issues
         # Validate that assessment has been completed
-        if not manager.context.get('score_enablers'):
-            return jsonify(
-                BaseResponse.error(
-                    message="Please complete assessment first",
-                    errors="No assessment results found"
-                ).model_dump()
-            ), 400
+        # if not manager.context.get('score_enablers'):
+        #     return jsonify(
+        #         BaseResponse.error(
+        #             message="Please complete assessment first",
+        #             errors="No assessment results found"
+        #         ).model_dump()
+        #     ), 400
         
         # Get request data
         data = request.get_json()

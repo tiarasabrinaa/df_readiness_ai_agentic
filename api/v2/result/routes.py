@@ -54,11 +54,12 @@ def get_results():
     try:
         manager = get_or_create_session()
         
-        current_phase = manager.context.get('current_phase')
-        print(f"Current phase: {current_phase}")
-        
-        if current_phase == "evaluation":
-            print("Performing LLM evaluation...")
+        # TODO: Re-enable phase validation after fixing phase management issues
+        # current_phase = manager.context.get('current_phase')
+        # print(f"Current phase: {current_phase}")
+        # 
+        # if current_phase == "evaluation":
+        #     print("Performing LLM evaluation...")
         
         analysis = {}
         analysis = run_async(get_summary_analysis(manager))
