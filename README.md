@@ -178,6 +178,8 @@ Respons:
 
 ## How to Run vLLM in Ubuntu
 
+Base tutorial: https://discuss.vllm.ai/t/vllm-on-rtx5090-working-gpu-setup-with-torch-2-9-0-cu128/1492
+
 ### Run directly
 
 1. Go to vLLM directory
