@@ -22,7 +22,7 @@ def get_quick_test_questions():
     try:
         manager = get_or_create_session()
         
-        if manager.context["current_phase"] not in ["package_selected", "testing"]:
+        if manager.context["current_phase"] not in ["package_selected", "testing", "evaluation"]:
             response = BaseResponse.error(message="Please complete profiling first")
             return jsonify(response.model_dump()), 400
 

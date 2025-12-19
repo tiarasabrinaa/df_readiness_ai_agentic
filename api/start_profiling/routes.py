@@ -137,6 +137,14 @@ async def submit_answers():
             questions=PROFILING_QUESTIONS
         )
 
+        # Check if AI system is unavailable
+        if "sistem AI sedang tidak tersedia" in profile_description or "sistem AI tidak tersedia" in profile_description:
+            response = BaseResponse.error(
+                message="AI system is currently unavailable",
+                errors="Maaf, sistem AI sedang tidak tersedia. Silakan coba lagi nanti."
+            )
+            return jsonify(response.model_dump(exclude_none=True)), 500
+
         # Build response data
         response_data = SubmitAnswersData(
             session_id=manager.session_id,
@@ -154,4 +162,8 @@ async def submit_answers():
         return jsonify(response.model_dump(exclude_none=True))
 
     except Exception as e:
+        response = BaseResponse.error(
+            message="Failed to submit answers",
+            errors=str(e)
+        )
         return jsonify(response.model_dump(exclude_none=True)), 500
