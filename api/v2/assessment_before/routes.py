@@ -60,19 +60,28 @@ def get_quick_test_questions():
 @assessment_before_bp_v2.route('/submit_test_answers', methods=['POST'])
 def submit_test_answers():
     """Submit assessment answers and calculate scores"""
+    logger.debug("=== submit_test_answers called ===")
     try:
+        logger.debug("Getting or creating session...")
         manager = get_or_create_session()
+        logger.debug(f"Session ID: {manager.session_id}")
+        logger.debug(f"Current context: {manager.context}")
         
         if not request.is_json:
+            logger.debug("Request is not JSON, returning 400")
             return jsonify(
                 BaseResponse.error(message="Request must be JSON").model_dump()
             ), 400
         
         data = request.get_json()
+        logger.debug(f"Received request data: {data}")
         
         try:
+            logger.debug("Processing assessment submission...")
             result = process_assessment_submission(manager, data)
+            logger.debug(f"Assessment result: {result}")
         except ValueError as e:
+            logger.debug(f"ValueError in process_assessment_submission: {e}")
             return jsonify(
                 BaseResponse.error(message=str(e)).model_dump()
             ), 400
@@ -83,7 +92,9 @@ def submit_test_answers():
             enablers_score=result["enablers_score"],
             maturity_level=result["maturity_level"]
         )
+        logger.debug(f"Response data: {response_data}")
         
+        logger.debug("=== submit_test_answers completed successfully ===")
         return jsonify(
             BaseResponse.success(
                 data=response_data,
